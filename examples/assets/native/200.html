@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>JSON parser and editor</title><style>body{font:16px/1.6 "Segoe UI",sans-serif;margin:24px;color:#223;background:#f7f9fc}h1{font-size:25px}button,input,select,textarea{font:inherit;padding:7px;margin:3px}button{cursor:pointer}textarea{width:95%;height:190px;font-family:Consolas,monospace}pre{white-space:pre-wrap;background:#e8eef6;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #bcc9dc;padding:6px 12px}th{cursor:pointer;background:#dce6f5}details{margin-left:18px}mark{background:gold}.wip{border-left:6px solid #d88900;padding:12px;background:#fff0cb}nav{display:flex;gap:8px}input[type=checkbox]{width:20px;height:20px}</style><h1>JSON parser and editor</h1><textarea id="json">{"user":{"name":"mLipok","items":[1,2,3]},"enabled":true}</textarea><br>
+<input id="path" value="user.name" aria-label="Path"><input id="value" value='"AutoIt"' aria-label="New JSON value">
+<button onclick="run('get')">Read path</button><button onclick="run('set')">Set</button><button onclick="run('delete')">Delete</button>
+<button onclick="run('pretty')">Pretty</button><button onclick="run('compact')">Compact</button><button onclick="run('flatten')">Flatten</button><pre id="result"></pre><script>window.send = text => window.chrome.webview.postMessage(String(text));
+window.demoResult = () => document.title;
+window.demoCheck = () => !!document.querySelector('h1');
+
+const input=document.getElementById('json'), result=document.getElementById('result');
+function parts(p){return p.replace(/^\$\.?/,'').match(/[^.[\]]+/g)||[]}
+function get(obj,p){return parts(p).reduce((a,k)=>a?.[k],obj)}
+function flatten(obj,prefix='',out={}){for(const [k,v] of Object.entries(obj)){const p=prefix?prefix+'.'+k:k;if(v&&typeof v==='object')flatten(v,p,out);else out[p]=v}return out}
+window.setJSON=text=>{try{JSON.parse(text);input.value=text;return true}catch(e){result.textContent=e.message;return false}};
+window.demoResult=()=>JSON.stringify(JSON.parse(input.value));
+function run(op){try{const obj=JSON.parse(input.value), p=parts(document.getElementById('path').value);let r;
+if(op==='get')r=get(obj,p.join('.'));else if(op==='flatten')r=flatten(obj);else if(op==='set'||op==='delete'){const key=p.pop();if(!key||['__proto__','prototype','constructor'].includes(key)||p.some(x=>['__proto__','prototype','constructor'].includes(x)))throw Error('Invalid path');const target=p.reduce((a,k)=>a?.[k],obj);if(!target||typeof target!=='object')throw Error('Missing parent');if(op==='set')target[key]=JSON.parse(document.getElementById('value').value);else delete target[key];r=obj;input.value=JSON.stringify(obj,null,2)}else{input.value=JSON.stringify(obj,null,op==='pretty'?2:0);r=obj}
+result.textContent=JSON.stringify(r,null,2)??'undefined';send(result.textContent)}catch(e){result.textContent=e.message}}
+
+window.demoCheck=()=>{return get({user:{name:'AutoIt'}},'user.name')==='AutoIt' && flatten({a:{b:1}})['a.b']===1 && setJSON(input.value);};</script></html>

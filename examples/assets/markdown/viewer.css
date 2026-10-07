@@ -1,0 +1,16 @@
+body{font:16px/1.65 "Segoe UI",sans-serif;color:#202020;background:#fff;margin:0}
+.preview-layout{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+#contents{position:sticky;top:0;height:100vh;overflow:auto;box-sizing:border-box;padding:20px 12px;background:#f5f7fa;border-right:1px solid #d8dde5}
+#contents h2{font-size:17px;margin:0 8px 12px;padding-bottom:6px}
+#toc-tree,#toc-tree ul{list-style:none;margin:0;padding:0}
+#toc-tree ul{margin-left:12px;border-left:1px solid #d8dde5;padding-left:8px}
+#toc-tree button{display:block;width:100%;padding:5px 8px;border:0;border-radius:4px;background:transparent;color:#254f85;text-align:left;font:inherit;font-size:13px;line-height:1.3;cursor:pointer;overflow-wrap:anywhere}
+#toc-tree button:hover,#toc-tree button:focus-visible{background:#e4ebf5;outline:2px solid #8eaadb}
+#view{max-width:900px;width:100%;box-sizing:border-box;margin:0 auto;padding:28px}
+#view h1,#view h2{border-bottom:1px solid #ddd;padding-bottom:.25em}
+#view a{color:#1759ad}#view img{max-width:100%}#view pre{overflow:auto;background:#f2f4f7;padding:16px;border-radius:6px}
+#view code{font-family:Consolas,monospace;background:#f2f4f7;padding:2px 4px}#view pre code{padding:0}
+#view blockquote{margin-left:0;border-left:4px solid #8eaadb;padding:6px 18px;background:#f5f7fa}
+#view table{border-collapse:collapse}#view td,#view th{border:1px solid #ccc;padding:7px 12px}#view th{background:#e8eef8}
+@media(max-width:640px){.preview-layout{display:block}#contents{position:static;height:auto;max-height:200px;border-right:0;border-bottom:1px solid #d8dde5}}
+@media print{body{font-size:11pt}.preview-layout{display:block}#contents{display:none}#view{max-width:none;padding:0}#view pre{white-space:pre-wrap}#view a{color:inherit}#view h1,#view h2,#view h3{break-after:avoid}#view img,#view table{break-inside:avoid}}

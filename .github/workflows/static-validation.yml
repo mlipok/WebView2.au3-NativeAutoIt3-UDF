@@ -1,0 +1,14 @@
+name: Static validation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate project structure
+        shell: powershell
+        run: .\tools\Validate-Project.ps1

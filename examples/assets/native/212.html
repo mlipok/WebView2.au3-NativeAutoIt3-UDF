@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Cookies: list, save, and restore</title><style>body{font:16px/1.6 "Segoe UI",sans-serif;margin:24px;color:#223;background:#f7f9fc}h1{font-size:25px}button,input,select,textarea{font:inherit;padding:7px;margin:3px}button{cursor:pointer}textarea{width:95%;height:190px;font-family:Consolas,monospace}pre{white-space:pre-wrap;background:#e8eef6;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #bcc9dc;padding:6px 12px}th{cursor:pointer;background:#dce6f5}details{margin-left:18px}mark{background:gold}.wip{border-left:6px solid #d88900;padding:12px;background:#fff0cb}nav{display:flex;gap:8px}input[type=checkbox]{width:20px;height:20px}</style><h1>Cookies: list, save, and restore</h1><p>The AutoIt buttons read cookies through CDP. Save and restore use this example's separate profile. The JSON contains session data.</p><script>window.send = text => window.chrome.webview.postMessage(String(text));
+window.demoResult = () => document.title;
+window.demoCheck = () => !!document.querySelector('h1');
+
+</script></html>

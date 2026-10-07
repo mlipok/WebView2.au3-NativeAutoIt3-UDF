@@ -1,0 +1,25 @@
+WebView2.au3 v0.5.0 - validation record
+Date: 2026-09-27 Europe/Warsaw
+
+Structure:
+- Root AutoIt source files: 8
+- Root function definitions: 219
+- Public _WebView2_* functions: 165
+- Numbered examples: 22
+- Functions in root and examples: 265; each has exactly one Return statement
+- Func/EndFunc imbalance files: 0
+- tools/Validate-Project.ps1: Project structure validation: OK
+- Bundled x86 and x64 WebView2Loader.dll files: present
+
+Static validation:
+- Tidy 25.205.1420.9: completed for all 30 root/example AU3 files.
+- Tidy reported local-include resolution warnings in five files during staging; formatting completed.
+- Au3Check 3.3.18.0 with -d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7: all 30 root/example AU3 files passed with 0 errors and 0 warnings.
+
+Runtime validation:
+- Isolated AutoIt x86 and x64 probes passed: empty instance/tab lists, user sleep callback cancellation and @extended, loader architecture selection, invalid-tab error handling.
+- Hidden-window native x86/x64 probes passed after adding bounded retries for transient controller/visibility state: create two tabs, list tabs and instances, activate, close, cleanup.
+- Visible GUI behavior in examples is not verified.
+
+Compatibility note:
+- A user-provided sleep callback can signal cancellation through WEBVIEW2_ERR_USER_ABORT; host applications should handle this error when using a custom callback.

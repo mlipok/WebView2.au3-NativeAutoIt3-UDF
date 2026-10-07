@@ -1,0 +1,19 @@
+# Microsoft WebView2 loader binaries fetched by tools/Get-WebView2Loader.ps1
+/bin/x86/WebView2Loader.dll
+/bin/x64/WebView2Loader.dll
+/third_party/Microsoft.Web.WebView2/
+
+# Local download/extraction work
+/.tmp/
+*.nupkg
+
+# AutoIt / SciTE generated files
+*.bak
+*.tmp
+*.log
+
+# Local Tidy backups
+BackUp/
+
+# Local SciTE indexes
+.SciTE_Dynamic_*.tbl
