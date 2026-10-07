@@ -35,7 +35,6 @@ Func _EX_Run()
 	If $CmdLine[0] > 0 Then $g_EX_bSmoke = ($CmdLine[1] = "--smoke")
 	Do
 		$g_EX_hGUI = GUICreate("221-ModernSidebarUI", 1100, 800, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
-		If Not @Compiled Then GUISetIcon(@AutoItExe)
 		Local $idBack = GUICtrlCreateButton("<", 5, 5, 30, 25), $idForward = GUICtrlCreateButton(">", 40, 5, 30, 25)
 		Local $idReload = GUICtrlCreateButton("Reload", 75, 5, 70, 25), $idStop = GUICtrlCreateButton("Stop", 150, 5, 45, 25)
 		$g_EX_idAddress = GUICtrlCreateInput("", 200, 5, 705, 25)

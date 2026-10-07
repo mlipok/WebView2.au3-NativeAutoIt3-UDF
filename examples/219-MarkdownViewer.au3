@@ -42,7 +42,6 @@ Func _MD_Main()
 	Local $iResult = 0
 	Do
 		$g_hMD = GUICreate("219 - Markdown Viewer", 1200, 820, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
-		If Not @Compiled Then GUISetIcon(@AutoItExe)
 		Local $aLabels[19] = ["New", "Open", "Save", "Save as", "B", "I", "U", "Code", "List", "A-", "A+", "Editor", "Both", "Preview", "HTML", "-", "+", "PDF", "MHTML"]
 		Local $iX = 5
 		For $i = 0 To UBound($aLabels) - 1

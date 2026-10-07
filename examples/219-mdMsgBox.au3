@@ -35,7 +35,6 @@ Func _MDBox_Show($sMarkdown, $sTitle = "Markdown", $sButtons = "OK|Cancel", $iTi
 	Local $iResult = 0, $iError = 1, $iExtended = 0, $iView = -1
 	Local $bOwnEnvironment = Not $__g_bWebView2_Initialized
 	Local $hGUI = GUICreate($sTitle, 650, 530, -1, -1, BitOR($WS_CAPTION, $WS_SYSMENU), -1, $hParent)
-	If Not @Compiled Then GUISetIcon(@AutoItExe)
 	Do
 		If $sButtons = "" Then $sButtons = "OK"
 		Local $aLabels = StringSplit($sButtons, "|", $STR_NOCOUNT)
