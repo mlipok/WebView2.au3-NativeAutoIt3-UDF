@@ -59,6 +59,7 @@ examples/
     021_Folder_PDF_SlideShow.au3
     022_Tabs.au3
     023_NewWindowTabs.au3
+    024_BlazorCalendar.au3
 docs/
     API.md
     ARCHITECTURE.md
@@ -260,3 +261,7 @@ Additional examples: `014_Advanced_CDP.au3` through `020_IE_Compatibility.au3`.
 **The new EXAMPLES `200–221` are copies of the EXAMPLES `000–021` set from [GitHub](https://github.com/ioa747/NetWebView2Lib/tree/main/examples), adapted for the native `WebView2.au3` UDF.** The upstream set is by ioa747; the corresponding names and numbers are retained. These are functional copies/adaptations: browser integration was rewritten for the native API, and differences and missing features are documented below.
 
 See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage, WIP scope and verification limits. Source license: [examples/LICENSE.upstream.txt](examples/LICENSE.upstream.txt). Bundled marked v17.0.4 retains its original copyright headers and [license](examples/JS_Lib/marked/LICENSE.md).
+
+## Blazor WebAssembly calendar example
+
+[Example 024](examples/024_BlazorCalendar.au3) hosts a standalone, locally published Blazor WebAssembly calendar through a virtual HTTPS host. It demonstrates Polish locale, year/month/week views, sample events, and a bidirectional JSON bridge. See the [example guide](examples/024_BlazorCalendar/README.md) for setup, protocol and runtime verification.
