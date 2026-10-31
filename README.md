@@ -32,8 +32,9 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - visibility and zoom factor;
 - synchronous AutoIt wrapper around asynchronous `ExecuteScript()`;
 - native-to-web messages (`PostWebMessageAsString`, `PostWebMessageAsJson`);
+- virtual HTTPS host to local folder mapping (`ICoreWebView2_3`);
 - web-to-AutoIt `WebMessageReceived` callback;
-- callbacks for navigation start/completion and title changes;
+- callbacks for navigation start/completion, title changes and document-audio state;
 - DevTools window;
 - runtime detection/version query;
 - diagnostic `@error`, `@extended`, and description helpers.
@@ -58,6 +59,8 @@ examples/
     021_Folder_PDF_SlideShow.au3
     022_Tabs.au3
     023_NewWindowTabs.au3
+    024_BlazorCalendar.au3
+    025_AudioState.au3
 docs/
     API.md
     ARCHITECTURE.md
@@ -259,3 +262,11 @@ Additional examples: `014_Advanced_CDP.au3` through `020_IE_Compatibility.au3`.
 **The new EXAMPLES `200–221` are copies of the EXAMPLES `000–021` set from [GitHub](https://github.com/ioa747/NetWebView2Lib/tree/main/examples), adapted for the native `WebView2.au3` UDF.** The upstream set is by ioa747; the corresponding names and numbers are retained. These are functional copies/adaptations: browser integration was rewritten for the native API, and differences and missing features are documented below.
 
 See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage, WIP scope and verification limits. Source license: [examples/LICENSE.upstream.txt](examples/LICENSE.upstream.txt). Bundled marked v17.0.4 retains its original copyright headers and [license](examples/JS_Lib/marked/LICENSE.md).
+
+## Blazor WebAssembly calendar example
+
+[Example 024](examples/024_BlazorCalendar.au3) hosts a standalone, locally published Blazor WebAssembly calendar through a virtual HTTPS host. It demonstrates Polish locale, year/month/week views, sample events, and a bidirectional JSON bridge. See the [example guide](examples/024_BlazorCalendar/README.md) for setup, protocol and runtime verification.
+
+## Native document-audio event
+
+[Example 025](examples/025_AudioState.au3) plays and stops a local tone in WebView2. The AutoIt status label changes from a native `ICoreWebView2_8` event through `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED, callback)`. `_WebView2_GetIsDocumentPlayingAudio()` reads the same state on demand. The event subscription is removed when the instance is destroyed. This reports document audio activity even if the view is muted; mute control is a separate feature.

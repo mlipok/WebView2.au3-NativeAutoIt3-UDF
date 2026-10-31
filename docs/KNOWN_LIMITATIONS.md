@@ -39,14 +39,14 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
+- audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - native `ICoreWebView2Frame*` wrappers and frame messaging/script objects;
 - native `ICoreWebView2Profile7` extension management;
 - download events and download control;
 - full `NewWindowRequested` deferral / `put_NewWindow` handoff and opener semantics;
 - permissions and script-dialog callbacks;
-- virtual-host-to-folder mapping;
 - accelerator-key settings and default background color through newer interface revisions;
-- audio mute state through the appropriate newer CoreWebView2 revision;
+- audio mute controls and mute-state callbacks; document-audio activity state and its change callback are implemented through `ICoreWebView2_8`;
 - asynchronous/nonblocking public variants of current synchronous helpers.
 
-The functional GitHub example copies have explicit WIP entries for downloads, HTTP response tracking, PDF.js and virtual-folder mapping. See [EXAMPLES.md](EXAMPLES.md).
+The functional GitHub example copies have explicit WIP entries for downloads, HTTP response tracking, PDF.js and the older virtual-folder example. See [EXAMPLES.md](EXAMPLES.md).

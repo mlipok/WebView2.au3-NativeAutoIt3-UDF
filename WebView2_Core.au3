@@ -36,6 +36,9 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_TOKEN_TITLE, _
 		$__WEBVIEW2_INSTANCE_TOKEN_MESSAGE, _
 		$__WEBVIEW2_INSTANCE_TOKEN_NEW_WINDOW, _
+		$__WEBVIEW2_INSTANCE_CORE8, _
+		$__WEBVIEW2_INSTANCE_CB_AUDIO, _
+		$__WEBVIEW2_INSTANCE_TOKEN_AUDIO, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -760,6 +763,179 @@ Func _WebView2_NavigateToString($iWebView, $sHTML)
 EndFunc   ;==>_WebView2_NavigateToString
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_SetVirtualHostNameToFolderMapping
+; Description ...: Serves a local folder from a virtual HTTP(S) host in one WebView2 instance.
+; Syntax ........: _WebView2_SetVirtualHostNameToFolderMapping($iWebView, $sHostName, $sFolderPath[, $iAccessKind = $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY])
+; Parameters ....: $iWebView - WebView instance ID.
+;                  $sHostName - Host name without a scheme or path, such as appassets.example.
+;                  $sFolderPath - Absolute path to an existing local folder.
+;                  $iAccessKind - One of the following cross-origin access modes:
+;                  |$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY - Deny all cross-origin access (default).
+;                  |$WEBVIEW2_HOST_RESOURCE_ACCESS_ALLOW - Allow cross-origin access.
+;                  |$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY_CORS - Allow ordinary cross-origin subresources but deny CORS requests.
+; Return values .: On Success - True.
+;                  On Failure - False and sets @error to $WEBVIEW2_ERR_INVALID_INSTANCE, $WEBVIEW2_ERR_INVALID_PARAMETER or $WEBVIEW2_ERR_HRESULT.
+;                  @extended contains the native HRESULT for $WEBVIEW2_ERR_HRESULT.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Call before navigating to https://<host>/index.html. The mapping does not require an HTTP server.
+; Related .......: _WebView2_Navigate
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2_3#setvirtualhostnametofoldermapping
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_SetVirtualHostNameToFolderMapping($iWebView, $sHostName, $sFolderPath, $iAccessKind = $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY)
+	Local $__WebView2ExitValue = False
+	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
+	Local Const $sFuncName = "_WebView2_SetVirtualHostNameToFolderMapping"
+	Local $sMessage = ''
+	Do
+		If Not __WebView2_Instance_IsValid($iWebView) Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_INVALID_INSTANCE, 0, "Invalid WebView2 instance.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		If Not IsString($sHostName) Or Not StringRegExp($sHostName, "^[A-Za-z0-9][A-Za-z0-9.-]*$") Or StringInStr($sHostName, "..") Or _
+				Not IsString($sFolderPath) Or Not FileExists($sFolderPath) Or Not StringInStr(FileGetAttrib($sFolderPath), "D") Or _
+				Not IsInt($iAccessKind) Or $iAccessKind < $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY Or $iAccessKind > $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY_CORS Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Invalid host, folder or access kind.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+
+		Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
+		Local $tCoreVTable = DllStructCreate("ptr", $pCore)
+		Local $tQueryInterface = DllStructCreate("ptr", DllStructGetData($tCoreVTable, 1))
+		Local $tIID = DllStructCreate($tagGUID)
+		Local $aIID = DllCall("ole32.dll", "long", "IIDFromString", "wstr", $WEBVIEW2_IID_ICoreWebView2_3, "ptr", DllStructGetPtr($tIID))
+		If @error Or $aIID[0] <> $WEBVIEW2_S_OK Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $WEBVIEW2_E_NOINTERFACE, "Could not prepare ICoreWebView2_3 IID.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		Local $aQuery = DllCallAddress("long", DllStructGetData($tQueryInterface, 1), "ptr", $pCore, "ptr", DllStructGetPtr($tIID), "ptr*", 0)
+		If @error Or $aQuery[0] <> $WEBVIEW2_S_OK Or Not $aQuery[3] Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $WEBVIEW2_E_NOINTERFACE, "ICoreWebView2_3 is unavailable.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		Local $oCore3 = ObjCreateInterface($aQuery[3], $WEBVIEW2_IID_ICoreWebView2_3, $WEBVIEW2_DTAG_ICoreWebView2_3)
+		If Not IsObj($oCore3) Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $WEBVIEW2_E_NOINTERFACE, "Could not wrap ICoreWebView2_3.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		Local $iHRESULT = $oCore3.SetVirtualHostNameToFolderMapping($sHostName, $sFolderPath, $iAccessKind)
+		Local $iCOMError = @error
+		$oCore3 = Null
+		If $iCOMError Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $iHRESULT, "SetVirtualHostNameToFolderMapping() failed.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__WebView2ExitValue = True
+		ExitLoop 1
+	Until True
+	If $__WebView2ExitError And $__g_iWebView2_LastError <> $__WebView2ExitError Then __WebView2_Error($sFuncName, $__WebView2ExitError, $sMessage, $__WebView2ExitExtended)
+	Return SetError($__WebView2ExitError, $__WebView2ExitExtended, $__WebView2ExitValue)
+EndFunc   ;==>_WebView2_SetVirtualHostNameToFolderMapping
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Core_QueryAudioInterface
+; Description ...: Obtains an ICoreWebView2_8 wrapper for media state.
+; Syntax ........: __WebView2_Core_QueryAudioInterface($iWebView)
+; Parameters ....: $iWebView - Valid WebView2 instance ID.
+; Return values .: On Success - COM wrapper; On Failure - Null and @error.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The wrapper owns the QueryInterface reference and must be released by clearing it.
+; Related .......: _WebView2_GetIsDocumentPlayingAudio
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2_8
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_Core_QueryAudioInterface($iWebView)
+	Local $oResult = Null, $iError = 0, $iExtended = 0
+	Do
+		Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
+		Local $tCoreVTable = DllStructCreate("ptr", $pCore)
+		Local $tQueryInterface = DllStructCreate("ptr", DllStructGetData($tCoreVTable, 1))
+		Local $tIID = DllStructCreate($tagGUID)
+		Local $aIID = DllCall("ole32.dll", "long", "IIDFromString", "wstr", $WEBVIEW2_IID_ICoreWebView2_8, "ptr", DllStructGetPtr($tIID))
+		If @error Then
+			$iError = $WEBVIEW2_ERR_DLLCALL
+			ExitLoop 1
+		EndIf
+		If $aIID[0] <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $aIID[0]
+			ExitLoop 1
+		EndIf
+		Local $aQuery = DllCallAddress("long", DllStructGetData($tQueryInterface, 1), "ptr", $pCore, "ptr", DllStructGetPtr($tIID), "ptr*", 0)
+		If @error Then
+			$iError = $WEBVIEW2_ERR_DLLCALL
+			ExitLoop 1
+		EndIf
+		If $aQuery[0] <> $WEBVIEW2_S_OK Or Not $aQuery[3] Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $aQuery[0]
+			ExitLoop 1
+		EndIf
+		$oResult = ObjCreateInterface($aQuery[3], $WEBVIEW2_IID_ICoreWebView2_8, $WEBVIEW2_DTAG_ICoreWebView2_8)
+		If Not IsObj($oResult) Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $WEBVIEW2_E_NOINTERFACE
+		EndIf
+	Until True
+	Return SetError($iError, $iExtended, $oResult)
+EndFunc   ;==>__WebView2_Core_QueryAudioInterface
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_GetIsDocumentPlayingAudio
+; Description ...: Reads the native WebView2 document-audio state.
+; Syntax ........: _WebView2_GetIsDocumentPlayingAudio($iWebView)
+; Parameters ....: $iWebView - WebView2 instance ID.
+; Return values .: On Success - True when audio is playing, otherwise False; @error is zero in both cases.
+;                  On Failure - False and @error is set; @extended contains a native HRESULT when available.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The value can be True even when the WebView is muted.
+; Related .......: _WebView2_SetCallback
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2_8#get_isdocumentplayingaudio
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_GetIsDocumentPlayingAudio($iWebView)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If Not __WebView2_Instance_IsValid($iWebView) Then
+			$iError = $WEBVIEW2_ERR_INVALID_INSTANCE
+			ExitLoop 1
+		EndIf
+		Local $oCore8 = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE8]
+		If Not IsObj($oCore8) Then
+			$oCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
+			$iError = @error
+			$iExtended = @extended
+			If $iError Then ExitLoop 1
+		EndIf
+		Local $iPlaying = 0
+		Local $iHRESULT = $oCore8.get_IsDocumentPlayingAudio($iPlaying)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		$bResult = $iPlaying <> 0
+	Until True
+	If $iError Then __WebView2_Error("_WebView2_GetIsDocumentPlayingAudio", $iError, "Could not read audio state.", $iExtended)
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_GetIsDocumentPlayingAudio
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Reload
 ; Description ...: Reloads the current document.
 ; Syntax ........: _WebView2_Reload($iWebView)
@@ -1176,6 +1352,7 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |DOCUMENT_TITLE_CHANGED   - Called when the page title changes.
 ;                  |WEB_MESSAGE_RECEIVED     - Called for a message posted by web content.
 ;                  |NEW_WINDOW_REQUESTED    - Called for target=_blank/window.open; returning True suppresses the popup.
+;                  |DOCUMENT_PLAYING_AUDIO_CHANGED - Called when document audio starts or stops; receives ($iWebView, $bIsPlaying).
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
 ; Return values .: On Success - True; On Failure - False.
 ;                  Direct helper returns clear @error/@extended; inspect _WebView2_Error_GetCode/GetExtended.
@@ -1217,6 +1394,26 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_MESSAGE] = $fnCallback
 			Case $WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_NEW_WINDOW] = $fnCallback
+			Case $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED
+				If Not $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] Then
+					Local $oCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
+					Local $iAudioQueryError = @error, $iAudioQueryExtended = @extended
+					If $iAudioQueryError Then
+						$__WebView2ExitError = $iAudioQueryError
+						$__WebView2ExitExtended = $iAudioQueryExtended
+						ExitLoop 1
+					EndIf
+					Local $tAudioToken = DllStructCreate("int64")
+					Local $iAudioResult = $oCore8.add_IsDocumentPlayingAudioChanged(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_DOCUMENT_PLAYING_AUDIO_CHANGED), $tAudioToken)
+					If @error Or $iAudioResult <> $WEBVIEW2_S_OK Then
+						$__WebView2ExitError = $WEBVIEW2_ERR_HRESULT
+						$__WebView2ExitExtended = $iAudioResult
+						ExitLoop 1
+					EndIf
+					$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE8] = $oCore8
+					$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] = DllStructGetData($tAudioToken, 1)
+				EndIf
+				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_AUDIO] = $fnCallback
 			Case Else
 				$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Unsupported WebView2 event constant.", False)
 				$__WebView2ExitError = @error
@@ -1948,6 +2145,12 @@ Func __WebView2_Callbacks_Create()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
+		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_DOCUMENT_PLAYING_AUDIO_CHANGED, __WebView2_DocumentPlayingAudioChanged_Invoke, "ptr;ptr;ptr") Then
+			$__WebView2ExitValue = False
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
 		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_EXECUTE_SCRIPT, __WebView2_ExecuteScriptCompleted_Invoke, "ptr;long;wstr") Then
 			$__WebView2ExitValue = False
 			$__WebView2ExitError = @error
@@ -2352,6 +2555,33 @@ Func __WebView2_DocumentTitleChanged_Invoke($pSelf, $pSender, $pArgs)
 EndFunc   ;==>__WebView2_DocumentTitleChanged_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_DocumentPlayingAudioChanged_Invoke
+; Description ...: Dispatches the native audio-state event to an AutoIt callback.
+; Syntax ........: __WebView2_DocumentPlayingAudioChanged_Invoke($pSelf, $pSender, $pArgs)
+; Parameters ....: $pSelf - Callback COM pointer.
+;                  $pSender - CoreWebView2 COM pointer.
+;                  $pArgs - Unused event argument pointer.
+; Return values .: S_OK.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: User callback receives ($iWebView, $bIsPlaying).
+; Related .......: _WebView2_SetCallback
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_DocumentPlayingAudioChanged_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf, $pArgs
+	Local $iSlot = __WebView2_Instance_FindByCorePointer($pSender)
+	If $iSlot >= 0 Then
+		Local $bPlaying = _WebView2_GetIsDocumentPlayingAudio($iSlot)
+		Local $iError = @error
+		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_AUDIO]
+		If Not $iError And IsFunc($fnCallback) Then Call($fnCallback, $iSlot, $bPlaying)
+	EndIf
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_DocumentPlayingAudioChanged_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_WebMessageReceived_Invoke
 ; Description ...: Receives a web-message callback.
 ; Syntax ........: __WebView2_WebMessageReceived_Invoke($pSelf, $pSender, $pArgs)
@@ -2601,6 +2831,14 @@ Func __WebView2_Events_Unsubscribe($iSlot)
 		If $iToken Then
 			$oCore.remove_NewWindowRequested($iToken)
 			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_NEW_WINDOW] = 0
+		EndIf
+
+		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO]
+		If $iToken Then
+			Local $oCore8 = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE8]
+			If IsObj($oCore8) Then $oCore8.remove_IsDocumentPlayingAudioChanged($iToken)
+			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] = 0
+			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE8] = Null
 		EndIf
 	Until True
 	If $__WebView2ExitError And $__g_iWebView2_LastError <> $__WebView2ExitError Then __WebView2_Error($sFuncName, $__WebView2ExitError, $sMessage, $__WebView2ExitExtended)

@@ -94,8 +94,9 @@ Sources reviewed:
 | `AreBrowserAcceleratorKeysEnabled` | none | MISSING | Candidate for newer `ICoreWebView2Settings*`. |
 | `AreBrowserPopupsAllowed` | none | MISSING | Candidate for `NewWindowRequested`. |
 | `AdditionalBrowserArguments` | none | MISSING | Must be supplied at environment creation through options. |
-| `SetVirtualHostNameToFolderMapping` | none | MISSING | Candidate for `ICoreWebView2_3`. |
-| `SetMuted` / `IsMuted` | none | MISSING | Candidate for newer CoreWebView2 revision. |
+| `SetVirtualHostNameToFolderMapping` | `_WebView2_SetVirtualHostNameToFolderMapping` | IMPLEMENTED | Native `ICoreWebView2_3`; example 024 verifies x86 and x64. |
+| `IsDocumentPlayingAudio` / `IsDocumentPlayingAudioChanged` | `_WebView2_GetIsDocumentPlayingAudio` / `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED` | IMPLEMENTED | Native `ICoreWebView2_8`; verified x86/x64 start and stop transitions. |
+| `SetMuted` / `IsMuted` | none | MISSING | Mute control is separate from document-audio activity. |
 | JSON parser/bind/sync methods | none | N/A | These are utility/parser features of the .NET bridge, not WebView2 hosting functionality. |
 
 ## au3WebDriver -> WebView2.au3
