@@ -94,7 +94,7 @@ Sources reviewed:
 | `AreBrowserAcceleratorKeysEnabled` | none | MISSING | Candidate for newer `ICoreWebView2Settings*`. |
 | `AreBrowserPopupsAllowed` | none | MISSING | Candidate for `NewWindowRequested`. |
 | `AdditionalBrowserArguments` | none | MISSING | Must be supplied at environment creation through options. |
-| `SetVirtualHostNameToFolderMapping` | none | MISSING | Candidate for `ICoreWebView2_3`. |
+| `SetVirtualHostNameToFolderMapping` | `_WebView2_SetVirtualHostNameToFolderMapping` | IMPLEMENTED | Native `ICoreWebView2_3`; x86 and x64 mapping smoke tests passed. |
 | `SetMuted` / `IsMuted` | none | MISSING | Candidate for newer CoreWebView2 revision. |
 | JSON parser/bind/sync methods | none | N/A | These are utility/parser features of the .NET bridge, not WebView2 hosting functionality. |
 

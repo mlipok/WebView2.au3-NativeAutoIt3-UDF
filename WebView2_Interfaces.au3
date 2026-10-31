@@ -12,6 +12,7 @@
 Global Const $WEBVIEW2_IID_ICoreWebView2Environment = "{B96D755E-0319-4E92-A296-23436F46A1FC}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Controller = "{4D00C0D1-9434-4EB6-8078-8697A560334F}"
 Global Const $WEBVIEW2_IID_ICoreWebView2 = "{76ECEACB-0462-4D94-AC83-423A6793775E}"
+Global Const $WEBVIEW2_IID_ICoreWebView2_3 = "{A0D6DF20-3B92-416D-AA0C-437A9C727857}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469-E119-438A-9B18-7604F25F2E49}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventArgs = "{30D68B7D-20D9-4752-A9CA-EC8448FBB5C1}"
@@ -118,6 +119,21 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"RemoveWebResourceRequestedFilter hresult();" & _
 		"add_WindowCloseRequested hresult();" & _
 		"remove_WindowCloseRequested hresult();"
+
+; The inherited entries must remain in exact WebView2.idl vtable order.
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_3 = $WEBVIEW2_DTAG_ICoreWebView2 & _
+		"add_WebResourceResponseReceived hresult();" & _
+		"remove_WebResourceResponseReceived hresult();" & _
+		"NavigateWithWebResourceRequest hresult();" & _
+		"add_DOMContentLoaded hresult();" & _
+		"remove_DOMContentLoaded hresult();" & _
+		"get_CookieManager hresult();" & _
+		"get_Environment hresult();" & _
+		"TrySuspend hresult();" & _
+		"Resume hresult();" & _
+		"get_IsSuspended hresult();" & _
+		"SetVirtualHostNameToFolderMapping hresult(wstr;wstr;int);" & _
+		"ClearVirtualHostNameToFolderMapping hresult(wstr);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings = _
 		"get_IsScriptEnabled hresult(bool*);" & _
