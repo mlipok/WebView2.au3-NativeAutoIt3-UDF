@@ -91,3 +91,7 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 - `21_Folder_PDF_SlideShow.au3` → [`021_Folder_PDF_SlideShow.au3`](../examples/021_Folder_PDF_SlideShow.au3); existing behavior retained.
 - `22_Tabs.au3` → [`022_Tabs.au3`](../examples/022_Tabs.au3); existing behavior retained.
 - [`023_NewWindowTabs.au3`](../examples/023_NewWindowTabs.au3) demonstrates handling `target="_blank"` and `window.open` by queuing a URI and opening an app-managed tab. This does not preserve JavaScript opener semantics.
+
+## 024_BlazorCalendar.au3
+
+[Example 024](../examples/024_BlazorCalendar.au3) is a standalone native AutoIt host for a locally published Blazor WebAssembly calendar. It is separate from the 200–221 GitHub example adaptations. The calendar library is vendored under its MIT license from [tossnet/Blazor-Calendar](https://github.com/tossnet/Blazor-Calendar). The [example guide](../examples/024_BlazorCalendar/README.md) contains the build/run steps, JSON protocol, time-zone rules, and live test evidence. The example does not access a database or remote API.

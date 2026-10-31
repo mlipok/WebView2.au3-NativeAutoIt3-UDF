@@ -66,7 +66,7 @@ Sets zoom, where `1.0` is 100%.
 `NavigateToString()` follows WebView2's own size/origin limitations.
 
 ### `_WebView2_SetVirtualHostNameToFolderMapping($iWebView, $sHostName, $sFolderPath[, $iAccessKind = $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY])`
-Maps an existing local folder to `https://<host>/` in one WebView2 instance through `ICoreWebView2_3`. Call it before navigation. Returns `True` on success, or `False` with `@error` for invalid instance/parameters or a native HRESULT (`@extended`). No local HTTP server is needed. Cross-origin modes are `$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY` (default), `$WEBVIEW2_HOST_RESOURCE_ACCESS_ALLOW`, and `$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY_CORS`. The host name excludes scheme and path; use an absolute folder path.
+Maps an existing local folder to `https://<host>/` in one WebView2 instance through `ICoreWebView2_3`. Call it before navigation. Returns `True` on success, or `False` with `@error` for invalid instance/parameters or a native HRESULT (`@extended`). No local HTTP server is needed. Cross-origin modes are `$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY` (default), `$WEBVIEW2_HOST_RESOURCE_ACCESS_ALLOW`, and `$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY_CORS`. The host name excludes scheme and path; use an absolute folder path. See [example 024](../examples/024_BlazorCalendar/README.md).
 
 ## Document data and scripting
 
