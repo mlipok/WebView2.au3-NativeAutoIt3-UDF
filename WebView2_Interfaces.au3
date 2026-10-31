@@ -13,6 +13,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Environment = "{B96D755E-0319-4E92-A296-
 Global Const $WEBVIEW2_IID_ICoreWebView2Controller = "{4D00C0D1-9434-4EB6-8078-8697A560334F}"
 Global Const $WEBVIEW2_IID_ICoreWebView2 = "{76ECEACB-0462-4D94-AC83-423A6793775E}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_3 = "{A0D6DF20-3B92-416D-AA0C-437A9C727857}"
+Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469-E119-438A-9B18-7604F25F2E49}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventArgs = "{30D68B7D-20D9-4752-A9CA-EC8448FBB5C1}"
@@ -24,6 +25,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2ControllerCompletedHan
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventHandler = "{9ADBE429-F36D-432B-9DDC-F8881FBD76E3}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventHandler = "{D33A35BF-1C49-4F98-93AB-006E0533FE1C}"
 Global Const $WEBVIEW2_IID_ICoreWebView2DocumentTitleChangedEventHandler = "{F5F2B923-953E-4042-9F95-F3A118E1AFD4}"
+Global Const $WEBVIEW2_IID_ICoreWebView2IsDocumentPlayingAudioChangedEventHandler = "{5DEF109A-2F4B-49FA-B7F6-11C39E513328}"
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventHandler = "{57213F19-00E6-49FA-8E07-898EA01ECBD2}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventHandler = "{D4C185FE-C81C-4989-97AF-2D3FA7AB5651}"
 Global Const $WEBVIEW2_IID_ICoreWebView2ExecuteScriptCompletedHandler = "{49511172-CC67-4BCA-9923-137112F4C4CC}"
@@ -134,6 +136,24 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2_3 = $WEBVIEW2_DTAG_ICoreWebView2 & _
 		"get_IsSuspended hresult();" & _
 		"SetVirtualHostNameToFolderMapping hresult(wstr;wstr;int);" & _
 		"ClearVirtualHostNameToFolderMapping hresult(wstr);"
+
+; ICoreWebView2_4 through _8 append methods in their exact WebView2.idl order.
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_8 = $WEBVIEW2_DTAG_ICoreWebView2_3 & _
+		"add_FrameCreated hresult();" & _
+		"remove_FrameCreated hresult();" & _
+		"add_DownloadStarting hresult();" & _
+		"remove_DownloadStarting hresult();" & _
+		"add_ClientCertificateRequested hresult();" & _
+		"remove_ClientCertificateRequested hresult();" & _
+		"OpenTaskManagerWindow hresult();" & _
+		"PrintToPdf hresult();" & _
+		"add_IsMutedChanged hresult();" & _
+		"remove_IsMutedChanged hresult();" & _
+		"get_IsMuted hresult();" & _
+		"put_IsMuted hresult();" & _
+		"add_IsDocumentPlayingAudioChanged hresult(ptr;struct*);" & _
+		"remove_IsDocumentPlayingAudioChanged hresult(int64);" & _
+		"get_IsDocumentPlayingAudio hresult(bool*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings = _
 		"get_IsScriptEnabled hresult(bool*);" & _

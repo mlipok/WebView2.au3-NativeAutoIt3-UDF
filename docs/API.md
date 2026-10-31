@@ -113,6 +113,7 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_NAVIGATION_COMPLETED`
 - `$WEBVIEW2_EVENT_DOCUMENT_TITLE_CHANGED`
 - `$WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED`
+- `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED` — callback `($iWebView, $bIsPlaying)`; available through `ICoreWebView2_8`. The callback is invoked when native document-audio state changes.
 - `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED` — callback `($iWebView, $sURI, $bUserInitiated)`; return `True` to suppress the default popup. Queue tab creation outside the callback. This URI-based routing does not preserve JavaScript `window.opener` semantics.
 
 Callback signatures are documented in README.md and the examples.
@@ -255,3 +256,6 @@ See `API_COMPARISON.md` for exact mapping and limitations.
 ## JSON string decoding and large export results
 
 JSON string values are decoded once, including escaped backslashes, Unicode UTF-16 code units and surrogate pairs. Unquoted values retain their pass-through behavior. The CDP string-property reader scans closing quotes instead of recursively matching the complete value, avoiding the previous large Base64/MHTML failure. Public signatures and return types are unchanged. Run `tools/Smoke-JsonStrings.au3` for the regression cases.
+
+### `_WebView2_GetIsDocumentPlayingAudio($iWebView)`
+Returns `True` while the document is playing audio, or `False` when it is not. Both are successful results with `@error = 0`; check `@error` to distinguish an unsupported interface or native failure. The value may be `True` while audio is muted. See [example 025](../examples/025_AudioState.au3).
