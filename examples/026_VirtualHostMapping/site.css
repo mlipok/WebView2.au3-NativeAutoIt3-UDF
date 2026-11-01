@@ -1,0 +1,6 @@
+body { margin: 0; background: #e9f0f7; color: #15314f; font: 18px/1.5 "Segoe UI", Arial, sans-serif; }
+main { max-width: 720px; margin: 56px auto; padding: 32px; border: 2px solid #b2c9df; border-radius: 12px; background: white; }
+h1 { margin-top: 0; font-size: 1.7rem; }
+code { color: #006b73; }
+button { padding: 10px 16px; border: 0; border-radius: 6px; background: #1263a3; color: white; font: inherit; cursor: pointer; }
+button:hover { background: #084d83; }

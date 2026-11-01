@@ -61,6 +61,7 @@ examples/
     023_NewWindowTabs.au3
     024_BlazorCalendar.au3
     025_AudioState.au3
+    026_VirtualHostMapping.au3
 docs/
     API.md
     ARCHITECTURE.md
@@ -270,3 +271,7 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 ## Native document-audio event
 
 [Example 025](examples/025_AudioState.au3) plays and stops a local tone in WebView2. The AutoIt status label changes from a native `ICoreWebView2_8` event through `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED, callback)`. `_WebView2_GetIsDocumentPlayingAudio()` reads the same state on demand. The event subscription is removed when the instance is destroyed. This reports document audio activity even if the view is muted; mute control is a separate feature.
+
+## Virtual host mapping example
+
+[Example 026](examples/026_VirtualHostMapping.au3) maps a local folder to a virtual HTTPS host and loads its HTML, CSS and JavaScript files without a server. The page sends readiness and button messages back to the AutoIt window. See [EXAMPLES.md](docs/EXAMPLES.md) for run instructions and verification scope.
