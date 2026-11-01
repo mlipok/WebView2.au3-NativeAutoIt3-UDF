@@ -81,9 +81,9 @@ Sources reviewed:
 | `GetFrameUrl(s)` | `_WebView2_GetFrameUrl`, `_WebView2_GetFrameUrls` | FULL | |
 | `GetFrameName(s)` | `_WebView2_GetFrameName`, `_WebView2_GetFrameNames` | FULL | |
 | `GetFrameHtmlSource` | `_WebView2_GetFrameHtmlSource` | PARTIAL | Same-origin DOM frames only; cross-origin metadata available with `_WebView2_GetFrameTree`. |
-| `GetFrame`, `GetFrameById` | `_WebView2_GetFrames`, `_WebView2_GetFrameTree` | PARTIAL | Returns tokens/metadata rather than a COM `WebView2Frame` wrapper. |
-| frame `ExecuteScript*` | `_WebView2_GetFrameHtmlSource` plus CDP via `_WebView2_CallDevToolsProtocolMethod` | PARTIAL | No dedicated frame-object wrapper yet. |
-| frame `PostWebMessage*` | none | MISSING | Candidate for native `ICoreWebView2Frame*` support. |
+| `GetFrame`, `GetFrameById` | `_WebView2_Frame_List`, `_WebView2_GetFrames`, `_WebView2_GetFrameTree` | PARTIAL | Native tracked frame IDs are distinct from CDP IDs and DOM tokens. |
+| frame `ExecuteScript*` | `_WebView2_Frame_ExecuteScript` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
+| frame `PostWebMessage*` | `_WebView2_Frame_PostWebMessageAsJson`, `_WebView2_Frame_PostWebMessageAsString` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
 | `AddExtension` | `_WebView2_AddExtension` | PARTIAL | Runtime-dependent experimental CDP path in v0.4.0. Native `ICoreWebView2Profile7` is preferable long term. |
 | `RemoveExtension` | `_WebView2_RemoveExtension` | PARTIAL | Same limitation. |
 | extension enumeration | `_WebView2_GetExtensions` | PARTIAL | Same limitation. |

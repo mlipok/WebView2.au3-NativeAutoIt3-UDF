@@ -68,6 +68,8 @@ Global $__g_aWebView2_Tabs[$WEBVIEW2_MAX_INSTANCES]
 ; Defined locally because AutoIt 3.3.18.0 does not expose $tagMSG through the includes used by this UDF.
 Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;lparam lParam;dword time;long X;long Y;dword lPrivate;endstruct"
 
+#include "WebView2_Frame.au3"
+
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Init
 ; Description ...: Initializes STA COM, callback objects, WebView2Loader.dll and the shared WebView2 environment.
@@ -1353,6 +1355,9 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |WEB_MESSAGE_RECEIVED     - Called for a message posted by web content.
 ;                  |NEW_WINDOW_REQUESTED    - Called for target=_blank/window.open; returning True suppresses the popup.
 ;                  |DOCUMENT_PLAYING_AUDIO_CHANGED - Called when document audio starts or stops; receives ($iWebView, $bIsPlaying).
+;                  |FRAME_CREATED           - Called with ($iWebView, $iFrame) for a newly created iframe.
+;                  |FRAME_DESTROYED         - Called with ($iWebView, $iFrame) before its ID is invalidated.
+;                  |FRAME_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $sMessage, $sSource, $bJSON).
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
 ; Return values .: On Success - True; On Failure - False.
 ;                  Direct helper returns clear @error/@extended; inspect _WebView2_Error_GetCode/GetExtended.
@@ -1414,6 +1419,11 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 					$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] = DllStructGetData($tAudioToken, 1)
 				EndIf
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_AUDIO] = $fnCallback
+			Case $WEBVIEW2_EVENT_FRAME_CREATED, $WEBVIEW2_EVENT_FRAME_DESTROYED, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED
+				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop 1
 			Case Else
 				$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Unsupported WebView2 event constant.", False)
 				$__WebView2ExitError = @error
@@ -2865,6 +2875,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 	__WebView2_Trace("DISPOSE 01 START slot=" & $iSlot)
 
 	__WebView2_Trace("DISPOSE 02 Events unsubscribe START slot=" & $iSlot)
+	__WebView2_Frame_Cleanup($iSlot)
 	__WebView2_Events_Unsubscribe($iSlot)
 	__WebView2_Trace("DISPOSE 03 Events unsubscribe OK slot=" & $iSlot)
 
