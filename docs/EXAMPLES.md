@@ -91,3 +91,7 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 - `21_Folder_PDF_SlideShow.au3` → [`021_Folder_PDF_SlideShow.au3`](../examples/021_Folder_PDF_SlideShow.au3); existing behavior retained.
 - `22_Tabs.au3` → [`022_Tabs.au3`](../examples/022_Tabs.au3); existing behavior retained.
 - [`023_NewWindowTabs.au3`](../examples/023_NewWindowTabs.au3) demonstrates handling `target="_blank"` and `window.open` by queuing a URI and opening an app-managed tab. This does not preserve JavaScript opener semantics.
+
+## 026_VirtualHostMapping.au3
+
+[Example 026](../examples/026_VirtualHostMapping.au3) is a standalone demonstration of `_WebView2_SetVirtualHostNameToFolderMapping()`. Keep the `026_VirtualHostMapping` folder beside the `.au3` file and run the script with AutoIt. It maps that folder to `https://autoit-mapping.example/`, then loads `index.html`, `site.css` and `site.js` through WebView2. The status label reports the page's ready message; clicking **Send a message to AutoIt** reports a second message. **Reload local page** repeats navigation, and the embedded view resizes with the AutoIt window. No local HTTP server or Internet connection is needed. Pass `--smoke` to exit automatically after the page sends its ready message, or after a 15-second timeout. The exact example passed x86 and x64 AutoIt smoke runs: its mapped page loaded the local JavaScript, confirmed the stylesheet was present, sent its ready message, and cleaned up. Button interaction and visual resize still require a direct GUI run.

@@ -59,6 +59,7 @@ examples/
     021_Folder_PDF_SlideShow.au3
     022_Tabs.au3
     023_NewWindowTabs.au3
+    026_VirtualHostMapping.au3
 docs/
     API.md
     ARCHITECTURE.md
@@ -260,3 +261,7 @@ Additional examples: `014_Advanced_CDP.au3` through `020_IE_Compatibility.au3`.
 **The new EXAMPLES `200–221` are copies of the EXAMPLES `000–021` set from [GitHub](https://github.com/ioa747/NetWebView2Lib/tree/main/examples), adapted for the native `WebView2.au3` UDF.** The upstream set is by ioa747; the corresponding names and numbers are retained. These are functional copies/adaptations: browser integration was rewritten for the native API, and differences and missing features are documented below.
 
 See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage, WIP scope and verification limits. Source license: [examples/LICENSE.upstream.txt](examples/LICENSE.upstream.txt). Bundled marked v17.0.4 retains its original copyright headers and [license](examples/JS_Lib/marked/LICENSE.md).
+
+## Virtual host mapping example
+
+[Example 026](examples/026_VirtualHostMapping.au3) maps a local folder to a virtual HTTPS host and loads its HTML, CSS and JavaScript files without a server. The page sends readiness and button messages back to the AutoIt window. See [EXAMPLES.md](docs/EXAMPLES.md) for run instructions and verification scope.
