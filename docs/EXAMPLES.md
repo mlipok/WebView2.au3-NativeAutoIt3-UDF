@@ -91,3 +91,7 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 - `21_Folder_PDF_SlideShow.au3` → [`021_Folder_PDF_SlideShow.au3`](../examples/021_Folder_PDF_SlideShow.au3); existing behavior retained.
 - `22_Tabs.au3` → [`022_Tabs.au3`](../examples/022_Tabs.au3); existing behavior retained.
 - [`023_NewWindowTabs.au3`](../examples/023_NewWindowTabs.au3) demonstrates handling `target="_blank"` and `window.open` by queuing a URI and opening an app-managed tab. This does not preserve JavaScript opener semantics.
+
+## 025_AudioState.au3
+
+[Example 025](../examples/025_AudioState.au3) is a self-contained native audio-state demo inspired by [Gianni's question on the AutoIt Forum](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/#findComment-1555567). Click **Start tone** or **Stop tone** in the embedded page: the AutoIt label receives ICoreWebView2_8::IsDocumentPlayingAudioChanged through the UDF callback. **Read current state** calls _WebView2_GetIsDocumentPlayingAudio() for comparison. The HTML and Web Audio oscillator are embedded in the .au3 file; no network or extra assets are needed. An isolated x86 and x64 WebView2 smoke test confirmed the native True and False transitions and cleanup. Direct interaction with the visible example window remains to be checked.
