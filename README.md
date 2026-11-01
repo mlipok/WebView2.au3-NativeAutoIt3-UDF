@@ -34,7 +34,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - native-to-web messages (`PostWebMessageAsString`, `PostWebMessageAsJson`);
 - virtual HTTPS host to local folder mapping (`ICoreWebView2_3`);
 - web-to-AutoIt `WebMessageReceived` callback;
-- callbacks for navigation start/completion and title changes;
+- callbacks for navigation start/completion, title changes and document-audio state;
 - DevTools window;
 - runtime detection/version query;
 - diagnostic `@error`, `@extended`, and description helpers.
@@ -60,6 +60,7 @@ examples/
     022_Tabs.au3
     023_NewWindowTabs.au3
     024_BlazorCalendar.au3
+    025_AudioState.au3
 docs/
     API.md
     ARCHITECTURE.md
@@ -265,3 +266,7 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 ## Blazor WebAssembly calendar example
 
 [Example 024](examples/024_BlazorCalendar.au3) hosts a standalone, locally published Blazor WebAssembly calendar through a virtual HTTPS host. It demonstrates Polish locale, year/month/week views, sample events, and a bidirectional JSON bridge. See the [example guide](examples/024_BlazorCalendar/README.md) for setup, protocol and runtime verification.
+
+## Native document-audio event
+
+[Example 025](examples/025_AudioState.au3) plays and stops a local tone in WebView2. The AutoIt status label changes from a native `ICoreWebView2_8` event through `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED, callback)`. `_WebView2_GetIsDocumentPlayingAudio()` reads the same state on demand. The event subscription is removed when the instance is destroyed. This reports document audio activity even if the view is muted; mute control is a separate feature.
