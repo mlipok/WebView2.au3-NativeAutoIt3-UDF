@@ -760,6 +760,89 @@ Func _WebView2_NavigateToString($iWebView, $sHTML)
 EndFunc   ;==>_WebView2_NavigateToString
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_SetVirtualHostNameToFolderMapping
+; Description ...: Serves a local folder from a virtual HTTP(S) host in one WebView2 instance.
+; Syntax ........: _WebView2_SetVirtualHostNameToFolderMapping($iWebView, $sHostName, $sFolderPath[, $iAccessKind = $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY])
+; Parameters ....: $iWebView - WebView instance ID.
+;                  $sHostName - Host name without a scheme or path, such as appassets.example.
+;                  $sFolderPath - Absolute path to an existing local folder.
+;                  $iAccessKind - One of the following cross-origin access modes:
+;                  |$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY - Deny all cross-origin access (default).
+;                  |$WEBVIEW2_HOST_RESOURCE_ACCESS_ALLOW - Allow cross-origin access.
+;                  |$WEBVIEW2_HOST_RESOURCE_ACCESS_DENY_CORS - Allow ordinary cross-origin subresources but deny CORS requests.
+; Return values .: On Success - True.
+;                  On Failure - False and sets @error to $WEBVIEW2_ERR_INVALID_INSTANCE, $WEBVIEW2_ERR_INVALID_PARAMETER or $WEBVIEW2_ERR_HRESULT.
+;                  @extended contains the native HRESULT for $WEBVIEW2_ERR_HRESULT.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Call before navigating to https://<host>/index.html. The mapping does not require an HTTP server.
+; Related .......: _WebView2_Navigate
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2_3#setvirtualhostnametofoldermapping
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_SetVirtualHostNameToFolderMapping($iWebView, $sHostName, $sFolderPath, $iAccessKind = $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY)
+	Local $__WebView2ExitValue = False
+	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
+	Local Const $sFuncName = "_WebView2_SetVirtualHostNameToFolderMapping"
+	Local $sMessage = ''
+	Do
+		If Not __WebView2_Instance_IsValid($iWebView) Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_INVALID_INSTANCE, 0, "Invalid WebView2 instance.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		If Not IsString($sHostName) Or Not StringRegExp($sHostName, "^[A-Za-z0-9][A-Za-z0-9.-]*$") Or StringInStr($sHostName, "..") Or _
+				Not IsString($sFolderPath) Or Not FileExists($sFolderPath) Or Not StringInStr(FileGetAttrib($sFolderPath), "D") Or _
+				Not IsInt($iAccessKind) Or $iAccessKind < $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY Or $iAccessKind > $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY_CORS Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Invalid host, folder or access kind.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+
+		Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
+		Local $tCoreVTable = DllStructCreate("ptr", $pCore)
+		Local $tQueryInterface = DllStructCreate("ptr", DllStructGetData($tCoreVTable, 1))
+		Local $tIID = DllStructCreate($tagGUID)
+		Local $aIID = DllCall("ole32.dll", "long", "IIDFromString", "wstr", $WEBVIEW2_IID_ICoreWebView2_3, "ptr", DllStructGetPtr($tIID))
+		If @error Or $aIID[0] <> $WEBVIEW2_S_OK Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $WEBVIEW2_E_NOINTERFACE, "Could not prepare ICoreWebView2_3 IID.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		Local $aQuery = DllCallAddress("long", DllStructGetData($tQueryInterface, 1), "ptr", $pCore, "ptr", DllStructGetPtr($tIID), "ptr*", 0)
+		If @error Or $aQuery[0] <> $WEBVIEW2_S_OK Or Not $aQuery[3] Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $WEBVIEW2_E_NOINTERFACE, "ICoreWebView2_3 is unavailable.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		Local $oCore3 = ObjCreateInterface($aQuery[3], $WEBVIEW2_IID_ICoreWebView2_3, $WEBVIEW2_DTAG_ICoreWebView2_3)
+		If Not IsObj($oCore3) Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $WEBVIEW2_E_NOINTERFACE, "Could not wrap ICoreWebView2_3.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		Local $iHRESULT = $oCore3.SetVirtualHostNameToFolderMapping($sHostName, $sFolderPath, $iAccessKind)
+		Local $iCOMError = @error
+		$oCore3 = Null
+		If $iCOMError Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $iHRESULT, "SetVirtualHostNameToFolderMapping() failed.", False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__WebView2ExitValue = True
+		ExitLoop 1
+	Until True
+	If $__WebView2ExitError And $__g_iWebView2_LastError <> $__WebView2ExitError Then __WebView2_Error($sFuncName, $__WebView2ExitError, $sMessage, $__WebView2ExitExtended)
+	Return SetError($__WebView2ExitError, $__WebView2ExitExtended, $__WebView2ExitValue)
+EndFunc   ;==>_WebView2_SetVirtualHostNameToFolderMapping
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Reload
 ; Description ...: Reloads the current document.
 ; Syntax ........: _WebView2_Reload($iWebView)

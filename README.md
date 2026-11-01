@@ -32,6 +32,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - visibility and zoom factor;
 - synchronous AutoIt wrapper around asynchronous `ExecuteScript()`;
 - native-to-web messages (`PostWebMessageAsString`, `PostWebMessageAsJson`);
+- virtual HTTPS host to local folder mapping (`ICoreWebView2_3`);
 - web-to-AutoIt `WebMessageReceived` callback;
 - callbacks for navigation start/completion and title changes;
 - DevTools window;
