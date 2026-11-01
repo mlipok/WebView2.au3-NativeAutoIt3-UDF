@@ -39,7 +39,7 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- native `ICoreWebView2Frame*` wrappers and frame messaging/script objects;
+- more native frame events and methods beyond the implemented frame tracking, messaging, and script execution;
 - native `ICoreWebView2Profile7` extension management;
 - download events and download control;
 - full `NewWindowRequested` deferral / `put_NewWindow` handoff and opener semantics;

@@ -13,6 +13,10 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Environment = "{B96D755E-0319-4E92-A296-
 Global Const $WEBVIEW2_IID_ICoreWebView2Controller = "{4D00C0D1-9434-4EB6-8078-8697A560334F}"
 Global Const $WEBVIEW2_IID_ICoreWebView2 = "{76ECEACB-0462-4D94-AC83-423A6793775E}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_3 = "{A0D6DF20-3B92-416D-AA0C-437A9C727857}"
+Global Const $WEBVIEW2_IID_ICoreWebView2_4 = "{20D02D59-6DF2-42DC-BD06-F98A694B1302}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame = "{F1131A5E-9BA9-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame2 = "{7A6A5834-D185-4DBF-B63F-4A9BC43107D4}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventArgs = "{4D6E7B5E-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469-E119-438A-9B18-7604F25F2E49}"
@@ -28,6 +32,9 @@ Global Const $WEBVIEW2_IID_ICoreWebView2DocumentTitleChangedEventHandler = "{F5F
 Global Const $WEBVIEW2_IID_ICoreWebView2IsDocumentPlayingAudioChangedEventHandler = "{5DEF109A-2F4B-49FA-B7F6-11C39E513328}"
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventHandler = "{57213F19-00E6-49FA-8E07-898EA01ECBD2}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventHandler = "{D4C185FE-C81C-4989-97AF-2D3FA7AB5651}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventHandler = "{38059770-9BAA-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameDestroyedEventHandler = "{59DD7B4C-9BAA-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameWebMessageReceivedEventHandler = "{E371E005-6D1D-4517-934B-A8F1629C62A5}"
 Global Const $WEBVIEW2_IID_ICoreWebView2ExecuteScriptCompletedHandler = "{49511172-CC67-4BCA-9923-137112F4C4CC}"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment = _
@@ -138,11 +145,13 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2_3 = $WEBVIEW2_DTAG_ICoreWebView2 & _
 		"ClearVirtualHostNameToFolderMapping hresult(wstr);"
 
 ; ICoreWebView2_4 through _8 append methods in their exact WebView2.idl order.
-Global Const $WEBVIEW2_DTAG_ICoreWebView2_8 = $WEBVIEW2_DTAG_ICoreWebView2_3 & _
-		"add_FrameCreated hresult();" & _
-		"remove_FrameCreated hresult();" & _
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_4 = $WEBVIEW2_DTAG_ICoreWebView2_3 & _
+		"add_FrameCreated hresult(ptr;struct*);" & _
+		"remove_FrameCreated hresult(int64);" & _
 		"add_DownloadStarting hresult();" & _
-		"remove_DownloadStarting hresult();" & _
+		"remove_DownloadStarting hresult();"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_8 = $WEBVIEW2_DTAG_ICoreWebView2_4 & _
 		"add_ClientCertificateRequested hresult();" & _
 		"remove_ClientCertificateRequested hresult();" & _
 		"OpenTaskManagerWindow hresult();" & _
@@ -154,6 +163,33 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2_8 = $WEBVIEW2_DTAG_ICoreWebView2_3 & _
 		"add_IsDocumentPlayingAudioChanged hresult(ptr;struct*);" & _
 		"remove_IsDocumentPlayingAudioChanged hresult(int64);" & _
 		"get_IsDocumentPlayingAudio hresult(bool*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame = _
+		"get_Name hresult(ptr*);" & _
+		"add_NameChanged hresult();" & _
+		"remove_NameChanged hresult();" & _
+		"AddHostObjectToScriptWithOrigins hresult(wstr;ptr;uint;ptr);" & _
+		"RemoveHostObjectFromScript hresult(wstr);" & _
+		"add_Destroyed hresult(ptr;struct*);" & _
+		"remove_Destroyed hresult(int64);" & _
+		"IsDestroyed hresult(bool*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame2 = $WEBVIEW2_DTAG_ICoreWebView2Frame & _
+		"add_NavigationStarting hresult();" & _
+		"remove_NavigationStarting hresult();" & _
+		"add_ContentLoading hresult();" & _
+		"remove_ContentLoading hresult();" & _
+		"add_NavigationCompleted hresult();" & _
+		"remove_NavigationCompleted hresult();" & _
+		"add_DOMContentLoaded hresult();" & _
+		"remove_DOMContentLoaded hresult();" & _
+		"ExecuteScript hresult(wstr;ptr);" & _
+		"PostWebMessageAsJson hresult(wstr);" & _
+		"PostWebMessageAsString hresult(wstr);" & _
+		"add_WebMessageReceived hresult(ptr;struct*);" & _
+		"remove_WebMessageReceived hresult(int64);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs = "get_Frame hresult(ptr*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings = _
 		"get_IsScriptEnabled hresult(bool*);" & _

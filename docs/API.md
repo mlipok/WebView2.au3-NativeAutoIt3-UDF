@@ -114,6 +114,9 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_DOCUMENT_TITLE_CHANGED`
 - `$WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED`
 - `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED` — callback `($iWebView, $bIsPlaying)`; available through `ICoreWebView2_8`. The callback is invoked when native document-audio state changes.
+- `$WEBVIEW2_EVENT_FRAME_CREATED` — callback `($iWebView, $iFrame)` when a native iframe is created. Register before navigation.
+- `$WEBVIEW2_EVENT_FRAME_DESTROYED` — callback `($iWebView, $iFrame)` before that frame ID is invalidated.
+- `$WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED` — callback `($iWebView, $iFrame, $sMessage, $sSource, $bJSON)` for iframe messages.
 - `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED` — callback `($iWebView, $sURI, $bUserInitiated)`; return `True` to suppress the default popup. Queue tab creation outside the callback. This URI-based routing does not preserve JavaScript `window.opener` semantics.
 
 Callback signatures are documented in README.md and the examples.
@@ -235,10 +238,17 @@ These functions are implemented with `ICoreWebView2::ExecuteScript()` inside the
 - `_WebView2_ClearBlockRules()`
 
 ### Frames
-- `_WebView2_GetFrameTree()`
-- `_WebView2_GetFrameUrls()` / `_WebView2_GetFrameUrl()`
-- `_WebView2_GetFrameNames()` / `_WebView2_GetFrameName()`
-- `_WebView2_GetFrameHtmlSource()`
+
+The existing CDP helpers return frame metadata and same-origin HTML: `_WebView2_GetFrameTree()`, `_WebView2_GetFrameUrls()` / `_WebView2_GetFrameUrl()`, `_WebView2_GetFrameNames()` / `_WebView2_GetFrameName()`, and `_WebView2_GetFrameHtmlSource()`.
+
+Native frame support uses `ICoreWebView2_4::FrameCreated`, `ICoreWebView2Frame`, and `ICoreWebView2Frame2`. Register a frame callback before navigation to track newly created iframes. Native frame IDs are distinct from CDP frame IDs and DOM element tokens; a destroyed frame ID cannot be reused.
+
+- `_WebView2_Frame_List($iWebView)` returns tracked active frame IDs.
+- `_WebView2_Frame_GetName($iFrame)` reads the iframe name.
+- `_WebView2_Frame_ExecuteScript($iFrame, $sScript[, $iTimeoutMs = 30000])` returns a JSON-encoded result. It shares the serialized completion channel with top-level `_WebView2_ExecuteScript()`; call it outside re-entrant event callbacks.
+- `_WebView2_Frame_PostWebMessageAsJson($iFrame, $sJSON)` and `_WebView2_Frame_PostWebMessageAsString($iFrame, $sMessage)` send data to one iframe. The frame must register `window.chrome.webview.addEventListener("message", ...)`.
+
+`ICoreWebView2Settings::IsWebMessageEnabled` must permit messaging. [Example 027](../examples/027_NativeFrames.au3) demonstrates messages in both directions and frame script execution. Tracking supports up to 256 simultaneously active frames.
 
 ### Extensions
 - `_WebView2_AddExtension()`

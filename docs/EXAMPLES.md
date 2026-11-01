@@ -103,3 +103,7 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 ## 026_VirtualHostMapping.au3
 
 [Example 026](../examples/026_VirtualHostMapping.au3) is a standalone demonstration of `_WebView2_SetVirtualHostNameToFolderMapping()`. Keep the `026_VirtualHostMapping` folder beside the `.au3` file and run the script with AutoIt. It maps that folder to `https://autoit-mapping.example/`, then loads `index.html`, `site.css` and `site.js` through WebView2. The status label reports the page's ready message; clicking **Send a message to AutoIt** reports a second message. **Reload local page** repeats navigation, and the embedded view resizes with the AutoIt window. No local HTTP server or Internet connection is needed. Pass `--smoke` to exit automatically after the page sends its ready message, or after a 15-second timeout. The exact example passed x86 and x64 AutoIt smoke runs: its mapped page loaded the local JavaScript, confirmed the stylesheet was present, sent its ready message, and cleaned up. Button interaction and visual resize still require a direct GUI run.
+
+## 027_NativeFrames.au3
+
+[Example 027](../examples/027_NativeFrames.au3) tracks a native iframe, receives its ready message, sends JSON to it, and executes a script in its context. Keep the `027_NativeFrames` folder beside the script. Run with AutoIt and use **Send JSON to frame** and **Run frame script**. The `--smoke` option exits when the iframe reports readiness or after 10 seconds; this option and the visible controls still require runtime verification.

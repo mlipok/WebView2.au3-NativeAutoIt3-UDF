@@ -47,6 +47,7 @@ WebView2_Constants.au3
 WebView2_Interfaces.au3
 WebView2_CallbackObject.au3
 WebView2_Core.au3
+WebView2_Frame.au3
 WebView2_DOM.au3
 WebView2_IECompat.au3
 WebView2_Advanced.au3
@@ -62,6 +63,7 @@ examples/
     024_BlazorCalendar.au3
     025_AudioState.au3
     026_VirtualHostMapping.au3
+    027_NativeFrames.au3
 docs/
     API.md
     ARCHITECTURE.md
@@ -275,3 +277,7 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 ## Virtual host mapping example
 
 [Example 026](examples/026_VirtualHostMapping.au3) maps a local folder to a virtual HTTPS host and loads its HTML, CSS and JavaScript files without a server. The page sends readiness and button messages back to the AutoIt window. See [EXAMPLES.md](docs/EXAMPLES.md) for run instructions and verification scope.
+
+## Native frame messaging and script execution
+
+Register a frame callback before navigation to track newly created iframes. The native frame APIs list tracked frames, read frame names, execute script in one frame, and send or receive frame messages. [Example 027](examples/027_NativeFrames.au3) demonstrates these operations using local files mapped to a virtual HTTPS host. See [API.md](docs/API.md) for callback and lifetime details.
