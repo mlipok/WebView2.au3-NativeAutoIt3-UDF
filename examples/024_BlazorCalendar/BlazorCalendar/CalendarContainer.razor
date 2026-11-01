@@ -1,0 +1,25 @@
+﻿@using BlazorCalendar.Models
+@inherits CalendarBase	  
+
+<CascadingValue Value="DisplayedView" Name="SelectedView">	
+	<CascadingValue Value="FirstDate" Name="FirstDate">	  
+		<CascadingValue Value="TasksList" Name="TasksList">
+			@ChildContent
+		</CascadingValue>	 
+	</CascadingValue>	 
+</CascadingValue>
+
+@code {
+	[Parameter] 
+	public RenderFragment ChildContent { get; set; } 
+
+	[Parameter] 
+	public DateTime FirstDate { get; set; }
+
+	[Parameter] 
+	public DisplayedView DisplayedView { get; set; }
+
+	[Parameter] 
+	public Tasks[]? TasksList { get; set; }
+}
+

@@ -1,0 +1,11 @@
+html, body, #app { width:100%; height:100%; margin:0; overflow:hidden; font-family:Segoe UI,Arial,sans-serif; }
+body { user-select:none; -webkit-user-select:none; }
+* { box-sizing:border-box; }
+.toolbar { height:48px; display:flex; align-items:center; gap:8px; padding:7px 12px; cursor:default; background:#eef3fa; border-bottom:1px solid #aab8cc; }
+.toolbar button { padding:5px 12px; cursor:pointer; }
+.toolbar strong { margin-left:12px; }
+.calendar-shell { height:calc(100% - 76px); overflow:auto; padding:8px; }
+.calendar-shell .weekly-calendar { min-height:650px; }
+.status { height:28px; padding:4px 12px; background:#f5f5f5; border-top:1px solid #ddd; font-size:12px; }
+.calendar-shell, .calendar-shell * { -webkit-user-drag:none; }
+.calendar-shell .range-slot { touch-action:none; }

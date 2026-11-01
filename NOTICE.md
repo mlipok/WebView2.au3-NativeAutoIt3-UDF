@@ -44,3 +44,7 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 ## PDF.js example asset
 
 `examples/assets/pdfjs/` is a copy of the PDF.js distribution supplied with the upstream example snapshot. PDF.js is Copyright Mozilla Foundation and contributors and is licensed under Apache License 2.0; see [its bundled LICENSE](examples/assets/pdfjs/LICENSE).
+
+## Blazor-Calendar example
+
+Example 024 vendors the MIT-licensed [Blazor-Calendar](https://github.com/tossnet/Blazor-Calendar) library and publishes a separate Blazor WebAssembly host. See [its license](examples/024_BlazorCalendar/LICENSE.BlazorCalendar.txt) and [example guide](examples/024_BlazorCalendar/README.md).

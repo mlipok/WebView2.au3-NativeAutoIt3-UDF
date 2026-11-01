@@ -1,0 +1,159 @@
+@using System.Globalization
+@using System.Text.Json
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="toolbar">
+  <button @onclick="() => ChangeView(DisplayedView.Annual)">Year</button>
+  <button @onclick="() => ChangeView(DisplayedView.Monthly)">Month</button>
+  <button @onclick="() => ChangeView(DisplayedView.Weekly)">Week</button>
+  <button @onclick="Previous">◀</button>
+  <button @onclick="Next">▶</button>
+  <strong>@SelectedDate.ToString("D", CultureInfo.GetCultureInfo("pl-PL"))</strong>
+</div>
+<div class="calendar-shell">
+  <CalendarContainer FirstDate="@(View == DisplayedView.Annual ? new DateTime(SelectedDate.Year, 1, 1) : SelectedDate)" DisplayedView="View" TasksList="Tasks">
+    <AnnualView Months="12" Draggable="false" TaskClick="TaskClicked" HeaderClick="MonthClicked" />
+    <MonthlyView Draggable="false" TaskClick="TaskClicked" />
+    <WeekView Draggable="false" TaskClick="TaskClicked" EnableRangeSelection="true"
+              RangeSelected="RangeSelected" WeekStartsOn="DayOfWeek.Monday" DayHeaderFormat="dddd" />
+  </CalendarContainer>
+</div>
+<div class="status">@Status</div>
+
+@code {
+  private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+  private static readonly TimeZoneInfo Zone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Warsaw");
+  private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+  private DotNetObjectReference<App>? _reference;
+  private DateTime SelectedDate = new(2026, 10, 13);
+  private DisplayedView View = DisplayedView.Weekly;
+  private Tasks[] Tasks = [];
+  private string Status = "Waiting for AutoIt data";
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender) return;
+    _reference = DotNetObjectReference.Create(this);
+    await JS.InvokeVoidAsync("calendarBridge.start", _reference);
+    await Send(new { type = "ready", protocolVersion = 1, timeZone = "Europe/Warsaw" });
+  }
+
+  [JSInvokable]
+  public async Task Receive(string json)
+  {
+    string? requestId = null;
+    try
+    {
+      var message = JsonSerializer.Deserialize<Inbound>(json, JsonOptions) ?? throw new FormatException("Empty message");
+      requestId = message.RequestId;
+      if (message.TimeZone is not null && message.TimeZone != "Europe/Warsaw") throw new FormatException("Expected Europe/Warsaw time zone");
+      switch (message.Type)
+      {
+        case "initialize":
+          if (message.Date is null || message.View is null || message.Events is null) throw new FormatException("initialize requires date, view and events");
+          SetDate(message.Date);
+          SetView(message.View);
+          Tasks = message.Events.Select(ConvertEvent).ToArray();
+          break;
+        case "setEvents":
+          Tasks = (message.Events ?? throw new FormatException("events required")).Select(ConvertEvent).ToArray();
+          break;
+        case "setDate":
+          SetDate(message.Date ?? throw new FormatException("date required"));
+          break;
+        case "setView":
+          SetView(message.View ?? throw new FormatException("view required"));
+          break;
+        default: throw new FormatException("Unknown message type");
+      }
+      Status = $"{View}: {Tasks.Length} events";
+      await InvokeAsync(StateHasChanged);
+      await Send(new { type = "ack", requestId, view = View.ToString().ToLowerInvariant(), eventCount = Tasks.Length });
+    }
+    catch (Exception error)
+    {
+      Status = error.Message;
+      await InvokeAsync(StateHasChanged);
+      await Send(new { type = "error", requestId, code = "INVALID_MESSAGE", message = error.Message });
+    }
+  }
+
+  private static DateTimeOffset ParseDate(string value)
+  {
+    if (!DateTimeOffset.TryParseExact(value, "yyyy-MM-dd'T'HH:mm:sszzz", Invariant, DateTimeStyles.None, out var parsed))
+      throw new FormatException("Date must be ISO 8601 with seconds and an explicit offset");
+    if (TimeZoneInfo.ConvertTime(parsed, Zone).Offset != parsed.Offset)
+      throw new FormatException("Date offset does not match Europe/Warsaw");
+    return parsed;
+  }
+
+  private static string FormatDate(DateTime wallTime)
+  {
+    if (Zone.IsAmbiguousTime(wallTime) || Zone.IsInvalidTime(wallTime))
+      throw new FormatException("Selected local time is ambiguous or invalid in Europe/Warsaw");
+    var offset = Zone.GetUtcOffset(wallTime);
+    return new DateTimeOffset(wallTime, offset).ToString("yyyy-MM-dd'T'HH:mm:sszzz", Invariant);
+  }
+
+  private static Tasks ConvertEvent(EventInput input)
+  {
+    var start = ParseDate(input.Start ?? throw new FormatException("Event start required"));
+    var end = ParseDate(input.End ?? throw new FormatException("Event end required"));
+    if (input.Id <= 0 || string.IsNullOrWhiteSpace(input.Title) || end <= start)
+      throw new FormatException("Event ID, title or exclusive end invalid");
+    if (input.AllDay && (start.TimeOfDay != TimeSpan.Zero || end.TimeOfDay != TimeSpan.Zero))
+      throw new FormatException("All-day bounds must be local midnights");
+    return new Tasks { ID = input.Id, Code = input.Title, Caption = input.Title, Color = input.Color ?? "#3984c6",
+      DateStart = start.DateTime, DateEnd = input.AllDay ? end.DateTime.AddTicks(-1) : end.DateTime, NotBeDraggable = true };
+  }
+
+  private void SetDate(string value) => SelectedDate = ParseDate(value).Date;
+  private void SetView(string value) => View = value.ToLowerInvariant() switch
+  {
+    "year" => DisplayedView.Annual, "month" => DisplayedView.Monthly, "week" => DisplayedView.Weekly,
+    _ => throw new FormatException("View must be year, month or week")
+  };
+  private void ChangeView(DisplayedView view) { View = view; Status = view.ToString(); }
+  private void Previous() => SelectedDate = View switch { DisplayedView.Annual => SelectedDate.AddYears(-1), DisplayedView.Monthly => SelectedDate.AddMonths(-1), _ => SelectedDate.AddDays(-7) };
+  private void Next() => SelectedDate = View switch { DisplayedView.Annual => SelectedDate.AddYears(1), DisplayedView.Monthly => SelectedDate.AddMonths(1), _ => SelectedDate.AddDays(7) };
+  private void MonthClicked(DateTime month) { SelectedDate = month; View = DisplayedView.Monthly; }
+
+  private async Task TaskClicked(ClickTaskParameter clicked)
+  {
+    if (clicked.IDList.Count == 1) await Send(new { type = "eventClicked", eventId = clicked.IDList[0] });
+    else await Send(new { type = "error", code = "AMBIGUOUS_EVENT", message = "Multiple events occupy the clicked cell" });
+  }
+  private Task RangeSelected(TimeRangeSelectedParameter range) => Send(new
+  {
+    type = "rangeSelected", startInclusive = FormatDate(range.Start), endExclusive = FormatDate(range.End)
+  });
+  [JSInvokable]
+  public Task DoubleClicked(string wallTime)
+  {
+    if (!DateTime.TryParseExact(wallTime, "yyyy-MM-dd'T'HH:mm", Invariant, DateTimeStyles.None, out var date))
+      return Send(new { type = "error", code = "DOUBLE_CLICK_DATE", message = "Invalid clicked slot" });
+    return Send(new { type = "dayDoubleClicked", date = FormatDate(date) });
+  }
+  private Task Send(object message) => JS.InvokeVoidAsync("calendarBridge.send", message).AsTask();
+  public void Dispose() => _reference?.Dispose();
+
+  private sealed class Inbound
+  {
+    public string? Type { get; set; }
+    public string? RequestId { get; set; }
+    public string? TimeZone { get; set; }
+    public string? Date { get; set; }
+    public string? View { get; set; }
+    public EventInput[]? Events { get; set; }
+  }
+  private sealed class EventInput
+  {
+    public int Id { get; set; }
+    public string? Title { get; set; }
+    public string? Start { get; set; }
+    public string? End { get; set; }
+    public bool AllDay { get; set; }
+    public string? Color { get; set; }
+  }
+}

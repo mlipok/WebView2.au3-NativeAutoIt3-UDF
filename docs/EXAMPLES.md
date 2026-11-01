@@ -92,6 +92,10 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 - `22_Tabs.au3` → [`022_Tabs.au3`](../examples/022_Tabs.au3); existing behavior retained.
 - [`023_NewWindowTabs.au3`](../examples/023_NewWindowTabs.au3) demonstrates handling `target="_blank"` and `window.open` by queuing a URI and opening an app-managed tab. This does not preserve JavaScript opener semantics.
 
+## 024_BlazorCalendar.au3
+
+[Example 024](../examples/024_BlazorCalendar.au3) is a standalone native AutoIt host for a locally published Blazor WebAssembly calendar. It is separate from the 200–221 GitHub example adaptations. The calendar library is vendored under its MIT license from [tossnet/Blazor-Calendar](https://github.com/tossnet/Blazor-Calendar). The [example guide](../examples/024_BlazorCalendar/README.md) contains the build/run steps, JSON protocol, time-zone rules, and live test evidence. The example does not access a database or remote API.
+
 ## 025_AudioState.au3
 
 [Example 025](../examples/025_AudioState.au3) is a self-contained native audio-state demo inspired by [Gianni's question on the AutoIt Forum](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/#findComment-1555567). Click **Start tone** or **Stop tone** in the embedded page: the AutoIt label receives ICoreWebView2_8::IsDocumentPlayingAudioChanged through the UDF callback. **Read current state** calls _WebView2_GetIsDocumentPlayingAudio() for comparison. The HTML and Web Audio oscillator are embedded in the .au3 file; no network or extra assets are needed. An isolated x86 and x64 WebView2 smoke test confirmed the native True and False transitions and cleanup. Direct interaction with the visible example window remains to be checked.

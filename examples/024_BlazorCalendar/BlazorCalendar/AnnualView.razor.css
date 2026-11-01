@@ -1,0 +1,33 @@
+.annual-today {
+    border: 3px solid #f75959;
+    border-radius: 5px;
+}
+
+    .annual-today::before, .annual-today::after {
+        box-sizing: border-box;
+    }
+
+
+@container ((max-width: 100px) and (max-height: 15px)) {
+    .task-time {
+        display: none;
+    }
+}
+
+.task-time {
+    position: absolute;
+    font-weight: lighter;
+    font-size: clamp(8px, 35cqh, 10px);
+    left: 1px;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+}
+
+    .task-time.top {
+        top: 0.8px;
+    }
+
+    .task-time.bottom {
+        bottom: -1.2px;
+    }

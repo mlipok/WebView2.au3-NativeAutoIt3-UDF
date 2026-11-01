@@ -1,0 +1,187 @@
+﻿namespace BlazorCalendar;
+
+using BlazorCalendar.Models;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+
+partial class MonthlyView : CalendarBase
+{
+    [CascadingParameter(Name = "SelectedView")]
+    public DisplayedView DisplayedView { get; set; } = DisplayedView.Monthly;
+
+    private DateTime _firstdate;
+
+    [CascadingParameter(Name = "FirstDate")]
+    public DateTime FirstDate
+    {
+        get
+        {
+            if (_firstdate == DateTime.MinValue) _firstdate = DateTime.Today;
+            return _firstdate.Date;
+        }
+        set
+        {
+            _firstdate = value;
+        }
+    }
+
+    [CascadingParameter(Name = "TasksList")]
+    public Tasks[]? TasksList { get; set; }
+
+    [Parameter]
+    public PriorityLabel PriorityDisplay { get; set; } = PriorityLabel.Code;
+
+    /// <summary>
+    /// When set to <c>true</c>, displays a red border around today's date for better visibility.
+    /// </summary>
+    [Parameter]
+    public bool HighlightToday { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<int> OutsideCurrentMonthClick { get; set; }
+
+    [Parameter]
+    public EventCallback<ClickEmptyDayParameter> DayClick { get; set; }
+
+    [Parameter]
+    public EventCallback<ClickTaskParameter> TaskClick { get; set; }
+
+    [Parameter]
+    public EventCallback<DragDropParameter> DragStart { get; set; }
+
+    [Parameter]
+    public EventCallback<DragDropParameter> DropTask { get; set; }
+
+    private Tasks? TaskDragged;
+
+    private enum StateCase
+    {
+        Before = 0, // First empty cells part
+        InMonth = 1,
+        After = 2,
+    }
+
+    private async Task HandleClickOutsideCurrentMonthClick(int AddMonth)
+    {
+        if (OutsideCurrentMonthClick.HasDelegate)
+		{
+			await OutsideCurrentMonthClick.InvokeAsync(AddMonth);
+		}
+    }
+
+
+    private async Task ClickTaskInternal(MouseEventArgs e, int taskID, DateTime day)
+    {
+        if (!TaskClick.HasDelegate) 
+            return;
+ 
+		List<int> listID = new()
+		{
+			taskID
+		};
+
+		ClickTaskParameter clickTaskParameter = new()
+        {
+            IDList = listID,
+            X = e.ClientX,
+            Y = e.ClientY,
+            Day = day
+        };
+
+        await TaskClick.InvokeAsync(clickTaskParameter);
+    }
+
+    private async Task ClickAllDayInternal(MouseEventArgs e, DateTime day)
+    {
+        if (day == default) 
+            return;
+
+		if (!TaskClick.HasDelegate) 
+            return;
+
+        if (TasksList is null)
+            return;
+
+        // There can be several tasks in one day :
+        List<int> listID = new();
+
+        for (var k = 0; k < TasksList.Length; k++)
+        {
+            Tasks t = TasksList[k];
+
+            if (t.DateStart.Date <= day.Date && day.Date <= t.DateEnd.Date)
+            {
+                listID.Add(t.ID);
+            }
+        }
+
+        ClickTaskParameter clickTaskParameter = new()
+        {
+            IDList = listID,
+            X = e.ClientX,
+            Y = e.ClientY,
+            Day = day
+        };
+
+        await TaskClick.InvokeAsync(clickTaskParameter);
+    }
+
+    private async Task ClickDayInternal(MouseEventArgs e, DateTime day)
+    {
+		if (!DayClick.HasDelegate) 
+            return;
+
+		ClickEmptyDayParameter clickEmptyDayParameter = new()
+        {
+            Day = day,
+            X = e.ClientX,
+            Y = e.ClientY
+        };
+
+        await DayClick.InvokeAsync(clickEmptyDayParameter);
+    }
+
+    private async Task HandleDragStart(int taskID)
+    {
+        TaskDragged = new Tasks()
+        {
+            ID = taskID
+        };
+
+        DragDropParameter dragDropParameter = new()
+        {
+            taskID = TaskDragged.ID
+        };
+
+        await DragStart.InvokeAsync(dragDropParameter);
+    }
+
+    private async Task HandleDayOnDrop(DateTime day)
+    {
+        if ( !Draggable ) 
+            return;
+
+        if ( TaskDragged is null ) 
+            return;
+
+        DragDropParameter dragDropParameter = new()
+        {
+            Day = day,
+            taskID = TaskDragged.ID
+        };
+
+        await DropTask.InvokeAsync(dragDropParameter);
+
+        TaskDragged = null;
+    }
+
+    /// <summary>
+    /// Generates the background style for disabled days with a hatched pattern
+    /// </summary>
+    private string GetDisabledBackground()
+    {
+        // URL-encode the color (replace # with %23)
+        var encodedColor = DisabledDayColor.Replace("#", "%23");
+        return $"background-image: url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='{encodedColor}' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E\")";
+    }
+}
