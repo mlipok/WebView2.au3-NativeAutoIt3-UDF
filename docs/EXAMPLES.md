@@ -107,3 +107,7 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 ## 027_NativeFrames.au3
 
 [Example 027](../examples/027_NativeFrames.au3) tracks a native iframe, receives its ready message, sends JSON to it, and executes a script in its context. Keep the `027_NativeFrames` folder beside the script. Run with AutoIt and use **Send JSON to frame** and **Run frame script**. The `--smoke` option exits when the iframe reports readiness or after 10 seconds; this option and the visible controls still require runtime verification.
+
+## 030_XPathElements.au3
+
+[Example 030](../examples/030_XPathElements.au3) answers the [AutoIt Forum question about XPath element discovery](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/#findComment-1555698). A self-contained local form is created with sample values only. Clicking **Find and fill by XPath** uses `_WebView2_FindElement()` with `$WEBVIEW2_LOCATOR_BY_XPATH` to locate two fields, a button and the result label; AutoIt fills the fields, clicks the button and reads the result. No real login or network request is involved. The `--smoke` option passed under x86 and x64 AutoIt and confirmed the expected result and cleanup. Visible button interaction still requires manual GUI verification. This is an example of an existing UDF feature; no DOM API change is needed.
