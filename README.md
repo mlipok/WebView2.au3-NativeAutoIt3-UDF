@@ -65,6 +65,8 @@ examples/
     026_VirtualHostMapping.au3
     027_NativeFrames.au3
     029_DarkAppearance.au3
+    030_XPathElements.au3
+    031_PermissionRequests.au3
 docs/
     API.md
     ARCHITECTURE.md

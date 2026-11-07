@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebView2 permission request</title>
+  <style>body{font:16px Segoe UI,sans-serif;margin:2rem;line-height:1.5}main{max-width:680px}button{padding:.6rem 1rem}#result{padding:1rem;background:#eef2f6}</style>
+</head>
+<body>
+  <main>
+    <h1>Geolocation permission</h1>
+    <p>Choose how the AutoIt host should answer this location request. When allowed, the coordinates and reported accuracy appear below.</p>
+    <button id="deny" type="button">Deny geolocation</button>
+    <button id="allow" type="button">Allow geolocation</button>
+    <p id="result">Waiting for a request.</p>
+  </main>
+  <script>
+    document.getElementById('deny').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'deny'}));
+    document.getElementById('allow').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'allow'}));
+    function requestLocation(mode) {
+      document.getElementById('result').textContent = 'Waiting for location permission...';
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const coords = position.coords;
+          document.getElementById('result').textContent = 'Latitude: ' + coords.latitude.toFixed(6) + '°, longitude: ' + coords.longitude.toFixed(6) + '° (accuracy ±' + Math.round(coords.accuracy) + ' m).';
+          chrome.webview.postMessage({type: 'allowed'});
+        },
+        error => {
+          const denied = mode === 'deny' && error.code === 1;
+          document.getElementById('result').textContent = (denied ? 'Location denied' : 'Location unavailable after ALLOW') + ' (code ' + error.code + ').';
+          chrome.webview.postMessage({type: denied ? 'denied' : 'error', code: error.code});
+        },
+        {timeout: 5000}
+      );
+    }
+    chrome.webview.postMessage({type: 'ready'});
+  </script>
+</body>
+</html>

@@ -43,7 +43,7 @@ Useful candidates for later releases include:
 - native `ICoreWebView2Profile7` extension management;
 - download events and download control;
 - full `NewWindowRequested` deferral / `put_NewWindow` handoff and opener semantics;
-- permissions and script-dialog callbacks;
+- deferred and frame-level permission handling, and script-dialog callbacks; immediate top-level permission decisions are implemented;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;
 - audio mute controls and mute-state callbacks; document-audio activity state and its change callback are implemented through `ICoreWebView2_8`;

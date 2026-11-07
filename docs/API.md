@@ -87,6 +87,12 @@ Decodes a JSON-encoded string result, preserving the decoder's `@error` and `@ex
 
 ## Web messaging
 
+### Permission requests
+
+Register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_PERMISSION_REQUESTED, $fnCallback)` before loading content. The callback receives `($iWebView, $sURI, $iKind, $bUserInitiated)` and returns `$WEBVIEW2_PERMISSION_STATE_DEFAULT` (0), `$WEBVIEW2_PERMISSION_STATE_ALLOW` (1), or `$WEBVIEW2_PERMISSION_STATE_DENY` (2). It may instead return a two-element array `[state, saveInProfile]`; `False` in the second element prevents this decision from being saved, provided the Runtime supports `ICoreWebView2PermissionRequestedEventArgs3`. `$sURI` is the requesting origin. Compare it with an exact trusted origin and inspect `$iKind` before granting access. `$WEBVIEW2_PERMISSION_KIND_GEOLOCATION` is 3; `$WEBVIEW2_PERMISSION_KIND_NOTIFICATIONS` is 4. An invalid callback result, callback error, or unavailable required interface leaves the Runtime's default handling in place.
+
+The decision is immediate and applies only to top-level `ICoreWebView2::PermissionRequested`. Do not show a modal dialog or call a blocking WebView2 helper inside this callback. This API does not expose a deferral or frame-level permission events. Scalar decisions may be saved in the selected user-data profile. See [example 031](../examples/031_PermissionRequests.au3).
+
 ### `_WebView2_PostWebMessageAsString($iWebView, $sMessage)`
 Posts native-host text to the web content.
 
