@@ -7,7 +7,7 @@
 ; Title .........: WebView2_IECompat.au3
 ; Description ...: WebView2 helpers covering useful IE.au3-style DOM operations without exposing legacy Internet Explorer COM objects.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; Remarks .......: These are WebView2-native helpers, not drop-in _IE* compatibility aliases.
 ; ===============================================================================================================================
 

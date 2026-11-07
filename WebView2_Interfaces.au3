@@ -5,7 +5,7 @@
 ; Title .........: WebView2_Interfaces.au3
 ; Description ...: COM interface definitions used by the first public WebView2.au3 API surface.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; Remarks .......: Only parameter types required by the implemented UDF surface are intentionally defined.
 ; ===============================================================================================================================
 

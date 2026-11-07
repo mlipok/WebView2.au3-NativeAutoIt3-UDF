@@ -1,4 +1,4 @@
-# Known limitations — v0.5.0
+# Known limitations — v0.6.0
 
 1. **Full GUI testing is still required.** Isolated Windows tests have run; they do not establish every host application scenario. See [EXAMPLES.md](EXAMPLES.md) for the current example verification boundary.
 2. **The synchronous string-result path is serialized.** `_WebView2_ExecuteScript()` and synchronous CDP helpers share one completion channel; do not issue overlapping synchronous calls from re-entrant callbacks.

@@ -8,7 +8,7 @@
 ; Description ...: Native Microsoft Edge WebView2 host for AutoIt using the Win32 WebView2 API and WebView2Loader.dll.
 ; Author(s) .....: mLipok
 ; Based on ......: AutoIt Forum WebView2 research/examples by LarsJ, Danp2, Ioa747, mLipok and other contributors.
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; ===============================================================================================================================
 
 #include "WebView2_Core.au3"

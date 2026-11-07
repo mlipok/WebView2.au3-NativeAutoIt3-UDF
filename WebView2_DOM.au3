@@ -5,7 +5,7 @@
 ; Title .........: WebView2_DOM.au3
 ; Description ...: DOM automation helpers for WebView2.au3, inspired by useful au3WebDriver patterns but implemented natively via WebView2 ExecuteScript.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; ===============================================================================================================================
 
 #include "WebView2_Core.au3"
