@@ -24,6 +24,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventArgs = "{30D68B7
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventArgs = "{0F99A40C-E962-4207-9E92-E3D542EFF849}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventArgs = "{34ACB11C-FC37-4418-9132-F9C21D1EAFB9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs = "{973AE2EF-FF18-4894-8FB2-3C758F046810}"
+Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3 = "{E61670BC-3DCE-4177-86D2-C629AE3CB6AC}"
 
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler = "{4E8A3389-C9D8-4BD2-B6B5-124FEE6CC14D}"
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2ControllerCompletedHandler = "{6C4819F3-C9B7-4260-8127-C9F5BDE7F68C}"
@@ -243,6 +244,13 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs = _
 		"get_State hresult(int*);" & _
 		"put_State hresult(int);" & _
 		"GetDeferral hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs3 = _
+		$WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs & _
+		"get_Handled hresult(bool*);" & _
+		"put_Handled hresult(bool);" & _
+		"get_SavesInProfile hresult(bool*);" & _
+		"put_SavesInProfile hresult(bool);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2WebMessageReceivedEventArgs = _
 		"get_Source hresult(ptr*);" & _

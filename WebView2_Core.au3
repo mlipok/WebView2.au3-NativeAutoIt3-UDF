@@ -1361,7 +1361,7 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |FRAME_DESTROYED         - Called with ($iWebView, $iFrame) before its ID is invalidated.
 ;                  |FRAME_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $sMessage, $sSource, $bJSON).
 ;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
-;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant to decide immediately.
+;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, or [state, saveInProfile].
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
 ; Return values .: On Success - True; On Failure - False.
 ;                  Direct helper returns clear @error/@extended; inspect _WebView2_Error_GetCode/GetExtended.
@@ -1371,6 +1371,7 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  the request handled. Queue tab creation outside the callback; the opener WindowProxy is not preserved.
 ;                  Permission callbacks must return promptly and must not call blocking WebView2 helpers.
 ;                  An invalid return value leaves the Runtime's default permission handling unchanged.
+;                  The optional array's False saveInProfile requires PermissionRequestedEventArgs3.
 ; Related .......: _WebView2_Create, _WebView2_Tab_Create
 ; Link ..........:
 ; Example .......: Yes
@@ -2496,9 +2497,19 @@ Func __WebView2_PermissionRequested_Invoke($pSelf, $pSender, $pArgs)
 		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
 		$iHRESULT = $oArgs.get_IsUserInitiated($bUserInitiated)
 		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
-		Local $vState = Call($fnCallback, $iSlot, $sURI, $iKind, $bUserInitiated)
+		Local $vDecision = Call($fnCallback, $iSlot, $sURI, $iKind, $bUserInitiated)
 		If @error Then ExitLoop
-		If IsInt($vState) And $vState >= $WEBVIEW2_PERMISSION_STATE_DEFAULT And $vState <= $WEBVIEW2_PERMISSION_STATE_DENY Then $oArgs.put_State($vState)
+		Local $iState = $vDecision
+		If IsArray($vDecision) Then
+			If UBound($vDecision) <> 2 Then ExitLoop
+			$iState = $vDecision[0]
+			Local $oArgs3 = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3, $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs3)
+			If Not IsObj($oArgs3) Then ExitLoop
+			$oArgs3.AddRef()
+			$iHRESULT = $oArgs3.put_SavesInProfile($vDecision[1])
+			If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
+		EndIf
+		If IsInt($iState) And $iState >= $WEBVIEW2_PERMISSION_STATE_DEFAULT And $iState <= $WEBVIEW2_PERMISSION_STATE_DENY Then $oArgs.put_State($iState)
 	Until True
 	Return $WEBVIEW2_S_OK
 EndFunc   ;==>__WebView2_PermissionRequested_Invoke

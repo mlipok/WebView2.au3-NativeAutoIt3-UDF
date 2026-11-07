@@ -9,21 +9,29 @@
 <body>
   <main>
     <h1>Geolocation permission</h1>
-    <p>Click the button to request location access. The AutoIt host denies this request without reading your location.</p>
-    <button id="request" type="button">Request geolocation</button>
+    <p>Choose how the AutoIt host should answer this location request. Coordinates are never displayed by this example.</p>
+    <button id="deny" type="button">Deny geolocation</button>
+    <button id="allow" type="button">Allow geolocation</button>
     <p id="result">Waiting for a request.</p>
   </main>
   <script>
-    document.getElementById('request').addEventListener('click', () => {
+    document.getElementById('deny').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'deny'}));
+    document.getElementById('allow').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'allow'}));
+    function requestLocation(mode) {
+      document.getElementById('result').textContent = 'Waiting for location permission...';
       navigator.geolocation.getCurrentPosition(
-        () => { document.getElementById('result').textContent = 'Unexpectedly allowed.'; },
+        () => {
+          document.getElementById('result').textContent = 'Location allowed (coordinates received, not displayed).';
+          chrome.webview.postMessage({type: 'allowed'});
+        },
         error => {
-          document.getElementById('result').textContent = 'Location denied (code ' + error.code + ').';
-          chrome.webview.postMessage({type: error.code === 1 ? 'denied' : 'error', code: error.code});
+          const denied = mode === 'deny' && error.code === 1;
+          document.getElementById('result').textContent = (denied ? 'Location denied' : 'Location unavailable after ALLOW') + ' (code ' + error.code + ').';
+          chrome.webview.postMessage({type: denied ? 'denied' : 'error', code: error.code});
         },
         {timeout: 5000}
       );
-    });
+    }
     chrome.webview.postMessage({type: 'ready'});
   </script>
 </body>

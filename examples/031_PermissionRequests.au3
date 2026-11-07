@@ -10,7 +10,9 @@ Opt("MustDeclareVars", 1)
 Global Const $g_sHost = "autoit-permission.example"
 Global Const $g_sOrigin = "https://" & $g_sHost & "/"
 Global $g_iWebView = -1, $g_idStatus = 0
-Global $g_bReady = False, $g_bPermissionSeen = False, $g_bDenied = False
+Global $g_bReady = False, $g_bRequestPending = False, $g_bPageDone = False
+Global $g_iDecision = $WEBVIEW2_PERMISSION_STATE_DENY, $g_iDecisionCount = 0
+Global $g_sMode = "deny", $g_sPageResult = ""
 Global $g_bSmoke = False
 If $CmdLine[0] > 0 Then $g_bSmoke = ($CmdLine[1] = "--smoke")
 
@@ -24,7 +26,7 @@ Exit _Example()
 ; Return values .: 0 on normal close or successful smoke run; 1 on setup or smoke failure.
 ; Author ........: mLipok
 ; Modified ......:
-; Remarks .......: The example denies geolocation; it never obtains location data.
+; Remarks .......: Two page buttons select DENY or ALLOW; the page never displays coordinates.
 ; Related .......: _WebView2_SetCallback
 ; Link ..........:
 ; Example .......: No
@@ -47,24 +49,43 @@ Func _Example()
 		$iExitCode = 0
 	Until True
 	If $iExitCode Then _Example_Status("Setup failed: " & _WebView2_Error_GetDescription())
-	Local $hTimer = TimerInit(), $bRequested = False
+	Local $hTimer = TimerInit(), $iSmokeStage = 0
 	While $iExitCode = 0
+		If $g_bRequestPending Then
+			$g_bRequestPending = False
+			_WebView2_ExecuteScript($g_iWebView, "requestLocation(" & _WebView2_JavaScriptStringLiteral($g_sMode) & "); true")
+			If @error Then
+				_Example_Status("Could not start the permission request.")
+				$iExitCode = 1
+				ExitLoop
+			EndIf
+		EndIf
 		If $g_bSmoke Then
-			If $g_bReady And Not $bRequested Then
-				$bRequested = True
-				_WebView2_ExecuteScript($g_iWebView, "document.getElementById('request').click(); true")
+			If $g_bReady And $iSmokeStage = 0 Then
+				$iSmokeStage = 1
+				_WebView2_ExecuteScript($g_iWebView, "document.getElementById('deny').click(); true")
 				If @error Then
-					_Example_Status("Could not start the permission request.")
+					_Example_Status("Could not click DENY.")
 					$iExitCode = 1
 					ExitLoop
 				EndIf
 			EndIf
-			If $g_bPermissionSeen And $g_bDenied Then
+			If $iSmokeStage = 1 And $g_iDecisionCount = 1 And $g_bPageDone And $g_sPageResult = "denied" Then
+				$g_bPageDone = False
+				$iSmokeStage = 2
+				_WebView2_ExecuteScript($g_iWebView, "document.getElementById('allow').click(); true")
+				If @error Then
+					_Example_Status("Could not click ALLOW.")
+					$iExitCode = 1
+					ExitLoop
+				EndIf
+			EndIf
+			If $iSmokeStage = 2 And $g_iDecisionCount = 2 And $g_bPageDone Then
 				ConsoleWrite("EX_SMOKE_OK example=031 arch=" & (@AutoItX64 ? "x64" : "x86") & @CRLF)
 				ExitLoop
 			EndIf
-			If TimerDiff($hTimer) > 15000 Then
-				_Example_Status("Smoke timed out waiting for permission denial.")
+			If TimerDiff($hTimer) > 20000 Then
+				_Example_Status("Smoke timed out waiting for DENY and ALLOW decisions.")
 				$iExitCode = 1
 				ExitLoop
 			EndIf
@@ -85,13 +106,13 @@ EndFunc   ;==>_Example
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_OnPermission
-; Description ...: Denies geolocation requests from this example's local origin.
+; Description ...: Applies the selected geolocation decision to this example's local origin.
 ; Syntax ........: _Example_OnPermission($iWebView, $sURI, $iKind, $bUserInitiated)
 ; Parameters ....: $iWebView - Requesting WebView2 instance.
 ;                  $sURI - Origin requesting permission.
 ;                  $iKind - Native WebView2 permission kind.
 ;                  $bUserInitiated - True when WebView2 reports a user gesture.
-; Return values .: DENY for this example's geolocation request; DEFAULT otherwise.
+; Return values .: [selected state, False] for this origin; DEFAULT otherwise.
 ; Author ........: mLipok
 ; Modified ......:
 ; Remarks .......: Do not show a modal dialog or call blocking WebView2 helpers here.
@@ -102,16 +123,17 @@ EndFunc   ;==>_Example
 Func _Example_OnPermission($iWebView, $sURI, $iKind, $bUserInitiated)
 	#forceref $bUserInitiated
 	If $iWebView = $g_iWebView And $sURI = $g_sOrigin And $iKind = $WEBVIEW2_PERMISSION_KIND_GEOLOCATION Then
-		$g_bPermissionSeen = True
-		_Example_Status("AutoIt denied geolocation for " & $sURI)
-		Return $WEBVIEW2_PERMISSION_STATE_DENY
+		$g_iDecisionCount += 1
+		_Example_Status("AutoIt " & ($g_iDecision = $WEBVIEW2_PERMISSION_STATE_ALLOW ? "allowed" : "denied") & " geolocation for " & $sURI)
+		Local $aDecision[2] = [$g_iDecision, False]
+		Return $aDecision
 	EndIf
 	Return $WEBVIEW2_PERMISSION_STATE_DEFAULT
 EndFunc   ;==>_Example_OnPermission
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_OnMessage
-; Description ...: Receives readiness and geolocation error messages from the local page.
+; Description ...: Receives button requests and geolocation results from the local page.
 ; Syntax ........: _Example_OnMessage($iWebView, $sMessage, $sSource, $bJSON)
 ; Parameters ....: $iWebView - Sending WebView2 instance.
 ;                  $sMessage - JSON message.
@@ -129,10 +151,24 @@ Func _Example_OnMessage($iWebView, $sMessage, $sSource, $bJSON)
 	If $iWebView <> $g_iWebView Or Not $bJSON Or StringLeft($sSource, StringLen($g_sOrigin)) <> $g_sOrigin Then Return
 	If StringInStr($sMessage, '"type":"ready"') Then
 		$g_bReady = True
-		_Example_Status("Ready. Click Request geolocation in the page.")
+		_Example_Status("Ready. Choose DENY or ALLOW in the page.")
+	ElseIf StringInStr($sMessage, '"type":"request"') Then
+		$g_sMode = StringInStr($sMessage, '"mode":"allow"') ? "allow" : "deny"
+		$g_iDecision = ($g_sMode = "allow") ? $WEBVIEW2_PERMISSION_STATE_ALLOW : $WEBVIEW2_PERMISSION_STATE_DENY
+		$g_bPageDone = False
+		$g_bRequestPending = True
 	ElseIf StringInStr($sMessage, '"type":"denied"') Then
-		$g_bDenied = True
+		$g_sPageResult = "denied"
+		$g_bPageDone = True
 		_Example_Status("The page received the geolocation denial.")
+	ElseIf StringInStr($sMessage, '"type":"allowed"') Then
+		$g_sPageResult = "allowed"
+		$g_bPageDone = True
+		_Example_Status("The page received a location after AutoIt allowed access.")
+	ElseIf StringInStr($sMessage, '"type":"error"') Then
+		$g_sPageResult = "error"
+		$g_bPageDone = True
+		_Example_Status("AutoIt allowed access, but the location provider returned an error.")
 	EndIf
 	Return
 EndFunc   ;==>_Example_OnMessage
