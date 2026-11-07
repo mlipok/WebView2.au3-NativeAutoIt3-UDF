@@ -64,7 +64,6 @@ examples/
     025_AudioState.au3
     026_VirtualHostMapping.au3
     027_NativeFrames.au3
-    030_XPathElements.au3
 docs/
     API.md
     ARCHITECTURE.md
