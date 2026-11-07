@@ -39,6 +39,8 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_CORE8, _
 		$__WEBVIEW2_INSTANCE_CB_AUDIO, _
 		$__WEBVIEW2_INSTANCE_TOKEN_AUDIO, _
+		$__WEBVIEW2_INSTANCE_CB_PERMISSION, _
+		$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -1358,6 +1360,8 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |FRAME_CREATED           - Called with ($iWebView, $iFrame) for a newly created iframe.
 ;                  |FRAME_DESTROYED         - Called with ($iWebView, $iFrame) before its ID is invalidated.
 ;                  |FRAME_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $sMessage, $sSource, $bJSON).
+;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
+;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant to decide immediately.
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
 ; Return values .: On Success - True; On Failure - False.
 ;                  Direct helper returns clear @error/@extended; inspect _WebView2_Error_GetCode/GetExtended.
@@ -1365,6 +1369,8 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ; Modified ......:
 ; Remarks .......: NewWindowRequested callback receives ($iWebView, $sURI, $bUserInitiated). Returning True marks
 ;                  the request handled. Queue tab creation outside the callback; the opener WindowProxy is not preserved.
+;                  Permission callbacks must return promptly and must not call blocking WebView2 helpers.
+;                  An invalid return value leaves the Runtime's default permission handling unchanged.
 ; Related .......: _WebView2_Create, _WebView2_Tab_Create
 ; Link ..........:
 ; Example .......: Yes
@@ -1399,6 +1405,8 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_MESSAGE] = $fnCallback
 			Case $WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_NEW_WINDOW] = $fnCallback
+			Case $WEBVIEW2_EVENT_PERMISSION_REQUESTED
+				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_PERMISSION] = $fnCallback
 			Case $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED
 				If Not $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] Then
 					Local $oCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
@@ -2155,6 +2163,11 @@ Func __WebView2_Callbacks_Create()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
+		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_PERMISSION_REQUESTED, __WebView2_PermissionRequested_Invoke, "ptr;ptr;ptr") Then
+			$__WebView2ExitValue = False
+			$__WebView2ExitError = $WEBVIEW2_ERR_CALLBACK
+			ExitLoop 1
+		EndIf
 		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_DOCUMENT_PLAYING_AUDIO_CHANGED, __WebView2_DocumentPlayingAudioChanged_Invoke, "ptr;ptr;ptr") Then
 			$__WebView2ExitValue = False
 			$__WebView2ExitError = @error
@@ -2447,6 +2460,48 @@ Func __WebView2_NewWindowRequested_Invoke($pSelf, $pSender, $pArgs)
 	Until True
 	Return $iResult
 EndFunc   ;==>__WebView2_NewWindowRequested_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_PermissionRequested_Invoke
+; Description ...: Reads a native permission request and applies the host's immediate decision.
+; Syntax ........: __WebView2_PermissionRequested_Invoke($pSelf, $pSender, $pArgs)
+; Parameters ....: $pSelf - Callback object's COM pointer.
+;                  $pSender - Event sender COM pointer.
+;                  $pArgs - Event argument COM pointer.
+; Return values .: S_OK; a callback result outside the permission-state constants leaves the Runtime default.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Host callbacks must return immediately and must not call blocking WebView2 helpers.
+; Related .......: _WebView2_SetCallback
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func __WebView2_PermissionRequested_Invoke($pSelf, $pSender, $pArgs)
+	Local Const $sFuncName = "__WebView2_PermissionRequested_Invoke"
+	Local $sMessage = ''
+	#forceref $pSelf, $sFuncName, $sMessage
+	Do
+		Local $iSlot = __WebView2_Instance_FindByCorePointer($pSender)
+		If $iSlot < 0 Or Not $pArgs Then ExitLoop
+		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_PERMISSION]
+		If Not IsFunc($fnCallback) Then ExitLoop
+		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs, $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs)
+		If Not IsObj($oArgs) Then ExitLoop
+		$oArgs.AddRef()
+		Local $pURI = 0, $iKind = 0, $bUserInitiated = False
+		Local $iHRESULT = $oArgs.get_Uri($pURI)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
+		Local $sURI = __WebView2_CoTaskMemString_ReadAndFree($pURI)
+		$iHRESULT = $oArgs.get_PermissionKind($iKind)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
+		$iHRESULT = $oArgs.get_IsUserInitiated($bUserInitiated)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
+		Local $vState = Call($fnCallback, $iSlot, $sURI, $iKind, $bUserInitiated)
+		If @error Then ExitLoop
+		If IsInt($vState) And $vState >= $WEBVIEW2_PERMISSION_STATE_DEFAULT And $vState <= $WEBVIEW2_PERMISSION_STATE_DENY Then $oArgs.put_State($vState)
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_PermissionRequested_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_NavigationCompleted_Invoke
@@ -2770,6 +2825,17 @@ Func __WebView2_Events_Subscribe($iSlot)
 		EndIf
 		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_NEW_WINDOW] = DllStructGetData($tToken, 1)
 
+		$tToken = DllStructCreate("int64")
+		$iResult = $oCore.add_PermissionRequested(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_PERMISSION_REQUESTED), $tToken)
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			__WebView2_Events_Unsubscribe($iSlot)
+			$__WebView2ExitValue = SetError($WEBVIEW2_ERR_HRESULT, $iResult, False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION] = DllStructGetData($tToken, 1)
+
 		$__WebView2ExitValue = True
 		$__WebView2ExitError = @error
 		$__WebView2ExitExtended = @extended
@@ -2841,6 +2907,12 @@ Func __WebView2_Events_Unsubscribe($iSlot)
 		If $iToken Then
 			$oCore.remove_NewWindowRequested($iToken)
 			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_NEW_WINDOW] = 0
+		EndIf
+
+		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION]
+		If $iToken Then
+			$oCore.remove_PermissionRequested($iToken)
+			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION] = 0
 		EndIf
 
 		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO]

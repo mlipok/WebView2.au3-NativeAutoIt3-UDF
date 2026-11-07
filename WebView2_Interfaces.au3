@@ -23,6 +23,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventArgs = "{30D68B7D-20D9-4752-A9CA-EC8448FBB5C1}"
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventArgs = "{0F99A40C-E962-4207-9E92-E3D542EFF849}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventArgs = "{34ACB11C-FC37-4418-9132-F9C21D1EAFB9}"
+Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs = "{973AE2EF-FF18-4894-8FB2-3C758F046810}"
 
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler = "{4E8A3389-C9D8-4BD2-B6B5-124FEE6CC14D}"
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2ControllerCompletedHandler = "{6C4819F3-C9B7-4260-8127-C9F5BDE7F68C}"
@@ -90,8 +91,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"remove_FrameNavigationCompleted hresult();" & _
 		"add_ScriptDialogOpening hresult();" & _
 		"remove_ScriptDialogOpening hresult();" & _
-		"add_PermissionRequested hresult();" & _
-		"remove_PermissionRequested hresult();" & _
+		"add_PermissionRequested hresult(ptr;struct*);" & _
+		"remove_PermissionRequested hresult(int64);" & _
 		"add_ProcessFailed hresult();" & _
 		"remove_ProcessFailed hresult();" & _
 		"AddScriptToExecuteOnDocumentCreated hresult(wstr;ptr);" & _
@@ -234,6 +235,14 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2NewWindowRequestedEventArgs = _
 		"get_IsUserInitiated hresult(bool*);" & _
 		"GetDeferral hresult(ptr*);" & _
 		"get_WindowFeatures hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs = _
+		"get_Uri hresult(ptr*);" & _
+		"get_PermissionKind hresult(int*);" & _
+		"get_IsUserInitiated hresult(bool*);" & _
+		"get_State hresult(int*);" & _
+		"put_State hresult(int);" & _
+		"GetDeferral hresult(ptr*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2WebMessageReceivedEventArgs = _
 		"get_Source hresult(ptr*);" & _
