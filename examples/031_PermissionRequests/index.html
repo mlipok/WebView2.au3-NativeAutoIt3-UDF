@@ -9,7 +9,7 @@
 <body>
   <main>
     <h1>Geolocation permission</h1>
-    <p>Choose how the AutoIt host should answer this location request. Coordinates are never displayed by this example.</p>
+    <p>Choose how the AutoIt host should answer this location request. When allowed, the coordinates and reported accuracy appear below.</p>
     <button id="deny" type="button">Deny geolocation</button>
     <button id="allow" type="button">Allow geolocation</button>
     <p id="result">Waiting for a request.</p>
@@ -20,8 +20,9 @@
     function requestLocation(mode) {
       document.getElementById('result').textContent = 'Waiting for location permission...';
       navigator.geolocation.getCurrentPosition(
-        () => {
-          document.getElementById('result').textContent = 'Location allowed (coordinates received, not displayed).';
+        position => {
+          const coords = position.coords;
+          document.getElementById('result').textContent = 'Latitude: ' + coords.latitude.toFixed(6) + '°, longitude: ' + coords.longitude.toFixed(6) + '° (accuracy ±' + Math.round(coords.accuracy) + ' m).';
           chrome.webview.postMessage({type: 'allowed'});
         },
         error => {

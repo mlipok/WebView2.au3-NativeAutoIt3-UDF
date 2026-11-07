@@ -26,7 +26,7 @@ Exit _Example()
 ; Return values .: 0 on normal close or successful smoke run; 1 on setup or smoke failure.
 ; Author ........: mLipok
 ; Modified ......:
-; Remarks .......: Two page buttons select DENY or ALLOW; the page never displays coordinates.
+; Remarks .......: Two page buttons select DENY or ALLOW; the page displays coordinates when available.
 ; Related .......: _WebView2_SetCallback
 ; Link ..........:
 ; Example .......: No
