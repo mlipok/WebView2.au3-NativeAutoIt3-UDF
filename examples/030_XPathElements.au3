@@ -62,7 +62,8 @@ Func _Example()
 	If Not $bReady Then
 		$iExit = 1
 	ElseIf $g_bSmoke Then
-		If Not _Example_RunXPath() Then $iExit = 1
+		If Not _Example_FillByXPath() Then $iExit = 1
+		If $iExit = 0 And Not _Example_VerifyShowValues() Then $iExit = 1
 		ConsoleWrite(($iExit = 0 ? "EX_SMOKE_OK" : "EX_SMOKE_FAIL") & " example=030 arch=" & (@AutoItX64 ? "x64" : "x86") & @CRLF)
 	Else
 		While True
@@ -73,7 +74,7 @@ Func _Example()
 					Local $aClient = WinGetClientSize($hGUI)
 					If IsArray($aClient) Then _WebView2_SetBounds($g_iWebView, 0, 46, $aClient[0], $aClient[1] - 46)
 				Case $idRun
-					_Example_RunXPath()
+					_Example_FillByXPath()
 			EndSwitch
 			Sleep(10)
 		WEnd
@@ -84,11 +85,11 @@ Func _Example()
 EndFunc   ;==>_Example
 
 ; #FUNCTION# ====================================================================================================================
-; Name ..........: _Example_RunXPath
-; Description ...: Finds two inputs, a button and the result by XPath, then fills and clicks the form.
-; Syntax ........: _Example_RunXPath()
+; Name ..........: _Example_FillByXPath
+; Description ...: Finds and fills two inputs by XPath without clicking the page button.
+; Syntax ........: _Example_FillByXPath()
 ; Parameters ....: None.
-; Return values .: True if the form displays the expected result; False otherwise.
+; Return values .: True if both fields were filled; False otherwise.
 ; Author ........: mLipok
 ; Modified ......:
 ; Remarks .......: Element tokens are document-scoped; find them again after navigation.
@@ -96,29 +97,55 @@ EndFunc   ;==>_Example
 ; Link ..........:
 ; Example .......: Yes
 ; ===============================================================================================================================
-Func _Example_RunXPath()
+Func _Example_FillByXPath()
 	Local $sUser = _WebView2_FindElement($g_iWebView, $WEBVIEW2_LOCATOR_BY_XPATH, "//form[@id='demo-form']//input[@name='user']")
 	If @error Then Return _Example_Fail("User field")
 	Local $sCode = _WebView2_FindElement($g_iWebView, $WEBVIEW2_LOCATOR_BY_XPATH, "//form[@id='demo-form']//input[@name='code']")
 	If @error Then Return _Example_Fail("Code field")
-	Local $sButton = _WebView2_FindElement($g_iWebView, $WEBVIEW2_LOCATOR_BY_XPATH, "//form[@id='demo-form']//button[@type='button']")
-	If @error Then Return _Example_Fail("Submit button")
-	Local $sOutput = _WebView2_FindElement($g_iWebView, $WEBVIEW2_LOCATOR_BY_XPATH, "//p[@id='result']")
-	If @error Then Return _Example_Fail("Result label")
 
 	If Not _WebView2_SetElementValue($g_iWebView, $sUser, "Sample user") Then Return _Example_Fail("Set user")
 	If Not _WebView2_SetElementValue($g_iWebView, $sCode, "1234") Then Return _Example_Fail("Set code")
-	_WebView2_ElementAction($g_iWebView, $sButton, "CLICK")
-	If @error Then Return _Example_Fail("Click button")
+	_WebView2_ExecuteScript($g_iWebView, "document.getElementById('result').textContent = 'Waiting...'")
+	If @error Then Return _Example_Fail("Reset result")
+	_Example_Status("Fields filled by XPath. Click Show values in the page to display them.")
+	Return True
+EndFunc   ;==>_Example_FillByXPath
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_VerifyShowValues
+; Description ...: Verifies that only the page button displays the filled values.
+; Syntax ........: _Example_VerifyShowValues()
+; Parameters ....: None.
+; Return values .: True if the result changes from Waiting to the expected values; False otherwise.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Used only by the automated smoke test; the visible AutoIt button does not call it.
+; Related .......: _WebView2_FindElement, _WebView2_ElementAction
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _Example_VerifyShowValues()
+	Local $sOutput = _WebView2_FindElement($g_iWebView, $WEBVIEW2_LOCATOR_BY_XPATH, "//p[@id='result']")
+	If @error Then Return _Example_Fail("Result label")
 	Local $sText = _WebView2_ElementAction($g_iWebView, $sOutput, "TEXT")
+	If @error Then Return _Example_Fail("Read initial result")
+	If $sText <> "Waiting..." Then
+		_Example_Status("Result changed before Show values was clicked: " & $sText)
+		Return False
+	EndIf
+	Local $sButton = _WebView2_FindElement($g_iWebView, $WEBVIEW2_LOCATOR_BY_XPATH, "//form[@id='demo-form']//button[@type='button']")
+	If @error Then Return _Example_Fail("Show values button")
+	_WebView2_ElementAction($g_iWebView, $sButton, "CLICK")
+	If @error Then Return _Example_Fail("Click Show values")
+	$sText = _WebView2_ElementAction($g_iWebView, $sOutput, "TEXT")
 	If @error Then Return _Example_Fail("Read result")
 	If $sText <> "Sample user / 1234" Then
 		_Example_Status("Unexpected result: " & $sText)
 		Return False
 	EndIf
-	_Example_Status("XPath found the form elements. Result: " & $sText)
+	_Example_Status("Show values displayed: " & $sText)
 	Return True
-EndFunc   ;==>_Example_RunXPath
+EndFunc   ;==>_Example_VerifyShowValues
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_Fail
