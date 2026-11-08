@@ -100,7 +100,11 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 
 ## 025_AudioState.au3
 
-[Example 025](../examples/025_AudioState.au3) is a self-contained native audio-state demo inspired by [Gianni's question on the AutoIt Forum](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/#findComment-1555567). Click **Start tone** or **Stop tone** in the embedded page: the AutoIt label receives ICoreWebView2_8::IsDocumentPlayingAudioChanged through the UDF callback. **Read current state** calls _WebView2_GetIsDocumentPlayingAudio() for comparison. The HTML and Web Audio oscillator are embedded in the .au3 file; no network or extra assets are needed. An isolated x86 and x64 WebView2 smoke test confirmed the native True and False transitions and cleanup. Direct interaction with the visible example window remains to be checked.
+[Example 025](../examples/025_AudioState.au3) is a self-contained native audio and mute-state demo inspired by [Gianni's question on the AutoIt Forum](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/#findComment-1555567). Run it with AutoIt and the matching x86 or x64 WebView2Loader.dll available through the normal UDF loader search. The HTML and Web Audio oscillator are embedded in the `.au3` file; no network connection or additional assets are needed.
+
+- Click **Start tone** inside WebView2. This page gesture starts the oscillator and the `Audio` label changes to `playing` through `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED`.
+- Click the native **Mute** and **Unmute** buttons. They call `_WebView2_SetIsMuted()`; `$WEBVIEW2_EVENT_MUTED_CHANGED` updates the `Mute` label. Muting does not stop the oscillator, so the `Audio` label can still show `playing`.
+- Click **Read state** to query `_WebView2_GetIsDocumentPlayingAudio()` and `_WebView2_GetIsMuted()` directly. Click **Stop tone** in WebView2 to stop playback. Closing the window releases the event subscriptions and WebView2 instance.
 
 ## 026_VirtualHostMapping.au3
 

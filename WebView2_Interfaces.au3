@@ -32,6 +32,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventHandler = "{9ADBE
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventHandler = "{D33A35BF-1C49-4F98-93AB-006E0533FE1C}"
 Global Const $WEBVIEW2_IID_ICoreWebView2DocumentTitleChangedEventHandler = "{F5F2B923-953E-4042-9F95-F3A118E1AFD4}"
 Global Const $WEBVIEW2_IID_ICoreWebView2IsDocumentPlayingAudioChangedEventHandler = "{5DEF109A-2F4B-49FA-B7F6-11C39E513328}"
+Global Const $WEBVIEW2_IID_ICoreWebView2IsMutedChangedEventHandler = "{57D90347-CD0E-4952-A4A2-7483A2756F08}"
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventHandler = "{57213F19-00E6-49FA-8E07-898EA01ECBD2}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventHandler = "{D4C185FE-C81C-4989-97AF-2D3FA7AB5651}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventHandler = "{38059770-9BAA-11EB-A8B3-0242AC130003}"
@@ -158,10 +159,10 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2_8 = $WEBVIEW2_DTAG_ICoreWebView2_4 & _
 		"remove_ClientCertificateRequested hresult();" & _
 		"OpenTaskManagerWindow hresult();" & _
 		"PrintToPdf hresult();" & _
-		"add_IsMutedChanged hresult();" & _
-		"remove_IsMutedChanged hresult();" & _
-		"get_IsMuted hresult();" & _
-		"put_IsMuted hresult();" & _
+		"add_IsMutedChanged hresult(ptr;struct*);" & _
+		"remove_IsMutedChanged hresult(int64);" & _
+		"get_IsMuted hresult(bool*);" & _
+		"put_IsMuted hresult(bool);" & _
 		"add_IsDocumentPlayingAudioChanged hresult(ptr;struct*);" & _
 		"remove_IsDocumentPlayingAudioChanged hresult(int64);" & _
 		"get_IsDocumentPlayingAudio hresult(bool*);"
