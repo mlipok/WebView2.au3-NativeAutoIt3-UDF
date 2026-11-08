@@ -39,6 +39,8 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_CORE8, _
 		$__WEBVIEW2_INSTANCE_CB_AUDIO, _
 		$__WEBVIEW2_INSTANCE_TOKEN_AUDIO, _
+		$__WEBVIEW2_INSTANCE_CB_MUTED, _
+		$__WEBVIEW2_INSTANCE_TOKEN_MUTED, _
 		$__WEBVIEW2_INSTANCE_CB_PERMISSION, _
 		$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION, _
 		$__WEBVIEW2_INSTANCE_FIELDS
@@ -940,6 +942,94 @@ Func _WebView2_GetIsDocumentPlayingAudio($iWebView)
 EndFunc   ;==>_WebView2_GetIsDocumentPlayingAudio
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_GetIsMuted
+; Description ...: Reads whether all audio output from a WebView2 instance is muted.
+; Syntax ........: _WebView2_GetIsMuted($iWebView)
+; Parameters ....: $iWebView - WebView2 instance ID.
+; Return values .: On Success - True when muted, otherwise False; @error is zero in both cases.
+;                  On Failure - False; @error is $WEBVIEW2_ERR_INVALID_INSTANCE, $WEBVIEW2_ERR_DLLCALL or $WEBVIEW2_ERR_HRESULT.
+;                  @extended contains a native HRESULT when available.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: This property is independent of IsDocumentPlayingAudio.
+; Related .......: _WebView2_SetIsMuted, _WebView2_SetCallback
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2_8#get_ismuted
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_GetIsMuted($iWebView)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If Not __WebView2_Instance_IsValid($iWebView) Then
+			$iError = $WEBVIEW2_ERR_INVALID_INSTANCE
+			ExitLoop 1
+		EndIf
+		Local $oCore8 = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE8]
+		If Not IsObj($oCore8) Then
+			$oCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
+			$iError = @error
+			$iExtended = @extended
+			If $iError Then ExitLoop 1
+		EndIf
+		Local $iMuted = 0
+		Local $iHRESULT = $oCore8.get_IsMuted($iMuted)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		$bResult = $iMuted <> 0
+	Until True
+	If $iError Then __WebView2_Error("_WebView2_GetIsMuted", $iError, "Could not read mute state.", $iExtended)
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_GetIsMuted
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_SetIsMuted
+; Description ...: Mutes or unmutes all audio output from a WebView2 instance.
+; Syntax ........: _WebView2_SetIsMuted($iWebView, $bMuted)
+; Parameters ....: $iWebView - WebView2 instance ID.
+;                  $bMuted - True to mute; False to unmute.
+; Return values .: On Success - True.
+;                  On Failure - False; @error is $WEBVIEW2_ERR_INVALID_INSTANCE, $WEBVIEW2_ERR_INVALID_PARAMETER,
+;                  $WEBVIEW2_ERR_DLLCALL or $WEBVIEW2_ERR_HRESULT. @extended contains a native HRESULT when available.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Muting does not stop media playback or change IsDocumentPlayingAudio.
+; Related .......: _WebView2_GetIsMuted, _WebView2_SetCallback
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2_8#put_ismuted
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_SetIsMuted($iWebView, $bMuted)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If Not __WebView2_Instance_IsValid($iWebView) Then
+			$iError = $WEBVIEW2_ERR_INVALID_INSTANCE
+			ExitLoop 1
+		EndIf
+		If Not IsBool($bMuted) Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $oCore8 = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE8]
+		If Not IsObj($oCore8) Then
+			$oCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
+			$iError = @error
+			$iExtended = @extended
+			If $iError Then ExitLoop 1
+		EndIf
+		Local $iHRESULT = $oCore8.put_IsMuted($bMuted)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		$bResult = True
+	Until True
+	If $iError Then __WebView2_Error("_WebView2_SetIsMuted", $iError, "Could not change mute state.", $iExtended)
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_SetIsMuted
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Reload
 ; Description ...: Reloads the current document.
 ; Syntax ........: _WebView2_Reload($iWebView)
@@ -1357,6 +1447,7 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |WEB_MESSAGE_RECEIVED     - Called for a message posted by web content.
 ;                  |NEW_WINDOW_REQUESTED    - Called for target=_blank/window.open; returning True suppresses the popup.
 ;                  |DOCUMENT_PLAYING_AUDIO_CHANGED - Called when document audio starts or stops; receives ($iWebView, $bIsPlaying).
+;                  |MUTED_CHANGED           - Called when the WebView mute state changes; receives ($iWebView, $bMuted).
 ;                  |FRAME_CREATED           - Called with ($iWebView, $iFrame) for a newly created iframe.
 ;                  |FRAME_DESTROYED         - Called with ($iWebView, $iFrame) before its ID is invalidated.
 ;                  |FRAME_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $sMessage, $sSource, $bJSON).
@@ -1428,6 +1519,26 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 					$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] = DllStructGetData($tAudioToken, 1)
 				EndIf
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_AUDIO] = $fnCallback
+			Case $WEBVIEW2_EVENT_MUTED_CHANGED
+				If Not $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_MUTED] Then
+					Local $oMuteCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
+					Local $iMuteQueryError = @error, $iMuteQueryExtended = @extended
+					If $iMuteQueryError Then
+						$__WebView2ExitError = $iMuteQueryError
+						$__WebView2ExitExtended = $iMuteQueryExtended
+						ExitLoop 1
+					EndIf
+					Local $tMuteToken = DllStructCreate("int64")
+					Local $iMuteResult = $oMuteCore8.add_IsMutedChanged(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_MUTED_CHANGED), $tMuteToken)
+					If @error Or $iMuteResult <> $WEBVIEW2_S_OK Then
+						$__WebView2ExitError = $WEBVIEW2_ERR_HRESULT
+						$__WebView2ExitExtended = $iMuteResult
+						ExitLoop 1
+					EndIf
+					$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE8] = $oMuteCore8
+					$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_MUTED] = DllStructGetData($tMuteToken, 1)
+				EndIf
+				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_MUTED] = $fnCallback
 			Case $WEBVIEW2_EVENT_FRAME_CREATED, $WEBVIEW2_EVENT_FRAME_DESTROYED, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED
 				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__WebView2ExitError = @error
@@ -2175,6 +2286,12 @@ Func __WebView2_Callbacks_Create()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
+		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_MUTED_CHANGED, __WebView2_IsMutedChanged_Invoke, "ptr;ptr;ptr") Then
+			$__WebView2ExitValue = False
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
 		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_EXECUTE_SCRIPT, __WebView2_ExecuteScriptCompleted_Invoke, "ptr;long;wstr") Then
 			$__WebView2ExitValue = False
 			$__WebView2ExitError = @error
@@ -2658,6 +2775,33 @@ Func __WebView2_DocumentPlayingAudioChanged_Invoke($pSelf, $pSender, $pArgs)
 EndFunc   ;==>__WebView2_DocumentPlayingAudioChanged_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_IsMutedChanged_Invoke
+; Description ...: Dispatches the native mute-state event to an AutoIt callback.
+; Syntax ........: __WebView2_IsMutedChanged_Invoke($pSelf, $pSender, $pArgs)
+; Parameters ....: $pSelf - Callback COM pointer.
+;                  $pSender - CoreWebView2 COM pointer.
+;                  $pArgs - Unused event argument pointer.
+; Return values .: S_OK.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: User callback receives ($iWebView, $bMuted).
+; Related .......: _WebView2_SetCallback, _WebView2_GetIsMuted
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_IsMutedChanged_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf, $pArgs
+	Local $iSlot = __WebView2_Instance_FindByCorePointer($pSender)
+	If $iSlot >= 0 Then
+		Local $bMuted = _WebView2_GetIsMuted($iSlot)
+		Local $iError = @error
+		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_MUTED]
+		If Not $iError And IsFunc($fnCallback) Then Call($fnCallback, $iSlot, $bMuted)
+	EndIf
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_IsMutedChanged_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_WebMessageReceived_Invoke
 ; Description ...: Receives a web-message callback.
 ; Syntax ........: __WebView2_WebMessageReceived_Invoke($pSelf, $pSender, $pArgs)
@@ -2926,13 +3070,18 @@ Func __WebView2_Events_Unsubscribe($iSlot)
 			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION] = 0
 		EndIf
 
+		Local $oCore8 = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE8]
 		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO]
 		If $iToken Then
-			Local $oCore8 = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE8]
 			If IsObj($oCore8) Then $oCore8.remove_IsDocumentPlayingAudioChanged($iToken)
 			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] = 0
-			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE8] = Null
 		EndIf
+		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_MUTED]
+		If $iToken Then
+			If IsObj($oCore8) Then $oCore8.remove_IsMutedChanged($iToken)
+			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_MUTED] = 0
+		EndIf
+		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE8] = Null
 	Until True
 	If $__WebView2ExitError And $__g_iWebView2_LastError <> $__WebView2ExitError Then __WebView2_Error($sFuncName, $__WebView2ExitError, $sMessage, $__WebView2ExitExtended)
 	Return SetError($__WebView2ExitError, $__WebView2ExitExtended, $__WebView2ExitValue)
