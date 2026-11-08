@@ -1,14 +1,15 @@
 # Changelog
 
-## Unreleased — 2026-09-29
+## 0.6.0 - 2026-11-08
 
-- Establish English as the project language and translate project-owned example UI, HTML, and newly added documentation while retaining deliberate Unicode fixtures.
-- Normalize existing example filenames to three digits; update documentation and project validation paths.
-- Add functional copies/adaptations of the GitHub examples 000–021 as 200–221, with explicit upstream attribution and WIP status where capabilities remain incomplete.
-- Keep the new runnable examples as standalone mini projects with their own lifecycle and actions; no shared example support module.
-- Add the local marked-based Markdown viewer and native Markdown message box.
-- Fix large CDP string extraction and decode JSON escapes exactly once, including Unicode and literal backslash paths.
-- Add JSON regression coverage and document the runtime verification boundary.
+- Added virtual HTTPS host mapping so local web applications can load their files through WebView2 without a separate server.
+- Added document-audio activity and mute controls with change notifications, so applications can mute a view while playback continues.
+- Added native iframe tracking, frame-specific JavaScript execution, two-way frame messages and origin-scoped COM host objects.
+- Added immediate permission decisions with origin and permission-kind information. Hosts can allow, deny or keep the browser default, and can choose whether a decision is saved in the profile.
+- Added a standalone Blazor WebAssembly calendar example, plus virtual-host, nested-frame, dark-appearance, XPath and geolocation-permission examples.
+- Added standalone adaptations of upstream examples 000–021 as examples 200–221; incomplete capabilities are marked WIP.
+- Added a local Markdown viewer and a native Markdown message-box example.
+- Fixed large CDP string extraction and JSON escape decoding for Unicode and literal backslash paths.
 
 
 ## 0.5.0 - 2026-09-27

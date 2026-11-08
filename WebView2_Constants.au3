@@ -5,10 +5,10 @@
 ; Title .........: WebView2_Constants.au3
 ; Description ...: Public constants used by WebView2.au3.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; ===============================================================================================================================
 
-Global Const $WEBVIEW2_VERSION = "0.5.0"
+Global Const $WEBVIEW2_VERSION = "0.6.0"
 Global Const $WEBVIEW2_NUGET_VERSION = "1.0.4191.47"
 Global Const $WEBVIEW2_MAX_INSTANCES = 32
 Global Const $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY = 0

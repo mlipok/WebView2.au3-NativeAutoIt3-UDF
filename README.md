@@ -2,7 +2,7 @@
 
 Native Microsoft Edge WebView2 hosting for AutoIt — **pure AutoIt + Win32 WebView2 API**, without a C#/.NET bridge or registered ActiveX control.
 
-Version: **0.5.0**  
+Version: **0.6.0**
 
 **COM initialization note:** v0.1.5 correctly treats both `S_OK` and `S_FALSE` from `CoInitializeEx()` as success and reports actual failing HRESULT values.
 WebView2 SDK loader pinned by setup tooling: **Microsoft.Web.WebView2 1.0.4191.47**
@@ -216,7 +216,7 @@ Do not trust messages merely because they came through `WebMessageReceived`. If 
 
 ## Status
 
-v0.5.0 is an **early native UDF release**. AutoIt syntax checks, isolated checks and hidden-window tab smoke tests on x86/x64 have been run. Visible GUI behavior of the examples still needs direct testing before treating the release as production-stable; see [KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+v0.6.0 is an **early native UDF release**. The new virtual-host, permission and example paths have x86/x64 smoke coverage. Some examples and visible GUI paths remain unverified; see [KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) and [EXAMPLES.md](docs/EXAMPLES.md).
 
 ## NetWebView2Lib-inspired native API additions (0.2.0)
 

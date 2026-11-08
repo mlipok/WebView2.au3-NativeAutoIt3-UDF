@@ -1,4 +1,26 @@
-# Release Notes - 0.5.0
+# Release Notes - 0.6.0
+
+Version 0.6.0 adds virtual HTTPS host mapping, audio activity and mute controls, native iframe operations, origin-scoped frame host objects and immediate permission decisions. It also expands the standalone examples, including a locally hosted Blazor WebAssembly calendar.
+
+## Highlights in 0.6.0
+
+- `_WebView2_SetVirtualHostNameToFolderMapping()` serves a local folder as an HTTPS origin for one WebView2 instance.
+- `_WebView2_GetIsDocumentPlayingAudio()` and its change callback report page audio activity. `_WebView2_GetIsMuted()`, `_WebView2_SetIsMuted()` and a mute-change callback control and report output independently of playback.
+- Native frame callbacks track creation and destruction; frame IDs support script execution, JSON/string messages and COM host objects restricted to explicit origins.
+- A permission callback receives the requesting origin, kind and user-initiated flag. It can return DEFAULT, ALLOW or DENY immediately, with optional per-request profile persistence control on compatible Runtimes.
+- New examples cover Blazor WebAssembly, virtual-host mapping, native and nested frames, dark appearance, XPath element lookup and geolocation decisions. Examples 200–221 adapt upstream demos; incomplete examples remain explicitly marked WIP.
+
+## Compatibility and limits
+
+Existing public functions and previously assigned event/error values remain available. Permission callbacks do not support deferred replies or frame-level events. Frame IDs are valid only while their frames exist. Frame host objects require a live COM object and explicit allowed origins; removal does not revoke existing JavaScript references. The PDF.js viewer and other WIP examples are not presented as fully verified features; see [known limitations](docs/KNOWN_LIMITATIONS.md) and [example status](docs/EXAMPLES.md).
+
+WebView2 Runtime and architecture-matched Microsoft `WebView2Loader.dll` binaries are required. The source repository does not track the loader DLLs; the release package includes verified local copies of both architectures.
+
+## Verification boundary
+
+Project structure validation passed. Examples 026 (virtual host), 027 (native frame readiness), 029 (dark appearance), 030 (XPath), and 031 (DENY then ALLOW) passed `--smoke` under both AutoIt x86 and x64, including cleanup. The geolocation host returned ALLOW during testing, but the test computer's location provider returned an error. The new mute controls, frame host-object access and nested-frame interactions were not fully verified in this release preparation. Tidy reported no changes for the original nine UDF source files. Au3Check could not start because Windows reported an invalid system DLL relocation. Visible rendering, the Blazor calendar, every adapted example, and host applications have not all been validated for this release.
+
+## Previous release: 0.5.0
 
 Version 0.5.0 adds managed WebView2 tabs, instance enumeration, configurable waits and diagnostic levels. Existing public function signatures and error-code numbers remain unchanged.
 

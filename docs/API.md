@@ -1,4 +1,4 @@
-# WebView2.au3 public API — v0.5.0
+# WebView2.au3 public API — v0.6.0
 
 ## Lifecycle and runtime
 

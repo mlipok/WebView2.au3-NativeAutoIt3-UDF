@@ -5,7 +5,7 @@
 ; Title .........: WebView2_Frame.au3
 ; Description ...: Native frame tracking, messaging, script execution and host objects.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; ===============================================================================================================================
 
 Global Const $__WEBVIEW2_MAX_FRAMES = 256

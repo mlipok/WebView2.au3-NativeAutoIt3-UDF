@@ -13,7 +13,7 @@
 ; Title .........: WebView2_Core.au3
 ; Description ...: Public and internal implementation for WebView2.au3.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; ===============================================================================================================================
 
 Global Enum _

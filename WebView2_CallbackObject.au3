@@ -7,7 +7,7 @@
 ; Title .........: WebView2_CallbackObject.au3
 ; Description ...: Minimal native COM callback-object factory for the WebView2 UDF.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; Remarks .......: Inspired by the AutoIt ObjectFromTag()/WebView2 callback work discussed by LarsJ and trancexx.
 ; ===============================================================================================================================
 

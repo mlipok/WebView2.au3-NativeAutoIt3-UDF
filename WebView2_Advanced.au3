@@ -10,7 +10,7 @@
 ; Title .........: WebView2_Advanced.au3
 ; Description ...: Advanced WebView2 helpers implemented with the native DevTools Protocol entry point exposed by ICoreWebView2.
 ; Author(s) .....: mLipok
-; Version .......: 0.5.0
+; Version .......: 0.6.0
 ; Remarks .......: Provides CDP, cookies, screenshot/PDF, frames, ad blocking, extensions and initialization-script helpers.
 ; ===============================================================================================================================
 
