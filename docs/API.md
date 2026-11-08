@@ -253,8 +253,9 @@ Native frame support uses `ICoreWebView2_4::FrameCreated`, `ICoreWebView2Frame`,
 - `_WebView2_Frame_GetName($iFrame)` reads the iframe name.
 - `_WebView2_Frame_ExecuteScript($iFrame, $sScript[, $iTimeoutMs = 30000])` returns a JSON-encoded result. It shares the serialized completion channel with top-level `_WebView2_ExecuteScript()`; call it outside re-entrant event callbacks.
 - `_WebView2_Frame_PostWebMessageAsJson($iFrame, $sJSON)` and `_WebView2_Frame_PostWebMessageAsString($iFrame, $sMessage)` send data to one iframe. The frame must register `window.chrome.webview.addEventListener("message", ...)`.
+- `_WebView2_Frame_AddHostObjectToScriptWithOrigins($iFrame, $sName, $oHost, $aOrigins)` exposes an AutoIt-held COM `IDispatch` object only to the explicit origins in the one-dimensional array. Empty lists and `"*"` are rejected. Keep `$oHost` alive while the frame uses it. `_WebView2_Frame_RemoveHostObjectFromScript($iFrame, $sName)` removes future access; existing JavaScript references can remain valid.
 
-`ICoreWebView2Settings::IsWebMessageEnabled` must permit messaging. [Example 027](../examples/027_NativeFrames.au3) demonstrates messages in both directions and frame script execution. Tracking supports up to 256 simultaneously active frames.
+`ICoreWebView2Settings::IsWebMessageEnabled` and `AreHostObjectsAllowed` must permit the corresponding operations. [Example 027](../examples/027_NativeFrames.au3) demonstrates messaging, script execution and an origin-scoped host object. [Example 028](../examples/028_NestedFrames.au3) traverses same-origin nested frames. Tracking supports up to 256 simultaneously active frames.
 
 ### Extensions
 - `_WebView2_AddExtension()`

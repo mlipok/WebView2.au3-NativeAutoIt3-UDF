@@ -3,7 +3,7 @@
 
 ; #INDEX# =======================================================================================================================
 ; Title .........: WebView2_Frame.au3
-; Description ...: Native frame tracking, messaging and script execution.
+; Description ...: Native frame tracking, messaging, script execution and host objects.
 ; Author(s) .....: mLipok
 ; Version .......: 0.5.0
 ; ===============================================================================================================================
@@ -558,3 +558,103 @@ Func _WebView2_Frame_PostWebMessageAsString($iFrame, $sMessage)
 	If $iError Then __WebView2_Error($sFuncName, $iError, $sErrorMessage, $iExtended)
 	Return SetError($iError, $iExtended, $bResult)
 EndFunc   ;==>_WebView2_Frame_PostWebMessageAsString
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Frame_AddHostObjectToScriptWithOrigins
+; Description ...: Exposes an IDispatch host object to a frame at explicit origins.
+; Syntax ........: _WebView2_Frame_AddHostObjectToScriptWithOrigins($iFrame, $sName, $oHost, $aOrigins)
+; Parameters ....: $iFrame - Tracked frame ID.
+;                  $sName - Script-facing object name.
+;                  $oHost - COM IDispatch object.
+;                  $aOrigins - Array of allowed origin strings; do not use wildcard for untrusted frames.
+; Return values .: True or False with @error set.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _WebView2_Frame_AddHostObjectToScriptWithOrigins($iFrame, $sName, $oHost, $aOrigins)
+	Local Const $sFuncName = "_WebView2_Frame_AddHostObjectToScriptWithOrigins"
+	Local $sMessage = "Cannot add the origin-scoped host object to the frame."
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Frame_Find($iFrame)
+		If $iSlot < 0 Or Not IsObj($oHost) Or Not IsArray($aOrigins) Or Not IsString($sName) Or $sName = "" Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $iCount = UBound($aOrigins)
+		If $iCount < 1 Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $aStrings[$iCount]
+		Local $tPointers = DllStructCreate("ptr[" & $iCount & "]")
+		Local $bOriginsValid = True
+		For $i = 0 To $iCount - 1
+			If Not IsString($aOrigins[$i]) Or $aOrigins[$i] = "" Or $aOrigins[$i] = "*" Then
+				$bOriginsValid = False
+				ExitLoop
+			EndIf
+			$aStrings[$i] = DllStructCreate("wchar[" & (StringLen($aOrigins[$i]) + 1) & "]")
+			DllStructSetData($aStrings[$i], 1, $aOrigins[$i])
+			DllStructSetData($tPointers, 1, DllStructGetPtr($aStrings[$i]), $i + 1)
+		Next
+		If Not $bOriginsValid Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $tVariant = DllStructCreate(@AutoItX64 ? "ushort vt;ushort r1;ushort r2;ushort r3;ptr dispatch;int64 pad" : "ushort vt;ushort r1;ushort r2;ushort r3;ptr dispatch;uint pad")
+		DllStructSetData($tVariant, "vt", 9)
+		DllStructSetData($tVariant, "dispatch", Ptr($oHost))
+		Local $oFrame = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT]
+		Local $iResult = $oFrame.AddHostObjectToScriptWithOrigins($sName, DllStructGetPtr($tVariant), $iCount, DllStructGetPtr($tPointers))
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iResult
+			ExitLoop 1
+		EndIf
+		$bResult = True
+	Until True
+	If $iError Then __WebView2_Error($sFuncName, $iError, $sMessage, $iExtended)
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Frame_AddHostObjectToScriptWithOrigins
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Frame_RemoveHostObjectFromScript
+; Description ...: Removes a named host object from one frame.
+; Syntax ........: _WebView2_Frame_RemoveHostObjectFromScript($iFrame, $sName)
+; Parameters ....: $iFrame - Tracked frame ID.
+;                  $sName - Script-facing object name.
+; Return values .: True or False with @error set.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _WebView2_Frame_RemoveHostObjectFromScript($iFrame, $sName)
+	Local Const $sFuncName = "_WebView2_Frame_RemoveHostObjectFromScript"
+	Local $sMessage = "Cannot remove the host object from the frame."
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Frame_Find($iFrame)
+		If $iSlot < 0 Or Not IsString($sName) Or $sName = "" Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $oFrame = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT]
+		Local $iResult = $oFrame.RemoveHostObjectFromScript($sName)
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iResult
+			ExitLoop 1
+		EndIf
+		$bResult = True
+	Until True
+	If $iError Then __WebView2_Error($sFuncName, $iError, $sMessage, $iExtended)
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Frame_RemoveHostObjectFromScript
