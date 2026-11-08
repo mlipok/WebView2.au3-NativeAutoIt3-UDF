@@ -84,6 +84,7 @@ Sources reviewed:
 | `GetFrame`, `GetFrameById` | `_WebView2_Frame_List`, `_WebView2_GetFrames`, `_WebView2_GetFrameTree` | PARTIAL | Native tracked frame IDs are distinct from CDP IDs and DOM tokens. |
 | frame `ExecuteScript*` | `_WebView2_Frame_ExecuteScript` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
 | frame `PostWebMessage*` | `_WebView2_Frame_PostWebMessageAsJson`, `_WebView2_Frame_PostWebMessageAsString` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
+| frame `AddHostObjectToScriptWithOrigins` / `RemoveHostObjectFromScript` | `_WebView2_Frame_AddHostObjectToScriptWithOrigins`, `_WebView2_Frame_RemoveHostObjectFromScript` | IMPLEMENTED | Requires a COM `IDispatch` object and explicit origin list; existing JavaScript references may outlive removal. |
 | `AddExtension` | `_WebView2_AddExtension` | PARTIAL | Runtime-dependent experimental CDP path in v0.4.0. Native `ICoreWebView2Profile7` is preferable long term. |
 | `RemoveExtension` | `_WebView2_RemoveExtension` | PARTIAL | Same limitation. |
 | extension enumeration | `_WebView2_GetExtensions` | PARTIAL | Same limitation. |
