@@ -11,6 +11,8 @@
 9. **MHTML Binary encoding is UTF-8.** `_WebView2_ExportToMhtmlBinary()` converts the MHTML string returned by CDP to UTF-8 bytes; `_WebView2_ExportToMhtmlFile()` writes the same bytes.
 10. **No automatic WebView2 Runtime installer.** Runtime detection is provided; application deployment remains the host application's responsibility.
 11. **Web message security belongs to the host application.** Validate message origin and payload before invoking privileged native actions.
+12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; native wrappers currently cover `ICoreWebView2Frame` and `ICoreWebView2Frame2`.
+13. **Frame host objects require explicit origins.** The UDF rejects wildcard and empty origin lists, but the host must still validate frame messages and keep the COM `IDispatch` object alive. Removing an object does not revoke JavaScript references already obtained.
 
 ## Recommended validation pass on Windows
 
@@ -39,7 +41,7 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- more native frame events and methods beyond the implemented frame tracking, messaging, and script execution;
+- extend the native frame wrapper beyond `ICoreWebView2Frame2` with later frame revisions and additional navigation events;
 - native `ICoreWebView2Profile7` extension management;
 - download events and download control;
 - full `NewWindowRequested` deferral / `put_NewWindow` handoff and opener semantics;

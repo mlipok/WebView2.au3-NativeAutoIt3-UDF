@@ -7,19 +7,20 @@
 
 Opt("MustDeclareVars", 1)
 
-Global $g_iView = -1, $g_iFrame = -1, $g_idStatus = 0, $g_bReady = False
+Global $g_iView = -1, $g_iFrame = -1, $g_idStatus = 0, $g_bReady = False, $g_oHost = ObjCreate("Scripting.Dictionary")
+$g_oHost.Add("example", "value")
 _Example()
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example
-; Description ...: Demonstrates native frame script execution and messages.
+; Description ...: Demonstrates native frame script, messages and origin-scoped host object.
 ; Syntax ........: _Example()
 ; Parameters ....: None.
 ; Return values .: None.
 ; Author ........: mLipok
 ; Modified ......:
 ; Remarks .......: This example uses a dedicated WebView2 profile outside the AutoIt installation directory.
-; Related .......: _WebView2_Frame_ExecuteScript, _WebView2_Frame_PostWebMessageAsJson
+; Related .......: _WebView2_Frame_ExecuteScript, _WebView2_Frame_AddHostObjectToScriptWithOrigins
 ; Link ..........:
 ; Example .......: No
 ; ===============================================================================================================================
@@ -83,7 +84,7 @@ EndFunc   ;==>_Example
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _OnFrameCreated
-; Description ...: Tracks the newly created iframe.
+; Description ...: Adds an origin-scoped COM host object before the iframe navigates.
 ; Syntax ........: _OnFrameCreated($iView, $iFrame)
 ; Parameters ....: $iView - WebView2 instance ID.
 ;                  $iFrame - Native frame ID.
@@ -93,7 +94,9 @@ EndFunc   ;==>_Example
 Func _OnFrameCreated($iView, $iFrame)
 	If $iView = $g_iView Then
 		$g_iFrame = $iFrame
-		GUICtrlSetData($g_idStatus, "Frame created")
+		Local $aOrigins[1] = ["https://native-frame.example/"]
+		Local $bAdded = _WebView2_Frame_AddHostObjectToScriptWithOrigins($iFrame, "sample", $g_oHost, $aOrigins)
+		GUICtrlSetData($g_idStatus, $bAdded ? "Frame created; host object ready" : "Host object failed: " & _WebView2_Error_GetDescription())
 	EndIf
 	Return
 EndFunc   ;==>_OnFrameCreated

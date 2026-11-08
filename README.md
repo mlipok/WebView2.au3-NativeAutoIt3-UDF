@@ -64,6 +64,7 @@ examples/
     025_AudioState.au3
     026_VirtualHostMapping.au3
     027_NativeFrames.au3
+    028_NestedFrames.au3
     029_DarkAppearance.au3
     030_XPathElements.au3
     031_PermissionRequests.au3
@@ -283,4 +284,4 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 
 ## Native frame messaging and script execution
 
-Register a frame callback before navigation to track newly created iframes. The native frame APIs list tracked frames, read frame names, execute script in one frame, and send or receive frame messages. [Example 027](examples/027_NativeFrames.au3) demonstrates these operations using local files mapped to a virtual HTTPS host. See [API.md](docs/API.md) for callback and lifetime details.
+Register a frame callback before navigation to track newly created iframes. The native frame APIs list tracked frames, read frame names, execute script in one frame, send or receive frame messages, and expose a COM host object to explicitly allowed origins. [Example 027](examples/027_NativeFrames.au3) demonstrates frame messaging and a host object; [example 028](examples/028_NestedFrames.au3) traverses a nested frame tree and updates labels. See [API.md](docs/API.md) for callback and lifetime details.

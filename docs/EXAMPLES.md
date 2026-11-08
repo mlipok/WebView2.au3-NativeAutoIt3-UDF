@@ -112,7 +112,11 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 
 ## 027_NativeFrames.au3
 
-[Example 027](../examples/027_NativeFrames.au3) tracks a native iframe, receives its ready message, sends JSON to it, and executes a script in its context. Keep the `027_NativeFrames` folder beside the script. Run with AutoIt and use **Send JSON to frame** and **Run frame script**. The `--smoke` option exits when the iframe reports readiness or after 10 seconds; this option and the visible controls still require runtime verification.
+[Example 027](../examples/027_NativeFrames.au3) tracks a native iframe, receives its ready message, sends JSON to it, executes a script in its context, and attaches a COM host object for one allowed origin. Keep the `027_NativeFrames` folder beside the script. Run with AutoIt and use **Send JSON to frame** and **Run frame script**. The `--smoke` option exits when the iframe reports readiness or after 10 seconds. The host-object handshake and visible controls require runtime verification.
+
+## 028_NestedFrames.au3
+
+[Example 028](../examples/028_NestedFrames.au3) displays 33 visible nested iframes in four levels: 1 + 2 + 6 + 24. Keep the `028_NestedFrames` folder beside the script. The local pages are mapped to `https://nested-frames.example/`; no network connection is needed. **List all frames** writes the CDP frame tree and zero-based child paths to the console. **Update next frame label** calls `_WebView2_Frame_List()` and scans tracked root frames and their same-origin descendants from AutoIt. Each click adds `_v2` to exactly one unchanged label. **Update FRAME_0_1_1 to v3** locates that frame by its `name` in the CDP tree and adds `_v3` if missing. Native frame IDs are separate from child indexes. The `--smoke` mode checks the 33 labels and the two update flows; visible rendering and resize still require a GUI run.
 
 ## 029_DarkAppearance.au3
 

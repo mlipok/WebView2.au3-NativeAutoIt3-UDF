@@ -1,12 +1,18 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Inner frame</title>
 <style>body{font:16px Segoe UI,Arial,sans-serif;margin:18px;background:#f2f7fc}button{padding:8px 14px}pre{white-space:pre-wrap}</style></head>
-<body><h2>Frame content</h2><pre id="result">Waiting for a message...</pre>
+<body><h2>Frame content</h2><button id="host">Call host object</button><pre id="result">Waiting for a message...</pre>
 <script>
 const output=document.getElementById('result');
 window.chrome.webview.addEventListener('message',event=>{
   output.textContent=JSON.stringify(event.data);
   window.chrome.webview.postMessage({type:'ack',value:event.data});
+});
+document.getElementById('host').addEventListener('click',()=>{
+  try { const found=window.chrome.webview.hostObjects.sync.sample.Exists('example');
+    output.textContent='Host object returned: '+found;
+    window.chrome.webview.postMessage({type:'host-object',found});
+  } catch(error) { output.textContent=String(error); window.chrome.webview.postMessage({type:'error',message:String(error)}); }
 });
 window.chrome.webview.postMessage({type:'ready'});
 </script></body></html>

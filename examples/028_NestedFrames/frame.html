@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Nested frame</title>
+<style>body{font:14px Segoe UI,Arial,sans-serif;margin:8px;background:#f4f9fc}#frame-label{display:inline-block;background:#d8e9f5;padding:4px 8px;font-weight:bold}.children{display:flex;gap:8px;overflow:auto;margin-top:8px}.children iframe{flex:1 0 280px;height:600px;border:2px solid #528db5;box-sizing:border-box;background:white}</style></head>
+<body><span id="frame-label"></span><div class="children" id="children"></div>
+<script>
+const params=new URLSearchParams(location.search);
+const path=params.get('path')||'0';
+const level=Number(params.get('level')||1);
+const name='FRAME_'+path;
+window.name=name;
+const label=document.getElementById('frame-label');
+label.textContent=name;
+label.dataset.original=name;
+if(level<4){
+  const container=document.getElementById('children');
+  for(let i=0;i<=level;i++){
+    const child=document.createElement('iframe');
+    child.name=name+'_'+i;
+    child.src='frame.html?path='+encodeURIComponent(path+'_'+i)+'&level='+(level+1);
+    child.title=child.name;
+    container.appendChild(child);
+  }
+}
+</script></body></html>
