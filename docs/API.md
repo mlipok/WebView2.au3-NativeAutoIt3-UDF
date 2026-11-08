@@ -120,6 +120,7 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_DOCUMENT_TITLE_CHANGED`
 - `$WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED`
 - `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED` — callback `($iWebView, $bIsPlaying)`; available through `ICoreWebView2_8`. The callback is invoked when native document-audio state changes.
+- `$WEBVIEW2_EVENT_MUTED_CHANGED` — callback `($iWebView, $bMuted)`; available through `ICoreWebView2_8`. The callback is invoked when the WebView mute state changes.
 - `$WEBVIEW2_EVENT_FRAME_CREATED` — callback `($iWebView, $iFrame)` when a native iframe is created. Register before navigation.
 - `$WEBVIEW2_EVENT_FRAME_DESTROYED` — callback `($iWebView, $iFrame)` before that frame ID is invalidated.
 - `$WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED` — callback `($iWebView, $iFrame, $sMessage, $sSource, $bJSON)` for iframe messages.
@@ -276,3 +277,9 @@ JSON string values are decoded once, including escaped backslashes, Unicode UTF-
 
 ### `_WebView2_GetIsDocumentPlayingAudio($iWebView)`
 Returns `True` while the document is playing audio, or `False` when it is not. Both are successful results with `@error = 0`; check `@error` to distinguish an unsupported interface or native failure. The value may be `True` while audio is muted. See [example 025](../examples/025_AudioState.au3).
+
+### `_WebView2_GetIsMuted($iWebView)`
+Returns `True` when all WebView2 audio output is muted, or `False` otherwise. Both are successful results with `@error = 0`. On failure it returns `False` with `@error`; `@extended` contains a native HRESULT when available.
+
+### `_WebView2_SetIsMuted($iWebView, $bMuted)`
+Sets the native mute property through `ICoreWebView2_8`. Pass `True` to mute or `False` to unmute. Returns `True` on success, or `False` with `@error` for an invalid instance/parameter or native failure. Muting does not stop playback, so `IsDocumentPlayingAudio` can remain `True`. See [example 025](../examples/025_AudioState.au3).

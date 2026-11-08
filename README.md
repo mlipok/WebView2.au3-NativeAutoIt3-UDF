@@ -34,7 +34,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - native-to-web messages (`PostWebMessageAsString`, `PostWebMessageAsJson`);
 - virtual HTTPS host to local folder mapping (`ICoreWebView2_3`);
 - web-to-AutoIt `WebMessageReceived` callback;
-- callbacks for navigation start/completion, title changes and document-audio state;
+- callbacks for navigation start/completion, title changes, document-audio state and mute state;
 - DevTools window;
 - runtime detection/version query;
 - diagnostic `@error`, `@extended`, and description helpers.
@@ -276,7 +276,7 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 
 ## Native document-audio event
 
-[Example 025](examples/025_AudioState.au3) plays and stops a local tone in WebView2. The AutoIt status label changes from a native `ICoreWebView2_8` event through `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED, callback)`. `_WebView2_GetIsDocumentPlayingAudio()` reads the same state on demand. The event subscription is removed when the instance is destroyed. This reports document audio activity even if the view is muted; mute control is a separate feature.
+[Example 025](examples/025_AudioState.au3) plays and stops a local tone in WebView2. Native `ICoreWebView2_8` events update AutoIt labels for document-audio and mute state. `_WebView2_GetIsDocumentPlayingAudio()` and `_WebView2_GetIsMuted()` read both states, while `_WebView2_SetIsMuted()` controls output without stopping playback. Both event subscriptions are removed when the instance is destroyed.
 
 ## Virtual host mapping example
 
