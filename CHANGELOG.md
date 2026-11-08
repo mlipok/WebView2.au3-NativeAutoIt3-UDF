@@ -3,10 +3,10 @@
 ## 0.6.0 - 2026-11-08
 
 - Added virtual HTTPS host mapping so local web applications can load their files through WebView2 without a separate server.
-- Added document-audio activity state and change notifications.
-- Added native iframe tracking, frame-specific JavaScript execution and two-way frame messages.
+- Added document-audio activity and mute controls with change notifications, so applications can mute a view while playback continues.
+- Added native iframe tracking, frame-specific JavaScript execution, two-way frame messages and origin-scoped COM host objects.
 - Added immediate permission decisions with origin and permission-kind information. Hosts can allow, deny or keep the browser default, and can choose whether a decision is saved in the profile.
-- Added a standalone Blazor WebAssembly calendar example, plus virtual-host, frame, dark-appearance, XPath and geolocation-permission examples.
+- Added a standalone Blazor WebAssembly calendar example, plus virtual-host, nested-frame, dark-appearance, XPath and geolocation-permission examples.
 - Added standalone adaptations of upstream examples 000–021 as examples 200–221; incomplete capabilities are marked WIP.
 - Added a local Markdown viewer and a native Markdown message-box example.
 - Fixed large CDP string extraction and JSON escape decoding for Unicode and literal backslash paths.
