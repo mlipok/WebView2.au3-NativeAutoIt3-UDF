@@ -16,6 +16,10 @@ Global $g_sExtensionId = ""
 Global Const $g_sSampleName = "WebView2 Native Extension Sample"
 Global $g_hGUI = 0
 Global $g_idStatus = 0
+Global $g_bPageReady = False
+Global $g_bRefreshState = False
+Global $g_bReloadNeeded = False
+Global $g_bReloadInProgress = False
 
 _Example()
 
@@ -29,21 +33,38 @@ Func _Example()
 	If Not _WebView2_NativeExtensions_EnableForEnvironment() Then Return _Example_Fail("Enable extensions")
 	If Not _WebView2_Init(Default, $sProfile) Then Return _Example_Fail("Initialize")
 	$g_hGUI = GUICreate("WebView2 - Native extensions", 850, 570, -1, -1, $WS_OVERLAPPEDWINDOW)
-	Local $idAdd = GUICtrlCreateButton("Install sample", 10, 8, 115, 28)
-	Local $idList = GUICtrlCreateButton("List", 130, 8, 75, 28)
-	Local $idDisable = GUICtrlCreateButton("Disable", 210, 8, 85, 28)
-	Local $idEnable = GUICtrlCreateButton("Enable", 300, 8, 85, 28)
-	Local $idRemove = GUICtrlCreateButton("Remove", 390, 8, 85, 28)
-	Local $idReload = GUICtrlCreateButton("Reload page", 480, 8, 110, 28)
+	Local $idList = GUICtrlCreateButton("List", 10, 8, 75, 28)
+	Local $idAdd = GUICtrlCreateButton("Install sample", 95, 8, 115, 28)
+	Local $idRemove = GUICtrlCreateButton("Remove", 234, 8, 85, 28)
+	Local $idDisable = GUICtrlCreateButton("Disable", 343, 8, 85, 28)
+	Local $idEnable = GUICtrlCreateButton("Enable", 438, 8, 85, 28)
+	Local $idReload = GUICtrlCreateButton("Reload page", 547, 8, 110, 28)
+	GUICtrlSetBkColor($idList, 0xFFF3BF)
+	GUICtrlSetBkColor($idAdd, 0xA9DFBF)
+	GUICtrlSetBkColor($idRemove, 0xF4B5B5)
+	GUICtrlSetBkColor($idDisable, 0xF8D7DA)
+	GUICtrlSetBkColor($idEnable, 0xD8F2DC)
+	GUICtrlSetBkColor($idReload, 0xDCEBFA)
+	GUICtrlSetResizing($idList, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
+	GUICtrlSetResizing($idAdd, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
+	GUICtrlSetResizing($idRemove, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
+	GUICtrlSetResizing($idDisable, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
+	GUICtrlSetResizing($idEnable, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
+	GUICtrlSetResizing($idReload, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
 	$g_idStatus = GUICtrlCreateLabel("Ready. The profile is preserved between runs.", 12, 44, 815, 28)
 	GUISetState(@SW_SHOW, $g_hGUI)
 	Local $aClient = WinGetClientSize($g_hGUI)
 	$g_iWebView = _WebView2_Create($g_hGUI, 0, 76, $aClient[0], $aClient[1] - 76)
 	If @error Then Return _Example_Fail("Create view")
 	If Not _WebView2_SetVirtualHostNameToFolderMapping($g_iWebView, "extension-demo.local", $sFolder) Then Return _Example_Fail("Map sample folder")
+	If Not _WebView2_SetCallback($g_iWebView, $WEBVIEW2_EVENT_NAVIGATION_COMPLETED, _Example_OnNavigation) Then Return _Example_Fail("Navigation callback")
 	If Not _WebView2_Navigate($g_iWebView, "https://extension-demo.local/page.html") Then Return _Example_Fail("Navigate")
 	_Example_List()
 	While True
+		If $g_bRefreshState Then
+			$g_bRefreshState = False
+			_Example_List()
+		EndIf
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
 				ExitLoop
@@ -55,7 +76,8 @@ Func _Example()
 				If @error Then
 					_Example_Fail("Install")
 				Else
-					_Example_Status("Installed " & $g_sExtensionId & ". Reload the page to see the banner.")
+					$g_bReloadNeeded = True
+					_Example_List()
 				EndIf
 			Case $idList
 				_Example_List()
@@ -66,7 +88,7 @@ Func _Example()
 			Case $idRemove
 				_Example_Change(False, True)
 			Case $idReload
-				_WebView2_Reload($g_iWebView)
+				_Example_Reload()
 		EndSwitch
 	WEnd
 	_WebView2_Cleanup()
@@ -81,25 +103,91 @@ Func _Example_List()
 	Local $aList = _WebView2_NativeExtension_List($g_iWebView)
 	If @error Then Return _Example_Fail("List")
 	$g_sExtensionId = ""
+	Local $sStatus = ""
 	For $i = 0 To UBound($aList) - 1
 		If $aList[$i][1] <> $g_sSampleName Then ContinueLoop
 		$g_sExtensionId = $aList[$i][0]
-		_Example_Status($g_sSampleName & " (" & $g_sExtensionId & "), enabled=" & $aList[$i][2] & "; total=" & UBound($aList))
+		$sStatus = "Sample " & ($aList[$i][2] ? "enabled" : "disabled") & " (ID " & $g_sExtensionId & ")."
+		If $g_bReloadNeeded Then $sStatus &= " RELOAD to take effect."
+		_Example_Status($sStatus)
+		_Example_UpdatePageState($aList[$i][2] ? 2 : 1)
 		Return
 	Next
-	_Example_Status("Sample extension not installed. Other profile extensions: " & UBound($aList))
+	$sStatus = "Sample extension not installed. Other profile extensions: " & UBound($aList) & "."
+	If $g_bReloadNeeded Then $sStatus &= " RELOAD to take effect."
+	_Example_Status($sStatus)
+	_Example_UpdatePageState(0)
 EndFunc   ;==>_Example_List
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_Change
-; Description ...: Changes the first listed extension using its ID.
+; Description ...: Changes the sample extension using its ID.
 ; ===============================================================================================================================
 Func _Example_Change($bEnabled, $bRemove)
 	If $g_sExtensionId = "" Then Return _Example_Status("Install the sample extension first.")
 	Local $bResult = $bRemove ? _WebView2_NativeExtension_Remove($g_iWebView, $g_sExtensionId) : _WebView2_NativeExtension_SetEnabled($g_iWebView, $g_sExtensionId, $bEnabled)
 	If Not $bResult Then Return _Example_Fail("Change extension")
+	$g_bReloadNeeded = True
 	_Example_List()
 EndFunc   ;==>_Example_Change
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_Reload
+; Description ...: Reloads the page so the content script reflects the changed native state.
+; ===============================================================================================================================
+Func _Example_Reload()
+	$g_bPageReady = False
+	$g_bReloadInProgress = True
+	If Not _WebView2_Reload($g_iWebView) Then
+		$g_bReloadInProgress = False
+		$g_bPageReady = True
+		_Example_Fail("Reload page")
+	EndIf
+EndFunc   ;==>_Example_Reload
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_OnNavigation
+; Description ...: Schedules a fresh extension-state display after page navigation.
+; ===============================================================================================================================
+Func _Example_OnNavigation($iWebView, $bSuccess, $iWebErrorStatus, $iNavigationId)
+	#forceref $iNavigationId
+	If $iWebView <> $g_iWebView Then Return
+	If Not $bSuccess Then
+		$g_bReloadInProgress = False
+		Return _Example_Status("Page load failed; WebView2 status: " & $iWebErrorStatus)
+	EndIf
+	$g_bPageReady = True
+	If $g_bReloadInProgress Then
+		$g_bReloadNeeded = False
+		$g_bReloadInProgress = False
+	EndIf
+	$g_bRefreshState = True
+EndFunc   ;==>_Example_OnNavigation
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_UpdatePageState
+; Description ...: Displays the native extension state in the mapped page.
+; ===============================================================================================================================
+Func _Example_UpdatePageState($iState)
+	If Not $g_bPageReady Then Return
+	Local $sText = "Sample extension is not installed"
+	Local $sBackground = "#e9edf1"
+	Local $sColor = "#24313d"
+	Switch $iState
+		Case 1
+			$sText = "Sample extension is disabled"
+			$sBackground = "#fff1cc"
+			$sColor = "#563e00"
+		Case 2
+			$sText = "Sample extension is enabled"
+			$sBackground = "#d8f2dc"
+			$sColor = "#103a22"
+	EndSwitch
+	Local $sJavaScript = '(function(){const banner=document.getElementById("extension-state");if(!banner)return false;banner.textContent="' & $sText & '";banner.style.backgroundColor="' & $sBackground & '";banner.style.color="' & $sColor & '";return true;})()'
+	Local $sResult = _WebView2_ExecuteScript($g_iWebView, $sJavaScript)
+	Local $iScriptError = @error
+	If $iScriptError Or $sResult <> "true" Then _Example_Fail("Update page state")
+EndFunc   ;==>_Example_UpdatePageState
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_Status

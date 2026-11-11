@@ -1,5 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><title>Native extension test</title></head>
-<body><h1>Native WebView2 extension test</h1><p>Install or enable the sample extension, then reload this page. A green banner indicates that its content script ran.</p></body>
+<body>
+  <div id="extension-state" role="status" style="padding:12px;background:#e9edf1;color:#24313d;font:16px sans-serif">Checking sample extension...</div>
+  <h1>Native WebView2 extension test</h1>
+  <p>AutoIt updates the banner from the current profile state. After installing, enabling, disabling or removing the extension, click Reload page to apply the content-script change to this document.</p>
+  <p id="script-proof">The extension content script has not run in this page.</p>
+</body>
 </html>
