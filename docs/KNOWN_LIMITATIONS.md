@@ -5,7 +5,7 @@
 3. **Controller creation is serialized.** `_WebView2_Create()` waits for each asynchronous controller creation before another create begins.
 4. **DOM element tokens are document-scoped.** Navigating to a new top-level document makes previously returned tokens stale.
 5. **Top-level DOM helpers cannot bypass browser same-origin rules.** Cross-origin frame metadata is available through CDP, but DOM HTML access is restricted.
-6. **Extension helpers are runtime-dependent.** v0.4.0 uses the experimental Chromium CDP Extensions domain. Native WebView2 profile extension interfaces are preferred for a future revision.
+6. **Extension helpers are runtime-dependent.** The v0.4.0 helpers use the experimental Chromium CDP Extensions domain. Native profile extension management is available separately through opt-in `ICoreWebView2Profile7` wrappers and requires a compatible WebView2 Runtime; see [Native profile extensions](API.md#native-profile-extensions).
 7. **Ad blocking is URL-pattern blocking, not cosmetic filtering.** `_WebView2_SetAdBlock()` uses CDP `Network.setBlockedURLs`; it does not implement EasyList parsing or DOM cosmetic rules.
 8. **ClearBrowserData is intentionally conservative.** It clears cookies, network cache and current-origin local/session storage, not every possible profile data kind.
 9. **MHTML Binary encoding is UTF-8.** `_WebView2_ExportToMhtmlBinary()` converts the MHTML string returned by CDP to UTF-8 bytes; `_WebView2_ExportToMhtmlFile()` writes the same bytes.
@@ -42,7 +42,6 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 Useful candidates for later releases include:
 
 - extend the native frame wrapper beyond `ICoreWebView2Frame2` with later frame revisions and additional navigation events;
-- native `ICoreWebView2Profile7` extension management;
 - download events and download control;
 - full `NewWindowRequested` deferral / `put_NewWindow` handoff and opener semantics;
 - deferred and frame-level permission handling, and script-dialog callbacks; immediate top-level permission decisions are implemented;
