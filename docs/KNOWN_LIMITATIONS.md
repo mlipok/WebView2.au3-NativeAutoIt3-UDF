@@ -11,7 +11,7 @@
 9. **MHTML Binary encoding is UTF-8.** `_WebView2_ExportToMhtmlBinary()` converts the MHTML string returned by CDP to UTF-8 bytes; `_WebView2_ExportToMhtmlFile()` writes the same bytes.
 10. **No automatic WebView2 Runtime installer.** Runtime detection is provided; application deployment remains the host application's responsibility.
 11. **Web message security belongs to the host application.** Validate message origin and payload before invoking privileged native actions.
-12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; native wrappers currently cover `ICoreWebView2Frame` and `ICoreWebView2Frame2`.
+12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Tracked frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; navigation events use `ICoreWebView2Frame2` and native `FrameId` uses `ICoreWebView2Frame5` when supported by the Runtime.
 13. **Frame host objects require explicit origins.** The UDF rejects wildcard and empty origin lists, but the host must still validate frame messages and keep the COM `IDispatch` object alive. Removing an object does not revoke JavaScript references already obtained.
 
 ## Recommended validation pass on Windows
@@ -35,15 +35,14 @@ Verify shutdown after using advanced helpers
 
 ## Not yet implemented
 
-Managed tabs are separate WebView2 controllers. The UDF does not provide Edge's native tab strip or automatic selection of another tab when the active one closes. `NewWindowRequested` can be intercepted through `_WebView2_SetCallback`; the host must queue URI-based tab creation outside the callback. This does not supply the new tab through `put_NewWindow`, so JavaScript `window.opener`/`WindowProxy` semantics are not preserved. Hidden-window x86/x64 tab smoke tests passed; the visible tab example still requires interactive GUI testing.
+Managed tabs are separate WebView2 controllers. The UDF does not provide Edge's native tab strip or automatic selection of another tab when the active one closes. Native `NewWindowRequested` deferral and `put_NewWindow` handoff are available for fresh controllers in the same environment; `window.opener` and the opener's `WindowProxy` passed targeted x86/x64 smoke tests. The visible tab example still requires interactive GUI testing.
 
 A user-supplied sleep callback can cancel a wait by setting `@error`. In that case the UDF reports `$WEBVIEW2_ERR_USER_ABORT`; default waits are unaffected.
 
 Useful candidates for later releases include:
 
-- extend the native frame wrapper beyond `ICoreWebView2Frame2` with later frame revisions and additional navigation events;
+- review remaining later frame capabilities, including `ICoreWebView2Frame3` permission events, `ICoreWebView2Frame4` shared buffers and `ICoreWebView2Frame6` screen-capture events; `Frame5` native IDs and `Frame2` navigation events are implemented;
 - download events and download control;
-- full `NewWindowRequested` deferral / `put_NewWindow` handoff and opener semantics;
 - deferred and frame-level permission handling, and script-dialog callbacks; immediate top-level permission decisions are implemented;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;

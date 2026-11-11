@@ -124,9 +124,15 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_FRAME_CREATED` — callback `($iWebView, $iFrame)` when a native iframe is created. Register before navigation.
 - `$WEBVIEW2_EVENT_FRAME_DESTROYED` — callback `($iWebView, $iFrame)` before that frame ID is invalidated.
 - `$WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED` — callback `($iWebView, $iFrame, $sMessage, $sSource, $bJSON)` for iframe messages.
-- `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED` — callback `($iWebView, $sURI, $bUserInitiated)`; return `True` to suppress the default popup. Queue tab creation outside the callback. This URI-based routing does not preserve JavaScript `window.opener` semantics.
+- `$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING` — callback `($iWebView, $iFrame, $sURI, $bUserInitiated, $bRedirected)`; return `True` to cancel that frame navigation.
+- `$WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED` — callback `($iWebView, $iFrame, $bSuccess, $iWebError)` after a frame navigation.
+- `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED` — callback `($iWebView, $sURI, $bUserInitiated)`; return `True` to suppress the popup, or `$WEBVIEW2_NEW_WINDOW_DEFER` to request native handoff in the host loop.
 
 Callback signatures are documented in README.md and the examples.
+
+### Native new-window handoff
+
+Return `$WEBVIEW2_NEW_WINDOW_DEFER` from the `NewWindowRequested` callback. Outside that callback, call `_WebView2_NewWindow_Request_List([$iSource = Default])` to get pending request IDs, optionally `_WebView2_NewWindow_Request_GetInfo($iRequest)` to read `[source ID, URI, user-initiated flag]`, and create a fresh controller in the same environment. Call `_WebView2_NewWindow_Complete($iRequest, $iNewWebView)` **before** navigating that controller. The UDF calls native `put_NewWindow` and completes the deferral; WebView2 then navigates the target itself and preserves `window.opener` and the opener's `WindowProxy`. `_WebView2_NewWindow_Cancel($iRequest)` blocks a pending request. Destroying the source controller cancels its pending requests. The host must complete or cancel requests promptly and must not create a controller inside the native callback. [Example 023](../examples/023_NewWindowTabs.au3) demonstrates this flow.
 
 ## Diagnostics
 
@@ -248,9 +254,10 @@ These functions are implemented with `ICoreWebView2::ExecuteScript()` inside the
 
 The existing CDP helpers return frame metadata and same-origin HTML: `_WebView2_GetFrameTree()`, `_WebView2_GetFrameUrls()` / `_WebView2_GetFrameUrl()`, `_WebView2_GetFrameNames()` / `_WebView2_GetFrameName()`, and `_WebView2_GetFrameHtmlSource()`.
 
-Native frame support uses `ICoreWebView2_4::FrameCreated`, `ICoreWebView2Frame`, and `ICoreWebView2Frame2`. Register a frame callback before navigation to track newly created iframes. Native frame IDs are distinct from CDP frame IDs and DOM element tokens; a destroyed frame ID cannot be reused.
+Native frame support uses `ICoreWebView2_4::FrameCreated`, `ICoreWebView2Frame`, `ICoreWebView2Frame2` and `ICoreWebView2Frame5`. Register a frame callback before navigation to track newly created iframes. UDF tracked frame IDs are distinct from the runtime's native `FrameId`, CDP frame IDs and DOM element tokens; a destroyed tracked frame ID cannot be reused.
 
 - `_WebView2_Frame_List($iWebView)` returns tracked active frame IDs.
+- `_WebView2_Frame_GetNativeId($iFrame)` reads the runtime's `UINT32 FrameId` through `ICoreWebView2Frame5`, or returns `-1` with `@error` if the interface is unavailable.
 - `_WebView2_Frame_GetName($iFrame)` reads the iframe name.
 - `_WebView2_Frame_ExecuteScript($iFrame, $sScript[, $iTimeoutMs = 30000])` returns a JSON-encoded result. It shares the serialized completion channel with top-level `_WebView2_ExecuteScript()`; call it outside re-entrant event callbacks.
 - `_WebView2_Frame_PostWebMessageAsJson($iFrame, $sJSON)` and `_WebView2_Frame_PostWebMessageAsString($iFrame, $sMessage)` send data to one iframe. The frame must register `window.chrome.webview.addEventListener("message", ...)`.

@@ -9,6 +9,7 @@ Opt("MustDeclareVars", 1)
 
 Global $g_iView = -1
 Global $g_idStatus = 0
+Global $g_iFrameNavStarted = 0, $g_iFrameNavCompleted = 0
 
 _Example()
 
@@ -23,6 +24,7 @@ _Example()
 ; Remarks .......: All pages use the same virtual HTTPS origin. The update button visits every frame.
 ; ===============================================================================================================================
 Func _Example()
+	Local $aNativeFrames[0], $iNativeId = -1
 	Local $hGUI = GUICreate("WebView2 - Nested frames", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
 	Local $idList = GUICtrlCreateButton("List all frames", 12, 10, 150, 30)
 	Local $idStep = GUICtrlCreateButton("Update next frame label", 174, 10, 190, 30)
@@ -39,6 +41,9 @@ Func _Example()
 			GUICtrlSetData($g_idStatus, "Creation failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_CREATED, _OnFrameCreated) Then
 			GUICtrlSetData($g_idStatus, "Frame tracking failed: " & _WebView2_Error_GetDescription())
+		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, _OnFrameNavStart) Or _
+				Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _OnFrameNavComplete) Then
+			GUICtrlSetData($g_idStatus, "Frame navigation events failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "nested-frames.example", @ScriptDir & "\028_NestedFrames", $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY) Then
 			GUICtrlSetData($g_idStatus, "Mapping failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_Navigate($g_iView, "https://nested-frames.example/index.html") Then
@@ -52,6 +57,12 @@ Func _Example()
 			Local $sCount = _WebView2_ExecuteScript($g_iView, "window.listFramePaths().split(String.fromCharCode(10)).length", 1000)
 			If Not @error And $sCount = "33" Then
 				$bSmokePassed = True
+				$aNativeFrames = _WebView2_Frame_List($g_iView)
+				$bSmokePassed = UBound($aNativeFrames) > 0 And $g_iFrameNavStarted > 0 And $g_iFrameNavCompleted > 0
+				If $bSmokePassed Then
+					$iNativeId = _WebView2_Frame_GetNativeId($aNativeFrames[0])
+					$bSmokePassed = Not @error And $iNativeId > 0
+				EndIf
 				For $iLevel = 1 To 33
 					Local $iChanged = _StepDeeper()
 					If @error Or $iChanged <> 1 Then
@@ -93,6 +104,11 @@ Func _Example()
 						ConsoleWrite("CDP frame tree: " & $sTree & @CRLF)
 						Local $sPaths = _WebView2_ExecuteScript($g_iView, "window.listFramePaths()")
 						ConsoleWrite("Zero-based child paths: " & $sPaths & @CRLF)
+						$aNativeFrames = _WebView2_Frame_List($g_iView)
+						For $iFrame = 0 To UBound($aNativeFrames) - 1
+							$iNativeId = _WebView2_Frame_GetNativeId($aNativeFrames[$iFrame])
+							ConsoleWrite("Tracked frame=" & $aNativeFrames[$iFrame] & " native FrameId=" & (@error ? "unavailable" : $iNativeId) & @CRLF)
+						Next
 						GUICtrlSetData($g_idStatus, "Frame tree and paths written to console (33 if fully loaded)")
 					EndIf
 				EndIf
@@ -217,3 +233,23 @@ Func _OnFrameCreated($iView, $iFrame)
 	#forceref $iView, $iFrame
 	Return
 EndFunc   ;==>_OnFrameCreated
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _OnFrameNavStart
+; Description ...: Counts native iframe navigation starts without cancelling them.
+; ===============================================================================================================================
+Func _OnFrameNavStart($iView, $iFrame, $sURI, $bUserInitiated, $bRedirected)
+	#forceref $iView, $iFrame, $sURI, $bUserInitiated, $bRedirected
+	$g_iFrameNavStarted += 1
+	Return False
+EndFunc   ;==>_OnFrameNavStart
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _OnFrameNavComplete
+; Description ...: Counts completed native iframe navigations.
+; ===============================================================================================================================
+Func _OnFrameNavComplete($iView, $iFrame, $bSuccess, $iWebError)
+	#forceref $iView, $iFrame, $bSuccess, $iWebError
+	$g_iFrameNavCompleted += 1
+	Return
+EndFunc   ;==>_OnFrameNavComplete

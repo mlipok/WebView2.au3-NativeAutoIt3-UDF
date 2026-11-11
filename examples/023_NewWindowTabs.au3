@@ -6,13 +6,14 @@
 #include "..\WebView2.au3"
 
 Global $g_hGUI = 0, $g_idTabs = 0
-Global $g_aTabs[0], $g_aPending[0]
+Global $g_aTabs[0]
+Global $g_bSmoke = $CmdLine[0] > 0 And $CmdLine[1] = "--smoke"
 
 _Main()
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Main
-; Description ...: Opens target=_blank and window.open requests as tabs in the host window.
+; Description ...: Hands target=_blank and window.open requests to tabs in the host window.
 ; Syntax ........: _Main()
 ; Parameters ....: None.
 ; Return values .: None.
@@ -24,11 +25,13 @@ _Main()
 ; Example .......: Yes
 ; ================================================================================================================================
 Func _Main()
+	Local $bSmokePassed = False
 	$g_hGUI = GUICreate("WebView2 - New windows in tabs", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
 	$g_idTabs = GUICtrlCreateTab(0, 0, 1000, 32)
 	GUICtrlCreateTabItem("")
 	Do
-		If Not _WebView2_Init() Then
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\023_NewWindowTabs"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			MsgBox(16, "WebView2", _WebView2_Error_GetDescription())
 			ExitLoop
 		EndIf
@@ -38,12 +41,15 @@ Func _Main()
 			MsgBox(16, "WebView2", _WebView2_Error_GetDescription())
 			ExitLoop
 		EndIf
-		Local $sHTML = '<!doctype html><html><body style="font:18px Segoe UI;padding:24px">' & _
-				'<h1>New-window requests</h1><p>Both links open in a new tab inside this window.</p>' & _
+		Local $sHTML = '<!doctype html><html><head><title>New window source</title></head><body style="font:18px Segoe UI;padding:24px">' & _
+				'<h1>New-window requests</h1><p>The new tab is handed to WebView2 before it navigates, preserving window.opener.</p>' & _
 				'<p><a href="https://example.com/" target="_blank">Open example.com (target=_blank)</a></p>' & _
 				'<p><button onclick="window.open(''https://www.autoitscript.com/'', ''_blank'')">Open AutoIt website (window.open)</button></p>' & _
+				'<p><button onclick="window.open(''about:blank'', ''_blank'')">Open same-origin blank tab (window.open)</button></p>' & _
 				'</body></html>'
+		If $g_bSmoke Then $sHTML = StringReplace($sHTML, '</body>', '<script>setTimeout(()=>{window.__popup=window.open("about:blank","_blank")},750)</script></body>')
 		_WebView2_NavigateToString($iFirst, $sHTML)
+		Local $tSmoke = TimerInit(), $iSmokeTarget = -1
 		While True
 			Switch GUIGetMsg()
 				Case $GUI_EVENT_CLOSE
@@ -52,29 +58,56 @@ Func _Main()
 					Local $iSelected = GUICtrlRead($g_idTabs)
 					If $iSelected >= 0 And $iSelected < UBound($g_aTabs) Then _WebView2_Tab_Activate($g_aTabs[$iSelected])
 			EndSwitch
-			While UBound($g_aPending) > 0
-				Local $sURI = $g_aPending[0]
-				_ArrayDeleteFirstPending()
-				If _AddTab($sURI) < 0 Then ConsoleWrite("New tab failed: " & _WebView2_Error_GetDescription() & @CRLF)
-			WEnd
+			Local $aPending = _WebView2_NewWindow_Request_List()
+			If $g_bSmoke And $aPending[0] Then ConsoleWrite("Smoke pending requests=" & $aPending[0] & @CRLF)
+			For $i = 1 To $aPending[0]
+				Local $iTab = _AddTab("about:blank")
+				If $iTab < 0 Then
+					_WebView2_NewWindow_Cancel($aPending[$i])
+					ConsoleWrite("New tab creation failed: " & _WebView2_Error_GetDescription() & @CRLF)
+					ContinueLoop
+				EndIf
+				If Not _WebView2_NewWindow_Complete($aPending[$i], $iTab) Then
+					ConsoleWrite("New-window handoff failed: " & _WebView2_Error_GetDescription() & @CRLF)
+					_WebView2_NewWindow_Cancel($aPending[$i])
+					_DiscardFailedTab($iTab)
+				ElseIf $g_bSmoke Then
+					$iSmokeTarget = $iTab
+				EndIf
+			Next
+			If $g_bSmoke Then
+				If $iSmokeTarget >= 0 And TimerDiff($tSmoke) > 1500 Then
+					Local $sHasOpener = _WebView2_ExecuteScript($iSmokeTarget, "window.opener!==null&&window.opener.document.title==='New window source'")
+					If Not @error And $sHasOpener = "true" Then
+						Local $sHasProxy = _WebView2_ExecuteScript($iFirst, "!!window.__popup&&!window.__popup.closed")
+						If Not @error And $sHasProxy = "true" Then
+							$bSmokePassed = True
+							ExitLoop
+						EndIf
+					EndIf
+				EndIf
+				If TimerDiff($tSmoke) > 15000 Then ExitLoop
+			EndIf
 		WEnd
+		If $g_bSmoke Then ConsoleWrite("New-window handoff smoke: " & ($bSmokePassed ? "PASS (window.opener and WindowProxy)" : "FAIL") & @CRLF)
 	Until True
 	For $i = 0 To UBound($g_aTabs) - 1
 		_WebView2_Tab_Close($g_aTabs[$i])
 	Next
 	_WebView2_Cleanup()
 	GUIDelete($g_hGUI)
+	If $g_bSmoke And Not $bSmokePassed Then Exit 1
 	Return
 EndFunc   ;==>_Main
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _NewWindowRequested
-; Description ...: Queues a user-initiated new-window URI and prevents a native popup.
+; Description ...: Defers a user-initiated new window for native controller handoff.
 ; Syntax ........: _NewWindowRequested($iSource, $sURI, $bUserInitiated)
 ; Parameters ....: $iSource - Source WebView2 instance ID.
 ;                  $sURI - Requested URI.
 ;                  $bUserInitiated - True for a direct user gesture.
-; Return values .: True to mark the request handled.
+; Return values .: $WEBVIEW2_NEW_WINDOW_DEFER for handoff; True to block other requests.
 ; Author ........: mLipok
 ; Modified ......:
 ; Remarks .......: Never call _WebView2_Tab_Create from inside this callback.
@@ -83,12 +116,9 @@ EndFunc   ;==>_Main
 ; Example .......: Yes
 ; ================================================================================================================================
 Func _NewWindowRequested($iSource, $sURI, $bUserInitiated)
-	#forceref $iSource
-	If $bUserInitiated And $sURI <> "" Then
-		Local $iCount = UBound($g_aPending)
-		ReDim $g_aPending[$iCount + 1]
-		$g_aPending[$iCount] = $sURI
-	EndIf
+	#forceref $iSource, $sURI
+	If $g_bSmoke Then ConsoleWrite("Smoke NewWindowRequested uri=" & $sURI & " user=" & $bUserInitiated & @CRLF)
+	If $bUserInitiated Or $g_bSmoke Then Return $WEBVIEW2_NEW_WINDOW_DEFER
 	Return True
 EndFunc   ;==>_NewWindowRequested
 
@@ -131,22 +161,15 @@ Func _AddTab($sURI)
 EndFunc   ;==>_AddTab
 
 ; #FUNCTION# ====================================================================================================================
-; Name ..........: _ArrayDeleteFirstPending
-; Description ...: Removes the URI just processed by the GUI loop.
-; Syntax ........: _ArrayDeleteFirstPending()
-; Parameters ....: None.
-; Return values .: None.
-; Author ........: mLipok
-; Modified ......:
-; Remarks .......:
-; Related .......: _NewWindowRequested
-; Link ..........:
-; Example .......: Yes
-; ================================================================================================================================
-Func _ArrayDeleteFirstPending()
-	Local $iCount = UBound($g_aPending)
-	For $i = 1 To $iCount - 1
-		$g_aPending[$i - 1] = $g_aPending[$i]
-	Next
-	ReDim $g_aPending[$iCount - 1]
-EndFunc   ;==>_ArrayDeleteFirstPending
+; Name ..........: _DiscardFailedTab
+; Description ...: Removes a newly added tab after native popup handoff fails.
+; ===============================================================================================================================
+Func _DiscardFailedTab($iTab)
+	Local $iLast = UBound($g_aTabs) - 1
+	If $iLast < 0 Or $g_aTabs[$iLast] <> $iTab Then Return
+	_WebView2_Tab_Close($iTab)
+	_GUICtrlTab_DeleteItem(GUICtrlGetHandle($g_idTabs), $iLast)
+	ReDim $g_aTabs[$iLast]
+	If $iLast > 0 Then _WebView2_Tab_Activate($g_aTabs[$iLast - 1])
+	Return
+EndFunc   ;==>_DiscardFailedTab
