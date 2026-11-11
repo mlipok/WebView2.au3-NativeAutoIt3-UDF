@@ -31,7 +31,7 @@ Func _Example()
 	Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\032_NativeExtensions"
 	If Not _WebView2_NativeExtensions_EnableForEnvironment() Then Return _Example_Fail("Enable extensions")
 	If Not _WebView2_Init(Default, $sProfile) Then Return _Example_Fail("Initialize")
-	$g_hGUI = GUICreate("WebView2 - Native extensions", 850, 570, -1, -1, $WS_OVERLAPPEDWINDOW)
+	$g_hGUI = GUICreate("WebView2 - Native extensions", 700, 370, -1, -1, $WS_OVERLAPPEDWINDOW)
 	Local $idList = GUICtrlCreateButton("List", 10, 8, 75, 28)
 	Local $idRemove = GUICtrlCreateButton("Remove", 95, 8, 85, 28)
 	Local $idAdd = GUICtrlCreateButton("Install sample", 204, 8, 115, 28)
