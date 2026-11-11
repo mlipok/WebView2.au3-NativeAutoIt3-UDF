@@ -155,6 +155,8 @@ Version 0.5.0 adds managed tabs: `_WebView2_Tab_Create()`, `_WebView2_Tab_Activa
 
 `_WebView2_SetSleepCallback()` allows an AutoIt function to replace `Sleep()` during UDF waits. If that function sets `@error`, the wait stops with `$WEBVIEW2_ERR_USER_ABORT`; `@extended` contains the function's error code. The default remains ordinary `Sleep()`. `_WebView2_SetDebugLevel()` selects NONE, ERROR, INFO or FULL console diagnostics.
 
+Native browser-extension management is available as an opt-in path: call `_WebView2_NativeExtensions_EnableForEnvironment()` before `_WebView2_Init()`, then use `_WebView2_NativeExtension_Add()`, `_List()`, `_SetEnabled()` and `_Remove()` with an unpacked extension folder. Installed state belongs to the WebView2 profile; use a persistent user-data folder to retain it. The older experimental CDP extension functions remain available. See [example 032](examples/032_NativeExtensions.au3) and the [API reference](docs/API.md).
+
 [`021_Folder_PDF_SlideShow.au3`](examples/021_Folder_PDF_SlideShow.au3) selects a folder and displays its PDF files in one WebView2 window, showing each for two seconds after loading. It hides the built-in viewer toolbar and requests `view=Fit` before navigation; set `$PDF_VIEW_MODE` to `"FitH"` to fit the width instead. WebView2 stays hidden during PDF loading to avoid visible zoom changes. Close the window to stop the slideshow.
 
 ## Callbacks

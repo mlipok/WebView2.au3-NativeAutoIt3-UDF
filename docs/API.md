@@ -263,7 +263,18 @@ Native frame support uses `ICoreWebView2_4::FrameCreated`, `ICoreWebView2Frame`,
 - `_WebView2_RemoveExtension()`
 - `_WebView2_GetExtensions()`
 
-The current extension helpers use a runtime-dependent experimental CDP path. Microsoft provides native browser-extension management in newer profile interfaces; migration to that API is preferred for a future release.
+The original extension helpers use a runtime-dependent experimental CDP path. The native profile API below is a separate option; the original function contracts are unchanged.
+
+### Native profile extensions
+
+Call `_WebView2_NativeExtensions_EnableForEnvironment()` before `_WebView2_Init()`. The option applies to the environment being created; it cannot be changed after initialization. A persistent user-data folder passed to `_WebView2_Init()` retains installed extensions and their enabled state across runs. The folder containing an unpacked extension must remain available and unchanged.
+
+- `_WebView2_NativeExtension_Add($iWebView, $sFolder)` installs a folder containing `manifest.json` and returns its extension ID.
+- `_WebView2_NativeExtension_List($iWebView)` returns an array of extension IDs, names and enabled states.
+- `_WebView2_NativeExtension_SetEnabled($iWebView, $sId, $bEnabled)` changes the enabled state.
+- `_WebView2_NativeExtension_Remove($iWebView, $sId)` removes the extension from the profile.
+
+These functions use `ICoreWebView2_13`, `ICoreWebView2Profile7` and `ICoreWebView2EnvironmentOptions6`, not the experimental CDP Extensions domain. They return `@error`/`@extended` for unsupported interfaces, native HRESULTs and timeouts. Only unpacked extensions are supported. Extensions whose manifest expects browser toolbar UI may load without that UI in WebView2. See [example 032](../examples/032_NativeExtensions.au3).
 
 ### IE.au3 migration helpers
 
