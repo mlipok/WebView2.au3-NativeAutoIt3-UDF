@@ -16,7 +16,6 @@ Global $g_sExtensionId = ""
 Global Const $g_sSampleName = "WebView2 Native Extension Sample"
 Global $g_hGUI = 0
 Global $g_idStatus = 0
-Global $g_bPageReady = False
 Global $g_bRefreshState = False
 Global $g_bReloadNeeded = False
 Global $g_bReloadInProgress = False
@@ -110,13 +109,11 @@ Func _Example_List()
 		$sStatus = "Sample " & ($aList[$i][2] ? "enabled" : "disabled") & " (ID " & $g_sExtensionId & ")."
 		If $g_bReloadNeeded Then $sStatus &= " RELOAD to take effect."
 		_Example_Status($sStatus)
-		_Example_UpdatePageState($aList[$i][2] ? 2 : 1)
 		Return
 	Next
 	$sStatus = "Sample extension not installed. Other profile extensions: " & UBound($aList) & "."
 	If $g_bReloadNeeded Then $sStatus &= " RELOAD to take effect."
 	_Example_Status($sStatus)
-	_Example_UpdatePageState(0)
 EndFunc   ;==>_Example_List
 
 ; #FUNCTION# ====================================================================================================================
@@ -136,11 +133,9 @@ EndFunc   ;==>_Example_Change
 ; Description ...: Reloads the page so the content script reflects the changed native state.
 ; ===============================================================================================================================
 Func _Example_Reload()
-	$g_bPageReady = False
 	$g_bReloadInProgress = True
 	If Not _WebView2_Reload($g_iWebView) Then
 		$g_bReloadInProgress = False
-		$g_bPageReady = True
 		_Example_Fail("Reload page")
 	EndIf
 EndFunc   ;==>_Example_Reload
@@ -156,38 +151,12 @@ Func _Example_OnNavigation($iWebView, $bSuccess, $iWebErrorStatus, $iNavigationI
 		$g_bReloadInProgress = False
 		Return _Example_Status("Page load failed; WebView2 status: " & $iWebErrorStatus)
 	EndIf
-	$g_bPageReady = True
 	If $g_bReloadInProgress Then
 		$g_bReloadNeeded = False
 		$g_bReloadInProgress = False
 	EndIf
 	$g_bRefreshState = True
 EndFunc   ;==>_Example_OnNavigation
-
-; #FUNCTION# ====================================================================================================================
-; Name ..........: _Example_UpdatePageState
-; Description ...: Displays the native extension state in the mapped page.
-; ===============================================================================================================================
-Func _Example_UpdatePageState($iState)
-	If Not $g_bPageReady Then Return
-	Local $sText = "Sample extension is not installed"
-	Local $sBackground = "#e9edf1"
-	Local $sColor = "#24313d"
-	Switch $iState
-		Case 1
-			$sText = "Sample extension is disabled"
-			$sBackground = "#fff1cc"
-			$sColor = "#563e00"
-		Case 2
-			$sText = "Sample extension is enabled"
-			$sBackground = "#d8f2dc"
-			$sColor = "#103a22"
-	EndSwitch
-	Local $sJavaScript = '(function(){const banner=document.getElementById("extension-state");if(!banner)return false;banner.textContent="' & $sText & '";banner.style.backgroundColor="' & $sBackground & '";banner.style.color="' & $sColor & '";return true;})()'
-	Local $sResult = _WebView2_ExecuteScript($g_iWebView, $sJavaScript)
-	Local $iScriptError = @error
-	If $iScriptError Or $sResult <> "true" Then _Example_Fail("Update page state")
-EndFunc   ;==>_Example_UpdatePageState
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_Status
