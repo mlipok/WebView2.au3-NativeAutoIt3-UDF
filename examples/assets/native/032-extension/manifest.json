@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "WebView2 Native Extension Sample",
+  "version": "1.0.0",
+  "description": "Adds a banner to the local WebView2 extension demonstration.",
+  "content_scripts": [
+    {
+      "matches": ["https://extension-demo.local/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

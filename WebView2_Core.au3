@@ -73,6 +73,7 @@ Global $__g_aWebView2_Tabs[$WEBVIEW2_MAX_INSTANCES]
 Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;lparam lParam;dword time;long X;long Y;dword lPrivate;endstruct"
 
 #include "WebView2_Frame.au3"
+#include "WebView2_Extensions.au3"
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Init
@@ -164,8 +165,19 @@ Func _WebView2_Init($sLoaderPath = Default, $sUserDataFolder = "", $sBrowserExec
 		$__g_bWebView2_EnvironmentDone = False
 		$__g_iWebView2_EnvironmentHRESULT = 0
 
+		Local $pEnvironmentOptions = 0
+		If $__g_bWebView2_NativeExtensionsRequested Then
+			$pEnvironmentOptions = __WebView2_Ext_OptionsCreate()
+			If @error Or Not $pEnvironmentOptions Then
+				_WebView2_Cleanup()
+				$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_CALLBACK, 0, "Could not create browser-extension environment options.", False)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop 1
+			EndIf
+		EndIf
 		Local $aResult = DllCall($__g_hWebView2_Loader, "long", "CreateCoreWebView2EnvironmentWithOptions", _
-				"wstr", $sBrowserExecutableFolder, "wstr", $sUserDataFolder, "ptr", 0, _
+				"wstr", $sBrowserExecutableFolder, "wstr", $sUserDataFolder, "ptr", $pEnvironmentOptions, _
 				"ptr", __WebView2_Callback_GetPointer($__WEBVIEW2_CB_ENVIRONMENT))
 		If @error Then
 			Local $iDllCallError = @error
@@ -245,6 +257,11 @@ Func _WebView2_Cleanup()
 	__WebView2_Trace("CLEANUP 03 Environment wrapper CLEARED")
 
 	$__g_bWebView2_Initialized = False
+	$__g_bWebView2_NativeExtensionsRequested = False
+	__WebView2_Ext_Release($__g_pWebView2_ExtResult)
+	$__g_pWebView2_ExtResult = 0
+	$__g_iWebView2_ExtPending = 0
+	__WebView2_Ext_OptionsDelete()
 	$__g_bWebView2_EnvironmentDone = False
 	$__g_iWebView2_PendingCreateSlot = -1
 	$__g_bWebView2_ScriptBusy = False
@@ -2296,6 +2313,14 @@ Func __WebView2_Callbacks_Create()
 			$__WebView2ExitValue = False
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_EXTENSION_ADD, __WebView2_Ext_CompleteWithPointer, "ptr;long;ptr") Or _
+				Not __WebView2_Callback_Create($__WEBVIEW2_CB_EXTENSION_LIST, __WebView2_Ext_CompleteWithPointer, "ptr;long;ptr") Or _
+				Not __WebView2_Callback_Create($__WEBVIEW2_CB_EXTENSION_ENABLE, __WebView2_Ext_Complete, "ptr;long") Or _
+				Not __WebView2_Callback_Create($__WEBVIEW2_CB_EXTENSION_REMOVE, __WebView2_Ext_Complete, "ptr;long") Then
+			$__WebView2ExitValue = False
+			$__WebView2ExitError = $WEBVIEW2_ERR_CALLBACK
 			ExitLoop 1
 		EndIf
 		$__WebView2ExitValue = True
