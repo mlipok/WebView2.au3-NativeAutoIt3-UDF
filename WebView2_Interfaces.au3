@@ -28,6 +28,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Frame3 = "{B50D82CC-CC28-481D-9614-CB048
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame4 = "{188782DC-92AA-4732-AB3C-FCC59F6F68B9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame5 = "{99D199C4-7305-11EE-B962-0242AC120002}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame6 = "{0DE611FD-31E9-5DDC-9D71-95EDA26EFF32}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame7 = "{3598CFA2-D85D-5A9F-9228-4DDE1F59EC64}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventArgs = "{4D6E7B5E-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
@@ -56,6 +57,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2IsMutedChangedEventHandler = "{57D90347-
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventHandler = "{57213F19-00E6-49FA-8E07-898EA01ECBD2}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventHandler = "{D4C185FE-C81C-4989-97AF-2D3FA7AB5651}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventHandler = "{38059770-9BAA-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameChildFrameCreatedEventHandler = "{569E40E7-46B7-563D-83AE-1073155664D7}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameDestroyedEventHandler = "{59DD7B4C-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationStartingEventHandler = "{E79908BF-2D5D-4968-83DB-263FEA2C1DA3}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationCompletedEventHandler = "{609302AD-0E36-4F9A-A210-6A45272842A9}"
@@ -309,6 +311,10 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame5 = $WEBVIEW2_DTAG_ICoreWebView2Fr
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame6 = $WEBVIEW2_DTAG_ICoreWebView2Frame5 & _
 		"add_ScreenCaptureStarting hresult(ptr;struct*);" & _
 		"remove_ScreenCaptureStarting hresult(int64);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame7 = $WEBVIEW2_DTAG_ICoreWebView2Frame6 & _
+		"add_FrameCreated hresult(ptr;struct*);" & _
+		"remove_FrameCreated hresult(int64);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs = "get_Frame hresult(ptr*);"
 

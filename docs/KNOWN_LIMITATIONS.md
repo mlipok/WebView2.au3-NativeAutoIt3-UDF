@@ -11,7 +11,7 @@
 9. **MHTML Binary encoding is UTF-8.** `_WebView2_ExportToMhtmlBinary()` converts the MHTML string returned by CDP to UTF-8 bytes; `_WebView2_ExportToMhtmlFile()` writes the same bytes.
 10. **No automatic WebView2 Runtime installer.** Runtime detection is provided; application deployment remains the host application's responsibility.
 11. **Web message security belongs to the host application.** Validate message origin and payload before invoking privileged native actions.
-12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Tracked frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; navigation events use `ICoreWebView2Frame2` and native `FrameId` uses `ICoreWebView2Frame5` when supported by the Runtime.
+12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Tracked frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; navigation events use `ICoreWebView2Frame2`, native `FrameId` uses `ICoreWebView2Frame5`, and nested frame creation uses `ICoreWebView2Frame7` when supported by the Runtime.
 13. **Frame host objects require explicit origins.** The UDF rejects wildcard and empty origin lists, but the host must still validate frame messages and keep the COM `IDispatch` object alive. Removing an object does not revoke JavaScript references already obtained.
 14. **Frame shared buffers are sent read-only.** `_WebView2_Frame_PostSharedBuffer()` accepts binary payloads under 2 GB and posts them to a tracked frame. It does not expose a writable shared memory view or a JavaScript-to-AutoIt shared-buffer channel. The page must release the received buffer.
 
@@ -42,7 +42,7 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- review later frame capabilities beyond `ICoreWebView2Frame6`; immediate `Frame3` permission decisions, read-only `Frame4` shared buffers, `Frame5` native IDs, and `Frame6` screen-capture cancellation are implemented;
+- review later frame capabilities beyond `ICoreWebView2Frame7`; immediate `Frame3` permission decisions, read-only `Frame4` shared buffers, `Frame5` native IDs, `Frame6` screen-capture cancellation, and `Frame7` direct-child tracking are implemented;
 - deferred permission handling and script-dialog callbacks; immediate top-level and frame-level permission decisions are implemented;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;

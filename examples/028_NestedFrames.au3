@@ -63,7 +63,8 @@ Func _Example()
 			If Not @error And $sCount = "15" Then
 				$bSmokePassed = True
 				$aNativeFrames = _WebView2_Frame_List($g_iView)
-				$bSmokePassed = UBound($aNativeFrames) > 0 And $g_iFrameNavStarted > 0 And $g_iFrameNavCompleted > 0
+				$bSmokePassed = UBound($aNativeFrames) = 15 And $g_iFrameNavStarted > 0 And $g_iFrameNavCompleted > 0
+				If $bSmokePassed Then $bSmokePassed = _ValidateNativeHierarchy($aNativeFrames)
 				If $bSmokePassed Then
 					$iNativeId = _WebView2_Frame_GetNativeId($aNativeFrames[0])
 					$bSmokePassed = Not @error And $iNativeId > 0
@@ -112,7 +113,10 @@ Func _Example()
 						$aNativeFrames = _WebView2_Frame_List($g_iView)
 						For $iFrame = 0 To UBound($aNativeFrames) - 1
 							$iNativeId = _WebView2_Frame_GetNativeId($aNativeFrames[$iFrame])
-							ConsoleWrite("Tracked frame=" & $aNativeFrames[$iFrame] & " native FrameId=" & (@error ? "unavailable" : $iNativeId) & @CRLF)
+							Local $sNativeId = @error ? "unavailable" : $iNativeId
+							Local $iParentId = _WebView2_Frame_GetParentId($aNativeFrames[$iFrame])
+							Local $sFrameName = _WebView2_Frame_GetName($aNativeFrames[$iFrame])
+							ConsoleWrite("Tracked frame=" & $aNativeFrames[$iFrame] & " parent=" & $iParentId & " native FrameId=" & $sNativeId & " name=" & $sFrameName & @CRLF)
 						Next
 						GUICtrlSetData($g_idStatus, "Frame tree and paths written to console (15 if fully loaded)")
 					EndIf
@@ -161,7 +165,7 @@ EndFunc   ;==>_SetUpdateButtonBusy
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _StepDeeper
-; Description ...: Iterates tracked frames and updates the first unchanged label.
+; Description ...: Iterates native frames by name and updates the first unchanged label.
 ; Syntax ........: _StepDeeper()
 ; Parameters ....: None.
 ; Return values .: Number of changed labels; @error on failure.
@@ -173,21 +177,38 @@ Func _StepDeeper()
 	Local $iError = @error, $iChanged = 0
 	If Not $iError And UBound($aFrames) = 0 Then $iError = 1
 	If Not $iError Then
+		Local $iNextFrame = -1, $sNextName = ""
 		For $i = 0 To UBound($aFrames) - 1
-			$iChanged += _UpdateFrameLabels($aFrames[$i], "document")
+			Local $sName = _WebView2_Frame_GetName($aFrames[$i])
 			If @error Then
 				$iError = 1
 				ExitLoop
 			EndIf
-			If $iChanged = 1 Then ExitLoop
+			Local $sLabel = _WebView2_Frame_ExecuteScript($aFrames[$i], "document.getElementById('frame-label').textContent")
+			If @error Then
+				$iError = 1
+				ExitLoop
+			EndIf
+			If Not StringInStr($sLabel, "_v2") And ($iNextFrame < 0 Or StringCompare($sName, $sNextName) < 0) Then
+				$iNextFrame = $aFrames[$i]
+				$sNextName = $sName
+			EndIf
 		Next
+		If Not $iError And $iNextFrame >= 0 Then
+			Local $sResult = _WebView2_Frame_ExecuteScript($iNextFrame, "document.getElementById('frame-label').textContent+='_v2'")
+			If @error Or Not StringInStr($sResult, "_v2") Then
+				$iError = 1
+			Else
+				$iChanged = 1
+			EndIf
+		EndIf
 	EndIf
 	Return SetError($iError, 0, $iChanged)
 EndFunc   ;==>_StepDeeper
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _UpdateDirectFrameLabel
-; Description ...: Finds a named frame in the CDP list and updates its label.
+; Description ...: Finds a named frame in the CDP and native lists and updates its label.
 ; Syntax ........: _UpdateDirectFrameLabel()
 ; Parameters ....: None.
 ; Return values .: 1 when changed, 0 when already suffixed; @error on failure.
@@ -196,56 +217,98 @@ EndFunc   ;==>_StepDeeper
 ; ===============================================================================================================================
 Func _UpdateDirectFrameLabel()
 	Local Const $sTargetName = "FRAME_0_1_1"
-	Local $sTree = _WebView2_GetFrameTree($g_iView)
-	If @error Or Not StringRegExp($sTree, '"name"\s*:\s*"' & $sTargetName & '"') Then Return SetError(1, 0, 0)
-	Local $aFrames = _WebView2_Frame_List($g_iView)
-	If @error Or UBound($aFrames) = 0 Then Return SetError(1, 0, 0)
-	Local $sFind = "const find=(w)=>{if(w.name==='" & $sTargetName & "')return w;for(let i=0;i<w.frames.length;i++){const r=find(w.frames[i]);if(r)return r;}return null;};const f=find(window);if(!f)return null;const l=f.document.getElementById('frame-label');if(!l)return null;"
-	Local $sLabel = _WebView2_Frame_ExecuteScript($aFrames[0], "(()=>{" & $sFind & "return l.textContent;})()")
-	If @error Then Return SetError(1, 0, 0)
-	$sLabel = StringReplace($sLabel, '"', "")
-	If Not StringInStr($sLabel, $sTargetName) Then Return SetError(1, 0, 0)
-	If StringRight($sLabel, 3) = "_v3" Then Return 0
-	Local $sNewLabel = $sLabel & "_v3"
-	Local $sResult = _WebView2_Frame_ExecuteScript($aFrames[0], "(()=>{" & $sFind & "l.textContent='" & $sNewLabel & "';return l.textContent;})()")
-	If @error Or Not StringInStr($sResult, $sNewLabel) Then Return SetError(1, 0, 0)
-	Return 1
+	Local $iError = 0, $iChanged = 0, $iTargetFrame = -1
+	Do
+		Local $sTree = _WebView2_GetFrameTree($g_iView)
+		If @error Or Not StringRegExp($sTree, '"name"\s*:\s*"' & $sTargetName & '"') Then
+			$iError = 1
+			ExitLoop 1
+		EndIf
+		Local $aFrames = _WebView2_Frame_List($g_iView)
+		If @error Then
+			$iError = 1
+			ExitLoop 1
+		EndIf
+		For $i = 0 To UBound($aFrames) - 1
+			Local $sName = _WebView2_Frame_GetName($aFrames[$i])
+			If Not @error And $sName = $sTargetName Then
+				$iTargetFrame = $aFrames[$i]
+				ExitLoop
+			EndIf
+		Next
+		If $iTargetFrame < 0 Then
+			$iError = 1
+			ExitLoop 1
+		EndIf
+		Local $sLabel = _WebView2_Frame_ExecuteScript($iTargetFrame, "document.getElementById('frame-label').textContent")
+		If @error Or Not StringInStr($sLabel, $sTargetName) Then
+			$iError = 1
+			ExitLoop 1
+		EndIf
+		If StringInStr($sLabel, "_v3") Then ExitLoop 1
+		Local $sResult = _WebView2_Frame_ExecuteScript($iTargetFrame, "document.getElementById('frame-label').textContent+='_v3'")
+		If @error Or Not StringInStr($sResult, "_v3") Then
+			$iError = 1
+		Else
+			$iChanged = 1
+		EndIf
+	Until True
+	Return SetError($iError, 0, $iChanged)
 EndFunc   ;==>_UpdateDirectFrameLabel
 
 ; #FUNCTION# ====================================================================================================================
-; Name ..........: _UpdateFrameLabels
-; Description ...: Walks one same-origin frame subtree until one label changes.
-; Syntax ........: _UpdateFrameLabels($iFrame, $sDocument)
-; Parameters ....: $iFrame - Tracked native root frame ID.
-;                  $sDocument - JavaScript expression for the current document.
-; Return values .: Number of changed labels; @error on failure.
+; Name ..........: _ValidateNativeHierarchy
+; Description ...: Checks tracked names and parent IDs across all four iframe levels.
+; Syntax ........: _ValidateNativeHierarchy($aFrames)
+; Parameters ....: $aFrames - Tracked frame IDs.
+; Return values .: True when the expected 1 + 2 + 6 + 6 hierarchy is complete.
 ; Author ........: ioa747
 ; Modified ......: mLipok
 ; ===============================================================================================================================
-Func _UpdateFrameLabels($iFrame, $sDocument)
-	Local $iChanged = 0, $iError = 0
-	Local $sLabel = _WebView2_Frame_ExecuteScript($iFrame, $sDocument & ".getElementById('frame-label').textContent")
-	If @error Then Return SetError(1, 0, 0)
-	If Not StringInStr($sLabel, "_v2") Then
-		Local $sNewLabel = StringReplace($sLabel, '"', "") & "_v2"
-		_WebView2_Frame_ExecuteScript($iFrame, $sDocument & ".getElementById('frame-label').textContent='" & $sNewLabel & "'")
-		If @error Then Return SetError(1, 0, 0)
-		$iChanged = 1
-		Return SetError(0, 0, $iChanged)
+Func _ValidateNativeHierarchy($aFrames)
+	Local $bValid = UBound($aFrames) = 15
+	Local $aExpected[4] = [1, 2, 6, 6], $aCounts[4] = [0, 0, 0, 0]
+	If $bValid Then
+		For $i = 0 To UBound($aFrames) - 1
+			Local $sName = _WebView2_Frame_GetName($aFrames[$i])
+			If @error Or Not StringRegExp($sName, '^FRAME_0(?:_[0-9]+){0,3}$') Then
+				$bValid = False
+				ExitLoop
+			EndIf
+			Local $iLevel = UBound(StringSplit($sName, "_")) - 2
+			If $iLevel < 1 Or $iLevel > 4 Then
+				$bValid = False
+				ExitLoop
+			EndIf
+			$aCounts[$iLevel - 1] += 1
+			Local $iParentId = _WebView2_Frame_GetParentId($aFrames[$i])
+			If @error Then
+				$bValid = False
+				ExitLoop
+			EndIf
+			If $iLevel = 1 Then
+				If $iParentId <> 0 Then $bValid = False
+			Else
+				Local $sParentName = StringRegExpReplace($sName, '_[0-9]+$', '')
+				Local $bParentFound = False
+				For $j = 0 To UBound($aFrames) - 1
+					If $aFrames[$j] = $iParentId Then
+						$bParentFound = _WebView2_Frame_GetName($aFrames[$j]) = $sParentName
+						ExitLoop
+					EndIf
+				Next
+				If Not $bParentFound Then $bValid = False
+			EndIf
+			If Not $bValid Then ExitLoop
+		Next
 	EndIf
-	Local $sCount = _WebView2_Frame_ExecuteScript($iFrame, $sDocument & ".querySelectorAll('iframe').length")
-	If @error Then Return SetError(1, 0, $iChanged)
-	For $iChild = 0 To Number($sCount) - 1
-		Local $sChild = $sDocument & ".querySelectorAll('iframe')[" & $iChild & "].contentDocument"
-		$iChanged += _UpdateFrameLabels($iFrame, $sChild)
-		If @error Then
-			$iError = 1
-			ExitLoop
-		EndIf
-		If $iChanged = 1 Then ExitLoop
-	Next
-	Return SetError($iError, 0, $iChanged)
-EndFunc   ;==>_UpdateFrameLabels
+	If $bValid Then
+		For $i = 0 To 3
+			If $aCounts[$i] <> $aExpected[$i] Then $bValid = False
+		Next
+	EndIf
+	Return $bValid
+EndFunc   ;==>_ValidateNativeHierarchy
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _OnFrameCreated

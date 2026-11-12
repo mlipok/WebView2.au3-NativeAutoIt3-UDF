@@ -24,6 +24,9 @@ Global Enum _
 		$__WEBVIEW2_FRAME_PERMISSION_TOKEN, _
 		$__WEBVIEW2_FRAME_CAPTURE_TOKEN, _
 		$__WEBVIEW2_FRAME_ACTIVE, _
+		$__WEBVIEW2_FRAME_PARENT_ID, _
+		$__WEBVIEW2_FRAME_OBJECT7, _
+		$__WEBVIEW2_FRAME_CHILD_TOKEN, _
 		$__WEBVIEW2_FRAME_FIELDS
 Global $__g_aWebView2_Frames[$__WEBVIEW2_MAX_FRAMES][$__WEBVIEW2_FRAME_FIELDS]
 Global $__g_iWebView2_NextFrameId = 1
@@ -150,6 +153,12 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 					ExitLoop 1
 				EndIf
 			EndIf
+			If Not __WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_CHILD_CREATED) Then
+				If Not __WebView2_Callback_Create($__WEBVIEW2_CB_FRAME_CHILD_CREATED, __WebView2_FrameChildCreated_Invoke, "ptr;ptr;ptr") Then
+					$iError = $WEBVIEW2_ERR_CALLBACK
+					ExitLoop 1
+				EndIf
+			EndIf
 			Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
 			Local $oCore4 = __WebView2_Frame_QueryInterface($pCore, $WEBVIEW2_IID_ICoreWebView2_4, $WEBVIEW2_DTAG_ICoreWebView2_4)
 			$iError = @error
@@ -239,7 +248,64 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 		Local $pFrame = 0
 		Local $iResult = $oArgs.get_Frame($pFrame)
 		If @error Or $iResult <> $WEBVIEW2_S_OK Or Not $pFrame Then ExitLoop 1
-		Local $iSlot = -1
+		__WebView2_Frame_Register($iView, $pFrame, 0)
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_FrameCreated_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_FrameChildCreated_Invoke
+; Description ...: Registers a direct child of an already tracked frame.
+; Syntax ........: __WebView2_FrameChildCreated_Invoke($pSelf, $pSender, $pArgs)
+; Parameters ....: Native callback pointers.
+; Return values .: S_OK.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The sender is the parent ICoreWebView2Frame.
+; Related .......: __WebView2_Frame_Register
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_FrameChildCreated_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf
+	Do
+		Local $iParentSlot = __WebView2_Frame_Find($pSender, True)
+		If $iParentSlot < 0 Or Not $pArgs Then ExitLoop 1
+		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventArgs, $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs)
+		If Not IsObj($oArgs) Then ExitLoop 1
+		$oArgs.AddRef()
+		Local $pFrame = 0
+		Local $iResult = $oArgs.get_Frame($pFrame)
+		If @error Or $iResult <> $WEBVIEW2_S_OK Or Not $pFrame Then ExitLoop 1
+		__WebView2_Frame_Register($__g_aWebView2_Frames[$iParentSlot][$__WEBVIEW2_FRAME_OWNER], $pFrame, $__g_aWebView2_Frames[$iParentSlot][$__WEBVIEW2_FRAME_ID])
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_FrameChildCreated_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Frame_Register
+; Description ...: Tracks one frame and subscribes to direct children when Frame7 is available.
+; Syntax ........: __WebView2_Frame_Register($iView, $pFrame, $iParentId)
+; Parameters ....: $iView - Owner WebView2 instance.
+;                  $pFrame - Native ICoreWebView2Frame pointer.
+;                  $iParentId - Tracked parent ID, or zero for a top-level iframe.
+; Return values .: Tracked frame ID, or zero if registration fails.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: A later child callback can supply the parent for a frame seen first by the top-level callback.
+; Related .......: __WebView2_FrameCreated_Invoke, __WebView2_FrameChildCreated_Invoke
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_Frame_Register($iView, $pFrame, $iParentId)
+	Local $iFrameId = 0
+	Do
+		Local $iSlot = __WebView2_Frame_Find($pFrame, True)
+		If $iSlot >= 0 Then
+			If $iParentId > 0 Then $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PARENT_ID] = $iParentId
+			$iFrameId = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID]
+			ExitLoop 1
+		EndIf
 		For $i = 0 To $__WEBVIEW2_MAX_FRAMES - 1
 			If Not $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_ACTIVE] Then
 				$iSlot = $i
@@ -256,8 +322,10 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 		If @error Then $oFrame3 = Null
 		Local $oFrame6 = __WebView2_Frame_QueryInterface($pFrame, $WEBVIEW2_IID_ICoreWebView2Frame6, $WEBVIEW2_DTAG_ICoreWebView2Frame6)
 		If @error Then $oFrame6 = Null
+		Local $oFrame7 = __WebView2_Frame_QueryInterface($pFrame, $WEBVIEW2_IID_ICoreWebView2Frame7, $WEBVIEW2_DTAG_ICoreWebView2Frame7)
+		If @error Then $oFrame7 = Null
 		Local $tDestroyed = DllStructCreate("int64")
-		$iResult = $oFrame.add_Destroyed(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_DESTROYED), $tDestroyed)
+		Local $iResult = $oFrame.add_Destroyed(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_DESTROYED), $tDestroyed)
 		If @error Or $iResult <> $WEBVIEW2_S_OK Then ExitLoop 1
 		Local $iMessageToken = 0
 		Local $iNavStartToken = 0, $iNavCompleteToken = 0
@@ -283,13 +351,16 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 			$iResult = $oFrame6.add_ScreenCaptureStarting(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_SCREEN_CAPTURE), $tCapture)
 			If Not @error And $iResult = $WEBVIEW2_S_OK Then $iCaptureToken = DllStructGetData($tCapture, 1)
 		EndIf
-		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID] = $__g_iWebView2_NextFrameId
+		$iFrameId = $__g_iWebView2_NextFrameId
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID] = $iFrameId
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER] = $iView
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_POINTER] = $pFrame
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT] = $oFrame
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT2] = $oFrame2
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT3] = $oFrame3
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT6] = $oFrame6
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT7] = $oFrame7
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PARENT_ID] = $iParentId
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] = DllStructGetData($tDestroyed, 1)
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] = $iMessageToken
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN] = $iNavStartToken
@@ -298,11 +369,16 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] = $iCaptureToken
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] = True
 		$__g_iWebView2_NextFrameId += 1
+		If IsObj($oFrame7) Then
+			Local $tChildToken = DllStructCreate("int64")
+			$iResult = $oFrame7.add_FrameCreated(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_CHILD_CREATED), $tChildToken)
+			If Not @error And $iResult = $WEBVIEW2_S_OK Then $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN] = DllStructGetData($tChildToken, 1)
+		EndIf
 		Local $fnCallback = $__g_aWebView2_FrameCreatedCallback[$iView]
-		If IsFunc($fnCallback) Then Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
+		If IsFunc($fnCallback) Then Call($fnCallback, $iView, $iFrameId)
 	Until True
-	Return $WEBVIEW2_S_OK
-EndFunc   ;==>__WebView2_FrameCreated_Invoke
+	Return $iFrameId
+EndFunc   ;==>__WebView2_Frame_Register
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_FrameDestroyed_Invoke
@@ -335,6 +411,8 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 		If IsObj($oFrame3) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
 		Local $oFrame6 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT6]
 		If IsObj($oFrame6) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
+		Local $oFrame7 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT7]
+		If IsObj($oFrame7) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN] Then $oFrame7.remove_FrameCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN])
 		For $i = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 			$__g_aWebView2_Frames[$iSlot][$i] = Null
 		Next
@@ -527,11 +605,13 @@ Func __WebView2_Frame_Cleanup($iView)
 			Local $oFrame2 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT2]
 			Local $oFrame3 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT3]
 			Local $oFrame6 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT6]
+			Local $oFrame7 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT7]
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
 			If IsObj($oFrame3) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
 			If IsObj($oFrame6) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
+			If IsObj($oFrame7) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CHILD_TOKEN] Then $oFrame7.remove_FrameCreated($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CHILD_TOKEN])
 			If IsObj($oFrame) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
 			For $j = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 				$__g_aWebView2_Frames[$i][$j] = Null
@@ -581,6 +661,30 @@ Func _WebView2_Frame_List($iWebView)
 	If $iError Then __WebView2_Error($sFuncName, $iError, $sMessage, 0)
 	Return SetError($iError, 0, $aResult)
 EndFunc   ;==>_WebView2_Frame_List
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Frame_GetParentId
+; Description ...: Returns the tracked parent frame ID for a native iframe.
+; Syntax ........: _WebView2_Frame_GetParentId($iFrame)
+; Parameters ....: $iFrame - Tracked UDF frame ID returned by _WebView2_Frame_List().
+; Return values .: Parent frame ID, zero for a top-level iframe, or -1 with @error for an invalid frame.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Nested frames are tracked when the runtime provides ICoreWebView2Frame7.
+; Related .......: _WebView2_Frame_List
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2frame7
+; Example .......: examples/028_NestedFrames.au3
+; ===============================================================================================================================
+Func _WebView2_Frame_GetParentId($iFrame)
+	Local $iResult = -1, $iError = 0
+	Local $iSlot = __WebView2_Frame_Find($iFrame)
+	If $iSlot < 0 Then
+		$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+	Else
+		$iResult = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PARENT_ID]
+	EndIf
+	Return SetError($iError, 0, $iResult)
+EndFunc   ;==>_WebView2_Frame_GetParentId
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Frame_GetNativeId

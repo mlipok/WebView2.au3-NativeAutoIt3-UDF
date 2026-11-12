@@ -1,14 +1,23 @@
-# WebView2.au3 v0.5.0 — validation record
+# WebView2.au3 — validation record
+
+## 2026-11-12: nested native frames
+
+- `tools/Validate-Project.ps1`: project structure validation OK. Changed AutoIt files are UTF-8 without BOM with CRLF line endings; `git diff --check` passed.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: `WebView2.au3` and example 028 each reported 0 errors and 0 warnings. The public include was checked to include dependent frame modules.
+- Tidy was attempted on the four changed AutoIt files. Some invocations opened an unwanted file-selection dialog, so a clean Tidy result for all four files is **not** claimed. The dialog/process was closed, and no `Tidy.exe` process remained at the final check. No further Tidy invocation was made.
+- Focused `examples/028_NestedFrames.au3 --smoke` runs passed under AutoIt x86 and x64: 15 native frames, parent hierarchy 1 + 2 + 6 + 6, frame navigation callbacks, native ID, 15 one-label updates and direct `_v3` update. This is runtime confirmation inside WebView2. Visible layout and private application workflows were not exercised.
+
+## Historical validation: 2026-10-07
 
 Date: 2026-10-07 Europe/Warsaw
 
-## Current structure
+## Structure at that validation
 
 - 8 WebView2 source files in the project root.
 - 48 numbered AutoIt files in examples.
 - WebView2Loader.dll is present locally for x86 and x64.
 
-## Current static validation
+## Static validation at that time
 
 - Removed unnecessary GUISetIcon(@AutoItExe) calls from 24 examples; none remain in examples.
 - Tidy 25.205.1420.9 completed for all 24 changed examples without errors.

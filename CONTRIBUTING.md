@@ -6,10 +6,11 @@ Contributions are welcome, especially fixes validated with both AutoIt x86 and x
 
 1. Keep the public API in `WebView2.au3` backward compatible unless the change is explicitly documented as breaking.
 2. Keep COM lifetime changes isolated and explain every `AddRef`, wrapper lifetime, event unsubscribe and controller-close decision.
-3. Run `tools\Validate-Project.ps1`.
-4. Run Au3Check with warnings 1-7 against `WebView2.au3` and every changed example.
-5. Smoke-test the affected examples with the installed Evergreen WebView2 Runtime.
-6. Update `CHANGELOG.md`, `RELEASE_NOTES.md` and relevant files under `docs\`.
+3. Follow the repository's `AGENTS.md` and the linked AutoIt rules. Pass Tidy an explicit existing `.au3` file path and ensure its process exits; never invoke its file-selection dialog as a test.
+4. Run `tools\Validate-Project.ps1`.
+5. Run Au3Check with warnings 1-7 against `WebView2.au3` and every changed example. If the checker cannot start in a restricted environment, retry outside it and distinguish a launch failure from reported syntax errors.
+6. Smoke-test affected examples with the installed Evergreen WebView2 Runtime. Test both AutoIt architectures when claiming x86 and x64 behavior.
+7. Update `CHANGELOG.md` and relevant files under `docs\`. Update `RELEASE_NOTES.md` when preparing a release.
 
 ## Source layout
 
@@ -17,5 +18,6 @@ Contributions are welcome, especially fixes validated with both AutoIt x86 and x
 - `WebView2_DOM.au3` — DOM token/automation layer.
 - `WebView2_IECompat.au3` — migration helpers for standard `IE.au3` patterns.
 - `WebView2_Advanced.au3` — CDP/cookies/capture/PDF/MHTML/frames/extensions/ad-block helpers.
+- `WebView2_Frame.au3` — native iframe lifecycle, parent tracking, messages and frame-specific scripts.
 
-New native WebView2 interface revisions should be added through a correctly ordered interface definition and `QueryInterface()` rather than modifying an older vtable layout.
+New native WebView2 interface revisions should be added through a correctly ordered interface definition and `QueryInterface()` rather than modifying an older vtable layout. For nested iframe changes, confirm parent IDs and per-frame script execution with [example 028](examples/028_NestedFrames.au3).
