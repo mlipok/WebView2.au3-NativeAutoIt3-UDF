@@ -49,7 +49,7 @@ Useful candidates for later releases include:
 - accelerator-key settings and default background color through newer interface revisions;
 - asynchronous/nonblocking public variants of current synchronous helpers.
 
-The functional GitHub example copies have explicit WIP entries for HTTP response tracking, PDF.js and the older virtual-folder example. The download example now exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
+The functional GitHub example copies retain explicit WIP entries for PDF.js and the older virtual-folder example. Example 207 now exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
 
 ## TODO: Migration from other projects
 

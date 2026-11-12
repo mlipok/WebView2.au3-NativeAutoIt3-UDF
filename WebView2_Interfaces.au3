@@ -14,6 +14,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Environment12 = "{F503DB9B-739F-48DD-B15
 Global Const $WEBVIEW2_IID_ICoreWebView2SharedBuffer = "{B747A495-0C6F-449E-97B8-2F81E9D6AB43}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Controller = "{4D00C0D1-9434-4EB6-8078-8697A560334F}"
 Global Const $WEBVIEW2_IID_ICoreWebView2 = "{76ECEACB-0462-4D94-AC83-423A6793775E}"
+Global Const $WEBVIEW2_IID_ICoreWebView2_2 = "{9E8F0CF8-E670-4B5E-B2BC-73E061E3184C}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_3 = "{A0D6DF20-3B92-416D-AA0C-437A9C727857}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_4 = "{20D02D59-6DF2-42DC-BD06-F98A694B1302}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_13 = "{F75F09A8-667E-4983-88D6-C8773F315E84}"
@@ -41,6 +42,9 @@ Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3 = "{E61670
 Global Const $WEBVIEW2_IID_ICoreWebView2ScreenCaptureStartingEventArgs = "{892C03FD-AEE3-5EBA-A1FA-6FD2F6484B2B}"
 Global Const $WEBVIEW2_IID_ICoreWebView2DownloadStartingEventArgs = "{E99BBE21-43E9-4544-A732-282764EAFA60}"
 Global Const $WEBVIEW2_IID_ICoreWebView2DownloadOperation = "{3D6B6CF2-AFE1-44C7-A995-C65117714336}"
+Global Const $WEBVIEW2_IID_ICoreWebView2WebResourceResponseReceivedEventArgs = "{D1DB483D-6796-4B8B-80FC-13712BB716F4}"
+Global Const $WEBVIEW2_IID_ICoreWebView2WebResourceRequest = "{97055CD4-512C-4264-8B5F-E3F446CEA6A5}"
+Global Const $WEBVIEW2_IID_ICoreWebView2WebResourceResponseView = "{79701053-7759-4162-8F7D-F1B3F084928D}"
 
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler = "{4E8A3389-C9D8-4BD2-B6B5-124FEE6CC14D}"
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2ControllerCompletedHandler = "{6C4819F3-C9B7-4260-8127-C9F5BDE7F68C}"
@@ -59,6 +63,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2FrameWebMessageReceivedEventHandler = "{
 Global Const $WEBVIEW2_IID_ICoreWebView2FramePermissionRequestedEventHandler = "{845D0EDD-8BD8-429B-9915-4821789F23E9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameScreenCaptureStartingEventHandler = "{A6C1D8AD-BB80-59C5-895B-FBA1698B9309}"
 Global Const $WEBVIEW2_IID_ICoreWebView2ExecuteScriptCompletedHandler = "{49511172-CC67-4BCA-9923-137112F4C4CC}"
+Global Const $WEBVIEW2_IID_ICoreWebView2WebResourceResponseReceivedEventHandler = "{7DE9898A-24F5-40C3-A2DE-D4F458E69828}"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment = _
 		"CreateCoreWebView2Controller hresult(hwnd;ptr);" & _
@@ -180,19 +185,40 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"remove_WindowCloseRequested hresult();"
 
 ; The inherited entries must remain in exact WebView2.idl vtable order.
-Global Const $WEBVIEW2_DTAG_ICoreWebView2_3 = $WEBVIEW2_DTAG_ICoreWebView2 & _
-		"add_WebResourceResponseReceived hresult();" & _
-		"remove_WebResourceResponseReceived hresult();" & _
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_2 = $WEBVIEW2_DTAG_ICoreWebView2 & _
+		"add_WebResourceResponseReceived hresult(ptr;struct*);" & _
+		"remove_WebResourceResponseReceived hresult(int64);" & _
 		"NavigateWithWebResourceRequest hresult();" & _
 		"add_DOMContentLoaded hresult();" & _
 		"remove_DOMContentLoaded hresult();" & _
 		"get_CookieManager hresult();" & _
-		"get_Environment hresult();" & _
+		"get_Environment hresult();"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_3 = $WEBVIEW2_DTAG_ICoreWebView2_2 & _
 		"TrySuspend hresult();" & _
 		"Resume hresult();" & _
 		"get_IsSuspended hresult();" & _
 		"SetVirtualHostNameToFolderMapping hresult(wstr;wstr;int);" & _
 		"ClearVirtualHostNameToFolderMapping hresult(wstr);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2WebResourceResponseReceivedEventArgs = _
+		"get_Request hresult(ptr*);" & _
+		"get_Response hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2WebResourceRequest = _
+		"get_Uri hresult(ptr*);" & _
+		"put_Uri hresult(wstr);" & _
+		"get_Method hresult(ptr*);" & _
+		"put_Method hresult(wstr);" & _
+		"get_Content hresult(ptr*);" & _
+		"put_Content hresult(ptr);" & _
+		"get_Headers hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2WebResourceResponseView = _
+		"get_Headers hresult(ptr*);" & _
+		"get_StatusCode hresult(int*);" & _
+		"get_ReasonPhrase hresult(ptr*);" & _
+		"GetContent hresult(ptr);"
 
 ; ICoreWebView2_4 through _8 append methods in their exact WebView2.idl order.
 Global Const $WEBVIEW2_DTAG_ICoreWebView2_4 = $WEBVIEW2_DTAG_ICoreWebView2_3 & _
