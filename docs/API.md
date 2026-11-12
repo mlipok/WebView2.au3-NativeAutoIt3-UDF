@@ -148,13 +148,16 @@ Register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_DOWNLOAD_STARTING, $f
 
 - `Default` to keep the Runtime's normal path and download UI;
 - `$WEBVIEW2_DOWNLOAD_CANCEL` to deny the download before saving;
+- `$WEBVIEW2_DOWNLOAD_DEFER` to decide outside the native callback;
 - `[$sAbsolutePath, $bHideDefaultUI]` to choose a destination and optionally hide WebView2's download UI.
 
-The UDF rejects an existing destination or a nonabsolute path by cancelling the request. WebView2 can overwrite an existing file when given its path, so applications should create unique names and validate the download source before accepting it. The starting callback is synchronous: return promptly and do not invoke blocking WebView2 helpers in it.
+The UDF rejects an existing destination or a nonabsolute path by cancelling an immediate request. WebView2 can overwrite an existing file when given its path, so applications should create unique names and validate the download source before accepting it. The starting callback is synchronous: return promptly and do not invoke blocking WebView2 helpers in it.
+
+For deferred policy, return `$WEBVIEW2_DOWNLOAD_DEFER`, then inspect `_WebView2_Download_Pending_List($iWebView)` in the host loop. Call `_WebView2_Download_Complete($iDownload[, $sPath = Default[, $bHideDefaultUI = False]])` to allow the request, or `_WebView2_Download_Cancel($iDownload)` to reject it. A custom path must be absolute and must not already exist. An invalid path leaves the request pending so the host can retry. Complete or cancel promptly; destroying the view cancels pending requests. Pending requests occupy the bounded download registry and cannot be replaced by a new request.
 
 `$WEBVIEW2_EVENT_DOWNLOAD_PROGRESS` receives `($iWebView, $iDownload, $iBytesReceived, $iTotalBytes)`. Total bytes can be `-1` when unknown. `$WEBVIEW2_EVENT_DOWNLOAD_STATE_CHANGED` receives `($iWebView, $iDownload, $iState, $iInterruptReason)`. State constants are `$WEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS`, `$WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED`, and `$WEBVIEW2_DOWNLOAD_STATE_COMPLETED`.
 
-`_WebView2_Download_List($iWebView)` returns tracked IDs. `_WebView2_Download_GetInfo($iDownload)` returns `[URI, file path, MIME type, received bytes, total bytes, state, interrupt reason]`. `_WebView2_Download_Cancel($iDownload)` cancels an operation. The registry retains at most 64 active/recent operations across all views; completed entries are replaced by new downloads when full, and all entries are released when their view is destroyed. See [example 206](../examples/206-DownloadDemo.au3).
+`_WebView2_Download_List($iWebView)` returns tracked IDs. `_WebView2_Download_GetInfo($iDownload)` returns `[URI, file path, MIME type, received bytes, total bytes, state, interrupt reason]`. `_WebView2_Download_Pause($iDownload)` pauses an active transfer; WebView2 reports the pause as interrupted with reason `USER_PAUSED`. `_WebView2_Download_CanResume($iDownload)` reports whether the operation can resume, and `_WebView2_Download_Resume($iDownload)` resumes it. `_WebView2_Download_Cancel($iDownload)` cancels an active or deferred operation. The registry retains at most 64 active/recent operations across all views; completed entries are replaced by new downloads when full, and all entries are released when their view is destroyed. See [example 206](../examples/206-DownloadDemo.au3).
 
 ## Diagnostics
 

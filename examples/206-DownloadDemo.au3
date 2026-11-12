@@ -15,11 +15,13 @@ Global $g_EX_bSmoke = False
 Global $g_EX_bSmokeDeny = False
 Global $g_EX_bSmokeCancel = False, $g_EX_bCancelRequested = False
 Global $g_EX_bSmokeRemote = False
+Global $g_EX_bSmokeDefer = False, $g_EX_bSmokeDeferCancel = False, $g_EX_bSmokePause = False
 Global Const $g_EX_sOrigin = "https://udf-virtual-host.example/"
 Global Const $g_EX_sArchiveURL = "https://codeload.github.com/mlipok/WebView2.au3-NativeAutoIt3-UDF/zip/refs/heads/main"
 Global $g_EX_iDownload = 0, $g_EX_iState = -1, $g_EX_iBytes = 0, $g_EX_iTotal = -1
 Global $g_EX_iStartCount = 0, $g_EX_iDenied = 0, $g_EX_bDenyNext = False, $g_EX_sDownloadPath = ""
 Global $g_EX_sDownloadEvent = ""
+Global $g_EX_bChooseNext = False, $g_EX_iPending = 0, $g_EX_bPauseOnStart = False, $g_EX_bPauseRequested = False
 
 Exit _EX_Run()
 
@@ -39,10 +41,14 @@ Exit _EX_Run()
 Func _EX_Run()
 	Local $iExit = 1
 	If $CmdLine[0] > 0 Then
-		$g_EX_bSmoke = ($CmdLine[1] = "--smoke" Or $CmdLine[1] = "--smoke-deny" Or $CmdLine[1] = "--smoke-cancel" Or $CmdLine[1] = "--smoke-remote")
+		$g_EX_bSmoke = ($CmdLine[1] = "--smoke" Or $CmdLine[1] = "--smoke-deny" Or $CmdLine[1] = "--smoke-cancel" Or $CmdLine[1] = "--smoke-remote" Or _
+				$CmdLine[1] = "--smoke-defer" Or $CmdLine[1] = "--smoke-defer-cancel" Or $CmdLine[1] = "--smoke-pause")
 		$g_EX_bSmokeDeny = ($CmdLine[1] = "--smoke-deny")
 		$g_EX_bSmokeCancel = ($CmdLine[1] = "--smoke-cancel")
 		$g_EX_bSmokeRemote = ($CmdLine[1] = "--smoke-remote")
+		$g_EX_bSmokeDefer = ($CmdLine[1] = "--smoke-defer")
+		$g_EX_bSmokeDeferCancel = ($CmdLine[1] = "--smoke-defer-cancel")
+		$g_EX_bSmokePause = ($CmdLine[1] = "--smoke-pause")
 	EndIf
 	Do
 		$g_EX_hGUI = GUICreate("206-DownloadDemo", 1100, 800, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
@@ -50,10 +56,10 @@ Func _EX_Run()
 		Local $idReload = GUICtrlCreateButton("Reload", 75, 5, 70, 25), $idStop = GUICtrlCreateButton("Stop", 150, 5, 45, 25)
 		$g_EX_idAddress = GUICtrlCreateInput("", 200, 5, 830, 25)
 		Local $idGo = GUICtrlCreateButton("Go", 1035, 5, 55, 25)
-		Local $aLabels[4] = ["Download main ZIP", "Deny main ZIP", "Cancel current", "Reload"]
-		Local $aAction[4]
-		For $i = 0 To 3
-			$aAction[$i] = GUICtrlCreateButton($aLabels[$i], 5 + $i * 175, 35, 170, 25)
+		Local $aLabels[7] = ["Download ZIP", "Deny next ZIP", "Choose destination", "Pause", "Resume", "Cancel current", "Reload"]
+		Local $aAction[7]
+		For $i = 0 To 6
+			$aAction[$i] = GUICtrlCreateButton($aLabels[$i], 5 + $i * 155, 35, 150, 25)
 			GUICtrlSetResizing(-1, $GUI_DOCKALL)
 		Next
 		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 655, 1090, 135, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
@@ -104,8 +110,8 @@ Func _EX_Run()
 					_WebView2_Stop($g_EX_iView)
 				Case $idGo, $g_EX_idAddress
 					_EX_Navigate($g_EX_iView, GUICtrlRead($g_EX_idAddress))
-				Case $aAction[0], $aAction[1], $aAction[2], $aAction[3]
-					For $i = 0 To 3
+				Case $aAction[0], $aAction[1], $aAction[2], $aAction[3], $aAction[4], $aAction[5], $aAction[6]
+					For $i = 0 To 6
 						If $iMessage = $aAction[$i] Then
 							If Not _EX_Action($i) Then _EX_Status(_WebView2_Error_GetDescription())
 						EndIf
@@ -127,6 +133,7 @@ Func _EX_Run()
 				_EX_Status($g_EX_sDownloadEvent)
 				$g_EX_sDownloadEvent = ""
 			EndIf
+			If $g_EX_iPending Then _EX_ResolvePending()
 			Sleep(10)
 		WEnd
 		$iExit = 0
@@ -267,8 +274,11 @@ EndFunc   ;==>_EX_Status
 ;                  |
 ;                  |0 - Start an allowed download of the main-branch ZIP.
 ;                  |1 - Deny the next ZIP download and start it.
-;                  |2 - Cancel the active download.
-;                  |3 - Reload.
+;                  |2 - Defer the next download for a destination choice.
+;                  |3 - Pause the active download.
+;                  |4 - Resume an interrupted download.
+;                  |5 - Cancel the active or pending download.
+;                  |6 - Reload.
 ; Return values .: True when the action succeeds or the user cancels; False on an operation failure.
 ; Author ........: ioa747
 ; Modified ......: mLipok
@@ -280,8 +290,10 @@ EndFunc   ;==>_EX_Status
 Func _EX_Action($iAction)
 	Local $bOK = True
 	Switch $iAction
-		Case 0, 1
+		Case 0, 1, 2
 			$g_EX_bDenyNext = ($iAction = 1)
+			$g_EX_bChooseNext = ($iAction = 2)
+			$g_EX_bPauseOnStart = $g_EX_bSmokePause
 			$g_EX_iState = -1
 			If $g_EX_bSmoke And Not $g_EX_bSmokeRemote Then
 				_WebView2_ExecuteScript($g_EX_iView, "download();true")
@@ -289,17 +301,67 @@ Func _EX_Action($iAction)
 				_WebView2_ExecuteScript($g_EX_iView, "downloadArchive();true")
 			EndIf
 			$bOK = (@error = 0)
-		Case 2
+		Case 3
+			If $g_EX_iDownload Then
+				$bOK = _WebView2_Download_Pause($g_EX_iDownload)
+			Else
+				_EX_Status("No download has started yet.")
+			EndIf
+		Case 4
+			If $g_EX_iDownload Then
+				$bOK = _WebView2_Download_Resume($g_EX_iDownload)
+			Else
+				_EX_Status("No download can be resumed yet.")
+			EndIf
+		Case 5
 			If $g_EX_iDownload Then
 				$bOK = _WebView2_Download_Cancel($g_EX_iDownload)
 			Else
 				_EX_Status("No download has started yet.")
 			EndIf
-		Case 3
+		Case 6
 			$bOK = _WebView2_Reload($g_EX_iView)
 	EndSwitch
 	Return $bOK
 EndFunc   ;==>_EX_Action
+
+; #INTERNAL_USE_ONLY# ==========================================================================================================
+; Name ..........: _EX_ResolvePending
+; Description ...: Prompts for a destination after the native callback has returned.
+; Syntax ........: _EX_ResolvePending()
+; Parameters ....: None.
+; Return values .: True on completion or cancellation; False on native failure.
+; Author ........: ioa747
+; Modified ......: mLipok
+; Remarks .......: The request is always completed or canceled before returning to the GUI loop.
+; Related .......: _WebView2_Download_Complete, _WebView2_Download_Cancel
+; Link ..........:
+; Example .......: No
+; ================================================================================================================================
+Func _EX_ResolvePending()
+	Local $bOK = False
+	Do
+		Local $iDownload = $g_EX_iPending
+		$g_EX_iPending = 0
+		If Not $iDownload Then ExitLoop
+		Local $sName = "WebView2-main-" & @AutoItPID & "-" & $iDownload & ".zip"
+		Local $sPath = FileSaveDialog("Choose download destination", @MyDocumentsDir, "ZIP archive (*.zip)", $FD_PATHMUSTEXIST, $sName, $g_EX_hGUI)
+		If @error Or FileExists($sPath) Then
+			$bOK = _WebView2_Download_Cancel($iDownload)
+			_EX_Status("Destination selection canceled or the file already exists; download denied.")
+			ExitLoop
+		EndIf
+		$bOK = _WebView2_Download_Complete($iDownload, $sPath, True)
+		If $bOK Then
+			$g_EX_sDownloadPath = $sPath
+			_EX_Status("Saving download " & $iDownload & " to " & $sPath)
+		Else
+			_EX_Status("Destination rejected: " & _WebView2_Error_GetDescription())
+			_WebView2_Download_Cancel($iDownload)
+		EndIf
+	Until True
+	Return $bOK
+EndFunc   ;==>_EX_ResolvePending
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
 ; Name ..........: _EX_DownloadStarting
@@ -319,6 +381,7 @@ Func _EX_DownloadStarting($iView, $iDownload, $sURI, $sSuggested, $sMime)
 	$g_EX_iDownload = $iDownload
 	$g_EX_iStartCount += 1
 	If (Not $g_EX_bSmoke Or $g_EX_bSmokeRemote) And $sURI <> $g_EX_sArchiveURL Then
+		$g_EX_bChooseNext = False
 		$g_EX_sDownloadEvent = "Rejected unexpected download source: " & $sURI
 		Return $WEBVIEW2_DOWNLOAD_CANCEL
 	EndIf
@@ -327,6 +390,12 @@ Func _EX_DownloadStarting($iView, $iDownload, $sURI, $sSuggested, $sMime)
 		$g_EX_iDenied += 1
 		$g_EX_sDownloadEvent = "Denied download " & $iDownload & " from " & $sURI
 		Return $WEBVIEW2_DOWNLOAD_CANCEL
+	EndIf
+	If $g_EX_bChooseNext Then
+		$g_EX_bChooseNext = False
+		$g_EX_iPending = $iDownload
+		$g_EX_sDownloadEvent = "Download " & $iDownload & " awaits a destination decision."
+		Return $WEBVIEW2_DOWNLOAD_DEFER
 	EndIf
 	If $g_EX_bSmoke And Not $g_EX_bSmokeRemote Then
 		$g_EX_sDownloadPath = @TempDir & "\WebView2-206-" & @AutoItPID & "-" & $iDownload & ".txt"
@@ -341,6 +410,10 @@ Func _EX_DownloadStarting($iView, $iDownload, $sURI, $sSuggested, $sMime)
 		Return Default
 	EndIf
 	Local $aPolicy[2] = [$g_EX_sDownloadPath, True]
+	If $g_EX_bPauseOnStart Then
+		$g_EX_bPauseOnStart = False
+		$g_EX_bPauseRequested = _WebView2_Download_Pause($iDownload)
+	EndIf
 	Return $aPolicy
 EndFunc   ;==>_EX_DownloadStarting
 
@@ -455,6 +528,67 @@ Func _EX_Check()
 			WEnd
 			ConsoleWrite("EX_SMOKE_STAGE cancel=" & $g_EX_bCancelRequested & " state=" & $g_EX_iState & @CRLF)
 			If Not $g_EX_bCancelRequested Or $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED Then ExitLoop
+			$bOK = True
+			ExitLoop
+		EndIf
+		If $g_EX_bSmokeDefer Or $g_EX_bSmokeDeferCancel Then
+			If Not _EX_Action(2) Then ExitLoop
+			$hTimer = TimerInit()
+			While Not $g_EX_iPending And TimerDiff($hTimer) < 5000
+				GUIGetMsg()
+				Sleep(10)
+			WEnd
+			If Not $g_EX_iPending Then ExitLoop
+			Local $aPending = _WebView2_Download_Pending_List($g_EX_iView)
+			If @error Or UBound($aPending) <> 1 Or $aPending[0] <> $g_EX_iPending Then ExitLoop
+			ConsoleWrite("EX_SMOKE_STAGE deferred=" & $g_EX_iPending & @CRLF)
+			If $g_EX_bSmokeDeferCancel Then
+				If Not _WebView2_Download_Cancel($g_EX_iPending) Then ExitLoop
+				$aPending = _WebView2_Download_Pending_List($g_EX_iView)
+				If @error Or UBound($aPending) <> 0 Then ExitLoop
+				$hTimer = TimerInit()
+				While $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED And TimerDiff($hTimer) < 5000
+					GUIGetMsg()
+					Sleep(10)
+				WEnd
+				If $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED Then ExitLoop
+				$bOK = True
+				ExitLoop
+			EndIf
+			$g_EX_sDownloadPath = @TempDir & "\WebView2-206-deferred-" & @AutoItPID & "-" & $g_EX_iPending & ".txt"
+			If _WebView2_Download_Complete($g_EX_iPending, "relative.txt", True) Or @error <> $WEBVIEW2_ERR_INVALID_PARAMETER Then ExitLoop
+			$aPending = _WebView2_Download_Pending_List($g_EX_iView)
+			If @error Or UBound($aPending) <> 1 Then ExitLoop
+			If Not _WebView2_Download_Complete($g_EX_iPending, $g_EX_sDownloadPath, True) Then ExitLoop
+			$aPending = _WebView2_Download_Pending_List($g_EX_iView)
+			If @error Or UBound($aPending) <> 0 Then ExitLoop
+			$hTimer = TimerInit()
+			While $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_COMPLETED And TimerDiff($hTimer) < 15000
+				GUIGetMsg()
+				Sleep(10)
+			WEnd
+			ConsoleWrite("EX_SMOKE_STAGE deferred_state=" & $g_EX_iState & " bytes=" & $g_EX_iBytes & @CRLF)
+			If $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_COMPLETED Or Not FileExists($g_EX_sDownloadPath) Or FileGetSize($g_EX_sDownloadPath) <= 0 Then ExitLoop
+			$bOK = True
+			ExitLoop
+		EndIf
+		If $g_EX_bSmokePause Then
+			If Not _EX_Action(0) Then ExitLoop
+			$hTimer = TimerInit()
+			While $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED And TimerDiff($hTimer) < 5000
+				GUIGetMsg()
+				Sleep(10)
+			WEnd
+			Local $bCanResume = _WebView2_Download_CanResume($g_EX_iDownload)
+			ConsoleWrite("EX_SMOKE_STAGE pause=" & $g_EX_bPauseRequested & " state=" & $g_EX_iState & " can_resume=" & $bCanResume & @CRLF)
+			If Not $g_EX_bPauseRequested Or $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED Or Not $bCanResume Then ExitLoop
+			If Not _WebView2_Download_Resume($g_EX_iDownload) Then ExitLoop
+			$hTimer = TimerInit()
+			While $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_COMPLETED And TimerDiff($hTimer) < 15000
+				GUIGetMsg()
+				Sleep(10)
+			WEnd
+			If $g_EX_iState <> $WEBVIEW2_DOWNLOAD_STATE_COMPLETED Or Not FileExists($g_EX_sDownloadPath) Then ExitLoop
 			$bOK = True
 			ExitLoop
 		EndIf

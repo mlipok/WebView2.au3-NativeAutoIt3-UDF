@@ -43,7 +43,6 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 Useful candidates for later releases include:
 
 - review later frame capabilities beyond `ICoreWebView2Frame6`; immediate `Frame3` permission decisions, read-only `Frame4` shared buffers, `Frame5` native IDs, and `Frame6` screen-capture cancellation are implemented;
-- download pause/resume and asynchronous download-decision deferrals; immediate allow/deny policy, destination selection, byte progress, state events and cancellation are available;
 - deferred permission handling and script-dialog callbacks; immediate top-level and frame-level permission decisions are implemented;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;
