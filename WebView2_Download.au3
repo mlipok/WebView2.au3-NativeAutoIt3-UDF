@@ -16,6 +16,8 @@ Global Enum _
 		$__WEBVIEW2_DOWNLOAD_OBJECT, _
 		$__WEBVIEW2_DOWNLOAD_PROGRESS_TOKEN, _
 		$__WEBVIEW2_DOWNLOAD_STATE_TOKEN, _
+		$__WEBVIEW2_DOWNLOAD_PENDING_ARGS, _
+		$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL, _
 		$__WEBVIEW2_DOWNLOAD_FIELDS
 Global $__g_aWebView2_Downloads[$__WEBVIEW2_DOWNLOAD_LIMIT][$__WEBVIEW2_DOWNLOAD_FIELDS]
 Global $__g_iWebView2_NextDownloadId = 1
@@ -135,6 +137,181 @@ Func _WebView2_Download_GetInfo($iDownload)
 EndFunc   ;==>_WebView2_Download_GetInfo
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Download_CanResume
+; Description ...: Checks whether an interrupted download can be resumed.
+; Syntax ........: _WebView2_Download_CanResume($iDownload)
+; Parameters ....: $iDownload - Tracked download ID.
+; Return values .: True or False; @error for stale ID or native failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: A paused download is reported as interrupted with the USER_PAUSED reason.
+; Related .......: _WebView2_Download_Pause, _WebView2_Download_Resume
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2downloadoperation
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Download_CanResume($iDownload)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Download_Find($iDownload)
+		If $iSlot < 0 Then
+			$iError = $WEBVIEW2_ERR_NO_MATCH
+			ExitLoop
+		EndIf
+		Local $oOperation = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_OBJECT]
+		Local $iResult = $oOperation.get_CanResume($bResult)
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iResult
+		EndIf
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Download_CanResume
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Download_Pause
+; Description ...: Pauses an active native download.
+; Syntax ........: _WebView2_Download_Pause($iDownload)
+; Parameters ....: $iDownload - Tracked download ID.
+; Return values .: True on success; False with @error on stale ID or native failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: WebView2 reports a pause as INTERRUPTED with reason USER_PAUSED.
+; Related .......: _WebView2_Download_CanResume, _WebView2_Download_Resume
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2downloadoperation
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Download_Pause($iDownload)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Download_Find($iDownload)
+		If $iSlot < 0 Then
+			$iError = $WEBVIEW2_ERR_NO_MATCH
+			ExitLoop
+		EndIf
+		If IsObj($__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL]) Then
+			$iError = $WEBVIEW2_ERR_BUSY
+			ExitLoop
+		EndIf
+		Local $oOperation = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_OBJECT]
+		Local $iResult = $oOperation.Pause()
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iResult
+			ExitLoop
+		EndIf
+		$bResult = True
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Download_Pause
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Download_Resume
+; Description ...: Resumes an interrupted download when WebView2 permits it.
+; Syntax ........: _WebView2_Download_Resume($iDownload)
+; Parameters ....: $iDownload - Tracked download ID.
+; Return values .: True on success; False with @error when unavailable or on native failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Call _WebView2_Download_CanResume() to enable a host Resume button.
+; Related .......: _WebView2_Download_CanResume, _WebView2_Download_Pause
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2downloadoperation
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Download_Resume($iDownload)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $bCanResume = _WebView2_Download_CanResume($iDownload)
+		$iError = @error
+		$iExtended = @extended
+		If $iError Then ExitLoop
+		If Not $bCanResume Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $WEBVIEW2_E_INVALID_STATE
+			ExitLoop
+		EndIf
+		Local $iSlot = __WebView2_Download_Find($iDownload)
+		Local $oOperation = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_OBJECT]
+		Local $iResult = $oOperation.Resume()
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iResult
+			ExitLoop
+		EndIf
+		$bResult = True
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Download_Resume
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Download_Pending_List
+; Description ...: Lists download IDs awaiting a deferred start decision.
+; Syntax ........: _WebView2_Download_Pending_List($iWebView)
+; Parameters ....: $iWebView - WebView2 instance ID.
+; Return values .: Array of IDs; empty array when none, @error on invalid instance.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Decide outside the native callback; always complete or cancel promptly.
+; Related .......: _WebView2_Download_Complete, _WebView2_Download_Cancel
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Download_Pending_List($iWebView)
+	Local $aResult[0], $iError = 0
+	Do
+		If Not __WebView2_Instance_IsValid($iWebView) Then
+			$iError = $WEBVIEW2_ERR_INVALID_INSTANCE
+			ExitLoop
+		EndIf
+		For $i = 0 To $__WEBVIEW2_DOWNLOAD_LIMIT - 1
+			If $__g_aWebView2_Downloads[$i][$__WEBVIEW2_DOWNLOAD_ID] And $__g_aWebView2_Downloads[$i][$__WEBVIEW2_DOWNLOAD_VIEW] = $iWebView And _
+					IsObj($__g_aWebView2_Downloads[$i][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL]) Then
+				ReDim $aResult[UBound($aResult) + 1]
+				$aResult[UBound($aResult) - 1] = $__g_aWebView2_Downloads[$i][$__WEBVIEW2_DOWNLOAD_ID]
+			EndIf
+		Next
+	Until True
+	Return SetError($iError, 0, $aResult)
+EndFunc   ;==>_WebView2_Download_Pending_List
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Download_Complete
+; Description ...: Allows a deferred download with the default or selected destination.
+; Syntax ........: _WebView2_Download_Complete($iDownload[, $sPath = Default[, $bHideDefaultUI = False]])
+; Parameters ....: $iDownload - Pending download ID.
+;                  $sPath - Default to retain WebView2's path, or a new absolute file path.
+;                  $bHideDefaultUI - True to hide the Runtime download UI.
+; Return values .: True on success; False with @error on invalid ID/path or native failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: An invalid path leaves the request pending for retry. Cleanup cancels any remaining request.
+; Related .......: _WebView2_Download_Pending_List, _WebView2_Download_Cancel
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2downloadstartingeventargs
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Download_Complete($iDownload, $sPath = Default, $bHideDefaultUI = False)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Download_Find($iDownload)
+		If $iSlot < 0 Then
+			$iError = $WEBVIEW2_ERR_NO_MATCH
+			ExitLoop
+		EndIf
+		If Not IsObj($__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL]) Then
+			$iError = $WEBVIEW2_ERR_NO_MATCH
+			ExitLoop
+		EndIf
+		If Not IsBool($bHideDefaultUI) Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop
+		EndIf
+		$bResult = __WebView2_Download_Resolve($iSlot, False, $sPath, $bHideDefaultUI)
+		$iError = @error
+		$iExtended = @extended
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Download_Complete
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Download_Cancel
 ; Description ...: Cancels an active native download.
 ; Syntax ........: _WebView2_Download_Cancel($iDownload)
@@ -142,19 +319,103 @@ EndFunc   ;==>_WebView2_Download_GetInfo
 ; Return values .: True on success; False with @error on invalid ID or native failure.
 ; Author ........: mLipok
 ; Modified ......:
-; Remarks .......: To reject a download before it starts, return $WEBVIEW2_DOWNLOAD_CANCEL from DownloadStarting callback.
+; Remarks .......: Also cancels and completes a pending deferred start decision.
 ; Related .......: _WebView2_Download_GetInfo
 ; Link ..........:
 ; Example .......: Yes
 ; ===============================================================================================================================
 Func _WebView2_Download_Cancel($iDownload)
-	Local $iSlot = __WebView2_Download_Find($iDownload)
-	If $iSlot < 0 Then Return SetError($WEBVIEW2_ERR_NO_MATCH, 0, False)
-	Local $oOperation = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_OBJECT]
-	Local $iResult = $oOperation.Cancel()
-	If @error Or $iResult <> $WEBVIEW2_S_OK Then Return SetError($WEBVIEW2_ERR_HRESULT, $iResult, False)
-	Return SetError(0, 0, True)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Download_Find($iDownload)
+		If $iSlot < 0 Then
+			$iError = $WEBVIEW2_ERR_NO_MATCH
+			ExitLoop
+		EndIf
+		If IsObj($__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL]) Then
+			$bResult = __WebView2_Download_Resolve($iSlot, True)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop
+		EndIf
+		Local $oOperation = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_OBJECT]
+		Local $iResult = $oOperation.Cancel()
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iResult
+			ExitLoop
+		EndIf
+		$bResult = True
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
 EndFunc   ;==>_WebView2_Download_Cancel
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Download_Resolve
+; Description ...: Applies a deferred start decision and completes the native deferral.
+; Syntax ........: __WebView2_Download_Resolve($iSlot, $bCancel[, $sPath = Default[, $bHideDefaultUI = False]])
+; Parameters ....: $iSlot - Internal download slot.
+;                  $bCancel - True to reject the request.
+;                  $sPath - Default or an absolute new destination path.
+;                  $bHideDefaultUI - Whether to hide WebView2's download UI.
+; Return values .: True on success; False with @error on validation/native failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: A native failure cancels and completes the request to avoid leaving it suspended.
+; Related .......: _WebView2_Download_Complete, _WebView2_Download_Cancel
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_Download_Resolve($iSlot, $bCancel, $sPath = Default, $bHideDefaultUI = False)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $oArgs = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_ARGS]
+		Local $oDeferral = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL]
+		If Not IsObj($oArgs) Or Not IsObj($oDeferral) Then
+			$iError = $WEBVIEW2_ERR_NO_MATCH
+			ExitLoop
+		EndIf
+		If Not $bCancel And $sPath <> Default Then
+			If Not IsString($sPath) Or Not (StringRegExp($sPath, "^[A-Za-z]:\\") Or StringRegExp($sPath, "^\\\\[^\\]+\\[^\\]+\\")) Or FileExists($sPath) Then
+				$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+				ExitLoop
+			EndIf
+		EndIf
+		Local $iResult = $WEBVIEW2_S_OK
+		If Not $bCancel And $sPath <> Default Then
+			$iResult = $oArgs.put_ResultFilePath($sPath)
+			If @error Or $iResult <> $WEBVIEW2_S_OK Then
+				$iError = $WEBVIEW2_ERR_HRESULT
+				$iExtended = $iResult
+				$bCancel = True
+			EndIf
+		EndIf
+		If Not $bCancel And $bHideDefaultUI Then
+			$iResult = $oArgs.put_Handled(True)
+			If @error Or $iResult <> $WEBVIEW2_S_OK Then
+				$iError = $WEBVIEW2_ERR_HRESULT
+				$iExtended = $iResult
+				$bCancel = True
+			EndIf
+		EndIf
+		If $bCancel Then
+			$iResult = $oArgs.put_Cancel(True)
+			If (@error Or $iResult <> $WEBVIEW2_S_OK) And Not $iError Then
+				$iError = $WEBVIEW2_ERR_HRESULT
+				$iExtended = $iResult
+			EndIf
+		EndIf
+		$iResult = $oDeferral.Complete()
+		If (@error Or $iResult <> $WEBVIEW2_S_OK) And Not $iError Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iResult
+		EndIf
+		$__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_ARGS] = Null
+		$__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL] = Null
+		$bResult = ($iError = 0)
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>__WebView2_Download_Resolve
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 Func __WebView2_Download_Find($iDownload, $bPointer = False)
@@ -239,12 +500,17 @@ Func __WebView2_DownloadStarting_Invoke($pSelf, $pSender, $pArgs)
 	Next
 	If $iSlot < 0 Then
 		For $i = 0 To $__WEBVIEW2_DOWNLOAD_LIMIT - 1
-			Local $aOld = _WebView2_Download_GetInfo($__g_aWebView2_Downloads[$i][$__WEBVIEW2_DOWNLOAD_ID])
-			If Not @error And $aOld[5] <> $WEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS Then
-				__WebView2_Download_Release($i)
-				$iSlot = $i
-				ExitLoop
+			If IsObj($__g_aWebView2_Downloads[$i][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL]) Then ContinueLoop
+			Local $iOldDownload = $__g_aWebView2_Downloads[$i][$__WEBVIEW2_DOWNLOAD_ID]
+			Local $aOld = _WebView2_Download_GetInfo($iOldDownload)
+			If @error Or $aOld[5] = $WEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS Then ContinueLoop
+			If $aOld[5] = $WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED Then
+				Local $bCanResume = _WebView2_Download_CanResume($iOldDownload)
+				If @error Or $bCanResume Then ContinueLoop
 			EndIf
+			__WebView2_Download_Release($i)
+			$iSlot = $i
+			ExitLoop
 		Next
 	EndIf
 	If $iSlot < 0 Then
@@ -296,6 +562,20 @@ Func __WebView2_DownloadStarting_Invoke($pSelf, $pSender, $pArgs)
 			Else
 				$oArgs.put_Cancel(True)
 			EndIf
+		ElseIf $vPolicy = $WEBVIEW2_DOWNLOAD_DEFER Then
+			Local $pDeferral = 0
+			$iResult = $oArgs.GetDeferral($pDeferral)
+			If @error Or $iResult <> $WEBVIEW2_S_OK Or Not $pDeferral Then
+				$oArgs.put_Cancel(True)
+			Else
+				Local $oDeferral = ObjCreateInterface($pDeferral, $WEBVIEW2_IID_ICoreWebView2Deferral, $WEBVIEW2_DTAG_ICoreWebView2Deferral)
+				If IsObj($oDeferral) Then
+					$__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_ARGS] = $oArgs
+					$__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL] = $oDeferral
+				Else
+					$oArgs.put_Cancel(True)
+				EndIf
+			EndIf
 		ElseIf $vPolicy = $WEBVIEW2_DOWNLOAD_CANCEL Then
 			$oArgs.put_Cancel(True)
 		EndIf
@@ -339,6 +619,7 @@ EndFunc   ;==>__WebView2_DownloadState_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 Func __WebView2_Download_Release($iSlot)
+	If IsObj($__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PENDING_DEFERRAL]) Then __WebView2_Download_Resolve($iSlot, True)
 	Local $oOperation = $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_OBJECT]
 	If IsObj($oOperation) Then
 		If $__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PROGRESS_TOKEN] Then $oOperation.remove_BytesReceivedChanged($__g_aWebView2_Downloads[$iSlot][$__WEBVIEW2_DOWNLOAD_PROGRESS_TOKEN])

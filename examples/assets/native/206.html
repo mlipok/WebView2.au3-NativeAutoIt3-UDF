@@ -8,8 +8,8 @@ button { font: inherit; padding: 9px 16px; cursor: pointer; }
 aside { margin-top: 18px; padding: 16px; background: #e8eef6; }
 </style>
 <h1>Native file downloads</h1>
-<p>The AutoIt host decides whether to allow or deny each download, chooses a unique destination under Documents, and receives native progress and state events.</p>
-<p>Use <strong>Download main ZIP</strong> or <strong>Deny main ZIP</strong> in the AutoIt toolbar. The page button below uses the same GitHub source. Use <strong>Cancel current</strong> while a transfer is active.</p>
+<p>The AutoIt host decides whether to allow or deny each download, chooses a destination, and receives native progress and state events.</p>
+<p>Use <strong>Download ZIP</strong> or <strong>Deny next ZIP</strong> in the AutoIt toolbar. <strong>Choose destination</strong> defers the start decision, then opens a native file dialog outside the WebView2 callback. Use <strong>Pause</strong>, <strong>Resume</strong>, or <strong>Cancel current</strong> while a transfer is active.</p>
 <button onclick="downloadArchive()">Download GitHub main ZIP</button>
 <aside>This download needs an internet connection. The separate AutoIt <code>--smoke</code> modes generate a local file and need no internet.</aside>
 <script>
