@@ -5,7 +5,7 @@
   "description": "Adds a banner to the local WebView2 extension demonstration.",
   "content_scripts": [
     {
-      "matches": ["https://extension-demo.local/*"],
+      "matches": ["https://udf-virtual-host.example/*"],
       "js": ["content.js"]
     }
   ]

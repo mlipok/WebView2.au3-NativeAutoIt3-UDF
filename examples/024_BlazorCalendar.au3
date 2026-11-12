@@ -7,11 +7,12 @@
 
 Opt("MustDeclareVars", 1)
 
-Global Const $g_sCalendarHost = "autoit-calendar.example"
+Global Const $g_sCalendarHost = "udf-virtual-host.example"
 Global Const $g_sCalendarOrigin = "https://" & $g_sCalendarHost & "/"
 Global $g_iCalendarView = -1
 Global $g_idCalendarStatus = 0
 Global $g_bCalendarReady = False
+Global $g_bCalendarAck = False
 
 _Example()
 
@@ -37,7 +38,8 @@ Func _Example()
 	$g_idCalendarStatus = GUICtrlCreateLabel("Starting WebView2...", 415, 14, 770, 22)
 	GUISetState(@SW_SHOW, $hGUI)
 
-	If Not _WebView2_Init() Then
+	Local $sProfile = @TempDir & "\WebView2BlazorCalendar_" & @AutoItPID
+	If Not _WebView2_Init(Default, $sProfile) Then
 		_Example_Status("WebView2 initialization failed: " & _WebView2_Error_GetDescription())
 	Else
 		Local $aClient = WinGetClientSize($hGUI)
@@ -60,10 +62,20 @@ Func _Example()
 		EndIf
 	EndIf
 
+	Local $bSmoke = $CmdLine[0] > 0 And $CmdLine[1] = "--smoke"
+	Local $hSmokeTimer = TimerInit()
 	While True
 		If $g_bCalendarReady Then
 			$g_bCalendarReady = False
 			_Example_SendInitialData()
+		EndIf
+		If $bSmoke And $g_bCalendarAck Then
+			ConsoleWrite("EX_SMOKE_OK example=024 arch=" & (@AutoItX64 ? "x64" : "x86") & @CRLF)
+			ExitLoop
+		EndIf
+		If $bSmoke And TimerDiff($hSmokeTimer) > 20000 Then
+			_Example_Status("Smoke timed out waiting for the calendar acknowledgment.")
+			ExitLoop
 		EndIf
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
@@ -85,6 +97,7 @@ Func _Example()
 	WEnd
 	_WebView2_Cleanup()
 	GUIDelete($hGUI)
+	If $bSmoke And Not $g_bCalendarAck Then Exit 1
 	Return
 EndFunc   ;==>_Example
 
@@ -158,7 +171,10 @@ Func _Example_OnMessage($iWebView, $sMessage, $sSource, $bJSON)
 				Case "ready"
 					$g_bCalendarReady = True
 					_Example_Status("Calendar ready; sending sample events.")
-				Case "ack", "rangeSelected", "eventClicked", "dayDoubleClicked"
+				Case "ack"
+					$g_bCalendarAck = True
+					_Example_Status($sMessage)
+				Case "rangeSelected", "eventClicked", "dayDoubleClicked"
 					_Example_Status($sMessage)
 				Case "error"
 					_Example_Status("Calendar error: " & $sMessage)

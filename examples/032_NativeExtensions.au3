@@ -55,9 +55,9 @@ Func _Example()
 	Local $aClient = WinGetClientSize($g_hGUI)
 	$g_iWebView = _WebView2_Create($g_hGUI, 0, 76, $aClient[0], $aClient[1] - 76)
 	If @error Then Return _Example_Fail("Create view")
-	If Not _WebView2_SetVirtualHostNameToFolderMapping($g_iWebView, "extension-demo.local", $sFolder) Then Return _Example_Fail("Map sample folder")
+	If Not _WebView2_SetVirtualHostNameToFolderMapping($g_iWebView, "udf-virtual-host.example", $sFolder) Then Return _Example_Fail("Map sample folder")
 	If Not _WebView2_SetCallback($g_iWebView, $WEBVIEW2_EVENT_NAVIGATION_COMPLETED, _Example_OnNavigation) Then Return _Example_Fail("Navigation callback")
-	If Not _WebView2_Navigate($g_iWebView, "https://extension-demo.local/page.html") Then Return _Example_Fail("Navigate")
+	If Not _WebView2_Navigate($g_iWebView, "https://udf-virtual-host.example/page.html") Then Return _Example_Fail("Navigate")
 	_Example_List()
 	While True
 		If $g_bRefreshState Then

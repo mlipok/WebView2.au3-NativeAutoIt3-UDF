@@ -7,7 +7,7 @@
 
 Opt("MustDeclareVars", 1)
 
-Global Const $g_sHost = "autoit-permission.example"
+Global Const $g_sHost = "udf-virtual-host.example"
 Global Const $g_sOrigin = "https://" & $g_sHost & "/"
 Global $g_iWebView = -1, $g_idStatus = 0
 Global $g_bReady = False, $g_bRequestPending = False, $g_bPageDone = False
