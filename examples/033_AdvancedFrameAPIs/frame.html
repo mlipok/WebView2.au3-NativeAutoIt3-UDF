@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Frame</title>
+<style>body{font:16px Segoe UI,Arial,sans-serif;margin:24px;background:#f2f8fc}button{padding:10px;margin:4px}#result{padding:14px;background:#fff;border:1px solid #a7bdd0;min-height:45px}</style></head>
+<body><h2>Iframe: demo-frame</h2><button id="location">Request geolocation</button><button id="capture">Request screen capture</button><p id="result">Waiting for a shared buffer from AutoIt.</p>
+<script>
+const result = document.getElementById('result');
+chrome.webview.addEventListener('sharedbufferreceived', event => {
+  const buffer = event.getBuffer();
+  try {
+    const text = new TextDecoder().decode(new Uint8Array(buffer));
+    result.textContent = 'Shared buffer: ' + text + '; metadata: ' + JSON.stringify(event.additionalData);
+    chrome.webview.postMessage('buffer:' + text);
+  } finally { chrome.webview.releaseBuffer(buffer); }
+});
+document.getElementById('location').onclick = () => navigator.geolocation.getCurrentPosition(
+  () => { result.textContent = 'Geolocation allowed'; },
+  error => { result.textContent = 'Geolocation: ' + error.message; chrome.webview.postMessage('geolocation-denied'); }
+);
+document.getElementById('capture').onclick = async () => {
+  try { const stream = await navigator.mediaDevices.getDisplayMedia({video:true}); stream.getTracks().forEach(track => track.stop()); result.textContent = 'Capture allowed'; }
+  catch (error) { result.textContent = 'Capture: ' + error.name; chrome.webview.postMessage('capture-denied'); }
+};
+chrome.webview.postMessage('ready');
+</script></body></html>

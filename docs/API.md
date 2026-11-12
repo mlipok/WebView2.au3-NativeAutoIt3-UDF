@@ -91,7 +91,7 @@ Decodes a JSON-encoded string result, preserving the decoder's `@error` and `@ex
 
 Register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_PERMISSION_REQUESTED, $fnCallback)` before loading content. The callback receives `($iWebView, $sURI, $iKind, $bUserInitiated)` and returns `$WEBVIEW2_PERMISSION_STATE_DEFAULT` (0), `$WEBVIEW2_PERMISSION_STATE_ALLOW` (1), or `$WEBVIEW2_PERMISSION_STATE_DENY` (2). It may instead return a two-element array `[state, saveInProfile]`; `False` in the second element prevents this decision from being saved, provided the Runtime supports `ICoreWebView2PermissionRequestedEventArgs3`. `$sURI` is the requesting origin. Compare it with an exact trusted origin and inspect `$iKind` before granting access. `$WEBVIEW2_PERMISSION_KIND_GEOLOCATION` is 3; `$WEBVIEW2_PERMISSION_KIND_NOTIFICATIONS` is 4. An invalid callback result, callback error, or unavailable required interface leaves the Runtime's default handling in place.
 
-The decision is immediate and applies only to top-level `ICoreWebView2::PermissionRequested`. Do not show a modal dialog or call a blocking WebView2 helper inside this callback. This API does not expose a deferral or frame-level permission events. Scalar decisions may be saved in the selected user-data profile. See [example 031](../examples/031_PermissionRequests.au3).
+The decision is immediate and applies to the top-level `ICoreWebView2::PermissionRequested` event. Do not show a modal dialog or call a blocking WebView2 helper inside this callback. A separate frame-level callback is available below; neither callback exposes a deferral. Scalar decisions may be saved in the selected user-data profile. See [example 031](../examples/031_PermissionRequests.au3).
 
 ### `_WebView2_PostWebMessageAsString($iWebView, $sMessage)`
 Posts native-host text to the web content.
@@ -126,6 +126,8 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED` — callback `($iWebView, $iFrame, $sMessage, $sSource, $bJSON)` for iframe messages.
 - `$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING` — callback `($iWebView, $iFrame, $sURI, $bUserInitiated, $bRedirected)`; return `True` to cancel that frame navigation.
 - `$WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED` — callback `($iWebView, $iFrame, $bSuccess, $iWebError)` after a frame navigation.
+- `$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED` — callback `($iWebView, $iFrame, $sURI, $iKind, $bUserInitiated)`. Return `ALLOW` or `DENY`, optionally as `[state, saveInProfile]`, to handle the frame request immediately. Return `DEFAULT` to let the request continue to the normal WebView2 handling path. The optional profile flag requires a compatible Runtime.
+- `$WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING` — callback `($iWebView, $iFrame)`. Return `True` to cancel that frame's screen capture request and mark it handled; return `False` to leave it to WebView2. Do not block inside the callback.
 - `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED` — callback `($iWebView, $sURI, $bUserInitiated)`; return `True` to suppress the popup, or `$WEBVIEW2_NEW_WINDOW_DEFER` to request native handoff in the host loop.
 
 Callback signatures are documented in README.md and the examples.
@@ -254,16 +256,17 @@ These functions are implemented with `ICoreWebView2::ExecuteScript()` inside the
 
 The existing CDP helpers return frame metadata and same-origin HTML: `_WebView2_GetFrameTree()`, `_WebView2_GetFrameUrls()` / `_WebView2_GetFrameUrl()`, `_WebView2_GetFrameNames()` / `_WebView2_GetFrameName()`, and `_WebView2_GetFrameHtmlSource()`.
 
-Native frame support uses `ICoreWebView2_4::FrameCreated`, `ICoreWebView2Frame`, `ICoreWebView2Frame2` and `ICoreWebView2Frame5`. Register a frame callback before navigation to track newly created iframes. UDF tracked frame IDs are distinct from the runtime's native `FrameId`, CDP frame IDs and DOM element tokens; a destroyed tracked frame ID cannot be reused.
+Native frame support uses `ICoreWebView2_4::FrameCreated` and frame interface revisions through `ICoreWebView2Frame6` when supported by the installed Runtime. Register a frame callback before navigation to track newly created iframes. UDF tracked frame IDs are distinct from the runtime's native `FrameId`, CDP frame IDs and DOM element tokens; a destroyed tracked frame ID cannot be reused.
 
 - `_WebView2_Frame_List($iWebView)` returns tracked active frame IDs.
 - `_WebView2_Frame_GetNativeId($iFrame)` reads the runtime's `UINT32 FrameId` through `ICoreWebView2Frame5`, or returns `-1` with `@error` if the interface is unavailable.
 - `_WebView2_Frame_GetName($iFrame)` reads the iframe name.
 - `_WebView2_Frame_ExecuteScript($iFrame, $sScript[, $iTimeoutMs = 30000])` returns a JSON-encoded result. It shares the serialized completion channel with top-level `_WebView2_ExecuteScript()`; call it outside re-entrant event callbacks.
 - `_WebView2_Frame_PostWebMessageAsJson($iFrame, $sJSON)` and `_WebView2_Frame_PostWebMessageAsString($iFrame, $sMessage)` send data to one iframe. The frame must register `window.chrome.webview.addEventListener("message", ...)`.
+- `_WebView2_Frame_PostSharedBuffer($iFrame, $bData[, $sAdditionalJSON = ""])` sends nonempty binary data (under 2 GB) to one iframe through a **read-only** shared buffer. The Runtime must support `ICoreWebView2Frame4` and `ICoreWebView2Environment12`. In the iframe, handle `chrome.webview`'s `sharedbufferreceived` event, call `event.getBuffer()`, read `event.additionalData`, then call `chrome.webview.releaseBuffer(buffer)`. The function reports unsupported interfaces through `@error` and native HRESULT in `@extended`.
 - `_WebView2_Frame_AddHostObjectToScriptWithOrigins($iFrame, $sName, $oHost, $aOrigins)` exposes an AutoIt-held COM `IDispatch` object only to the explicit origins in the one-dimensional array. Empty lists and `"*"` are rejected. Keep `$oHost` alive while the frame uses it. `_WebView2_Frame_RemoveHostObjectFromScript($iFrame, $sName)` removes future access; existing JavaScript references can remain valid.
 
-`ICoreWebView2Settings::IsWebMessageEnabled` and `AreHostObjectsAllowed` must permit the corresponding operations. [Example 027](../examples/027_NativeFrames.au3) demonstrates messaging, script execution and an origin-scoped host object. [Example 028](../examples/028_NestedFrames.au3) traverses same-origin nested frames. Tracking supports up to 256 simultaneously active frames.
+`ICoreWebView2Settings::IsWebMessageEnabled` and `AreHostObjectsAllowed` must permit the corresponding operations. [Example 027](../examples/027_NativeFrames.au3) demonstrates messaging, script execution and an origin-scoped host object. [Example 028](../examples/028_NestedFrames.au3) traverses same-origin nested frames. [Example 033](../examples/033_AdvancedFrameAPIs.au3) demonstrates the newer permission, shared-buffer and capture APIs. Tracking supports up to 256 simultaneously active frames.
 
 ### Extensions
 - `_WebView2_AddExtension()`

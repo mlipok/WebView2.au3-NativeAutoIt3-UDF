@@ -52,6 +52,7 @@ Global $__g_bWebView2_COMInitialized = False
 Global $__g_hWebView2_Loader = -1
 Global $__g_sWebView2_LoaderPath = ""
 Global $__g_oWebView2_Environment = Null
+Global $__g_pWebView2_Environment = 0
 Global $__g_bWebView2_EnvironmentDone = False
 Global $__g_iWebView2_EnvironmentHRESULT = 0
 Global $__g_iWebView2_PendingCreateSlot = -1
@@ -256,6 +257,7 @@ Func _WebView2_Cleanup()
 
 	__WebView2_Trace("CLEANUP 02 Environment wrapper CLEAR START")
 	$__g_oWebView2_Environment = Null
+	$__g_pWebView2_Environment = 0
 	__WebView2_Trace("CLEANUP 03 Environment wrapper CLEARED")
 
 	$__g_bWebView2_Initialized = False
@@ -1473,6 +1475,11 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |FRAME_CREATED           - Called with ($iWebView, $iFrame) for a newly created iframe.
 ;                  |FRAME_DESTROYED         - Called with ($iWebView, $iFrame) before its ID is invalidated.
 ;                  |FRAME_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $sMessage, $sSource, $bJSON).
+;                  |FRAME_NAVIGATION_STARTING - Called with ($iWebView, $iFrame, $sURI, $bUserInitiated, $bRedirected).
+;                  |FRAME_NAVIGATION_COMPLETED - Called with ($iWebView, $iFrame, $bSuccess, $iWebError).
+;                  |FRAME_PERMISSION_REQUESTED - Called with ($iWebView, $iFrame, $sURI, $iKind, $bUserInitiated).
+;                  |                              Return ALLOW/DENY or [state, saveInProfile]; DEFAULT leaves it unhandled.
+;                  |FRAME_SCREEN_CAPTURE_STARTING - Called with ($iWebView, $iFrame); return True to cancel capture.
 ;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
 ;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, or [state, saveInProfile].
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
@@ -1562,7 +1569,8 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 				EndIf
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_MUTED] = $fnCallback
 			Case $WEBVIEW2_EVENT_FRAME_CREATED, $WEBVIEW2_EVENT_FRAME_DESTROYED, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _
-					$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED
+					$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _
+					$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED, $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING
 				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended
@@ -2362,6 +2370,7 @@ Func __WebView2_EnvironmentCompleted_Invoke($pSelf, $iErrorCode, $pEnvironment)
 		If IsObj($__g_oWebView2_Environment) Then
 			; The callback argument is borrowed. Keep one COM reference for the shared environment lifetime.
 			$__g_oWebView2_Environment.AddRef()
+			$__g_pWebView2_Environment = $pEnvironment
 		Else
 			$__g_iWebView2_EnvironmentHRESULT = $WEBVIEW2_E_NOINTERFACE
 		EndIf
