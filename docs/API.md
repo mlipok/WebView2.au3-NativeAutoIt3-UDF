@@ -132,8 +132,11 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_DOWNLOAD_STARTING` — callback `($iWebView, $iDownload, $sURI, $sSuggestedPath, $sMimeType)`; return a policy described below.
 - `$WEBVIEW2_EVENT_DOWNLOAD_PROGRESS` — callback `($iWebView, $iDownload, $iBytesReceived, $iTotalBytes)`.
 - `$WEBVIEW2_EVENT_DOWNLOAD_STATE_CHANGED` — callback `($iWebView, $iDownload, $iState, $iInterruptReason)`.
+- `$WEBVIEW2_EVENT_WEB_RESOURCE_RESPONSE_RECEIVED` — callback `($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase)`. Register before navigation to receive native response metadata for the document and its resources. The event is observational: it does not intercept or modify responses. Keep the callback short and avoid synchronous browser calls inside it. Resource URLs can contain sensitive query values; filter or redact them before logging.
 
 Callback signatures are documented in README.md and the examples.
+
+[Example 207](../examples/207-HTTP_StatusCodeTracking.au3) maps local assets to a virtual HTTPS host and reports 200 responses for its HTML, CSS and JavaScript without Internet access. Enter an external HTTP URL in the example's address field to inspect other status codes when online.
 
 ### Native new-window handoff
 

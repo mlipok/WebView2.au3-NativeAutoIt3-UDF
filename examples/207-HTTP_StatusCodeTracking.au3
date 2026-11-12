@@ -1,5 +1,3 @@
-; #WIP - Work in Progress
-; Native HTTP response status callbacks are not implemented.
 ; Standalone functional copy/adaptation of the GitHub example by ioa747.
 ; Source: https://github.com/ioa747/NetWebView2Lib/blob/main/examples/007-HTTP_StatusCodeTracking.au3
 #Tidy_ILC_Pos=44
@@ -16,6 +14,8 @@ Global $g_EX_hGUI = 0, $g_EX_iView = -1
 Global $g_EX_idAddress = 0, $g_EX_idStatus = 0, $g_EX_sPage = "", $g_EX_sQueue = "", $g_EX_iSender = -1
 Global $g_EX_bDone = False, $g_EX_bOK = False, $g_EX_sPath = ""
 Global $g_EX_bSmoke = False
+Global Const $g_EX_sHost = "udf-virtual-host.example"
+Global $g_EX_sResponseQueue = "", $g_EX_bHTML200 = False, $g_EX_bCSS200 = False, $g_EX_bJS200 = False
 
 Exit _EX_Run()
 
@@ -41,7 +41,7 @@ Func _EX_Run()
 		Local $idReload = GUICtrlCreateButton("Reload", 75, 5, 70, 25), $idStop = GUICtrlCreateButton("Stop", 150, 5, 45, 25)
 		$g_EX_idAddress = GUICtrlCreateInput("", 200, 5, 705, 25)
 		Local $idGo = GUICtrlCreateButton("Go", 910, 5, 50, 25), $idOpen = GUICtrlCreateButton("Open file", 965, 5, 125, 25)
-		Local $aLabels[3] = ["fetch: status", "Read result", "DevTools"]
+		Local $aLabels[3] = ["Reload resources", "Read result", "DevTools"]
 		Local $aAction[3]
 		For $i = 0 To 2
 			$aAction[$i] = GUICtrlCreateButton($aLabels[$i], 5 + $i * 175, 35, 170, 25)
@@ -57,11 +57,13 @@ Func _EX_Run()
 		If @error Then ExitLoop
 		_WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_NAVIGATION_COMPLETED, _EX_Done)
 		_WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED, _EX_Message)
-		$g_EX_sPage = _EX_URI(@ScriptDir & "\assets\native\207.html")
+		If Not _WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_WEB_RESOURCE_RESPONSE_RECEIVED, _EX_Response) Then ExitLoop
+		If Not _WebView2_SetVirtualHostNameToFolderMapping($g_EX_iView, $g_EX_sHost, @ScriptDir & "\assets\native") Then ExitLoop
+		$g_EX_sPage = "https://" & $g_EX_sHost & "/207.html"
 		If Not _EX_Navigate($g_EX_iView, $g_EX_sPage) Then ExitLoop
 		If Not _EX_Wait() Then ExitLoop
 		GUICtrlSetData($g_EX_idAddress, $g_EX_sPage)
-		_EX_Status("Loaded example 207. Page messages are handled in the AutoIt loop.")
+		_EX_Status("Native response tracking active. Reload to repeat the local 200 requests; use Go for other HTTP URLs.")
 		If $g_EX_bSmoke Then
 			If _EX_Check() Then
 				ConsoleWrite("EX_SMOKE_OK example=207 arch=" & (@AutoItX64 ? "x64" : "x86") & @CRLF)
@@ -106,6 +108,11 @@ Func _EX_Run()
 				Local $sQueued = $g_EX_sQueue
 				$g_EX_sQueue = ""
 				_EX_Status("WebView " & $g_EX_iSender & ": " & $sQueued)
+			EndIf
+			If $g_EX_sResponseQueue <> "" Then
+				Local $sResponses = $g_EX_sResponseQueue
+				$g_EX_sResponseQueue = ""
+				_EX_Status($sResponses)
 			EndIf
 			Sleep(10)
 		WEnd
@@ -193,6 +200,39 @@ EndFunc   ;==>_EX_Message
 
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
+; Name ..........: _EX_Response
+; Description ...: Records native request/response metadata for display in the AutoIt loop.
+; Syntax ........: _EX_Response($iView, $sURI, $sMethod, $iStatus, $sReason)
+; Parameters ....: $iView - WebView2 instance ID.
+;                  $sURI - Resource URI.
+;                  $sMethod - Request method.
+;                  $iStatus - Native HTTP status code.
+;                  $sReason - Native reason phrase.
+; Return values .: 0.
+; Author ........: ioa747
+; Modified ......: mLipok
+; Remarks .......: Only the known local test resources are displayed; no browser calls occur here.
+; Related .......: _WebView2_SetCallback
+; Link ..........:
+; Example .......: No
+; ================================================================================================================================
+Func _EX_Response($iView, $sURI, $sMethod, $iStatus, $sReason)
+	#forceref $iView
+	ConsoleWrite("RESPONSE " & $sMethod & " " & $iStatus & " " & $sURI & @CRLF)
+	$g_EX_sResponseQueue &= $sMethod & " " & $iStatus & " " & $sReason & " " & $sURI & @CRLF
+	Switch $sURI
+		Case $g_EX_sPage
+			$g_EX_bHTML200 = ($iStatus = 200)
+		Case "https://" & $g_EX_sHost & "/207.css"
+			$g_EX_bCSS200 = ($iStatus = 200)
+		Case "https://" & $g_EX_sHost & "/207.js"
+			$g_EX_bJS200 = ($iStatus = 200)
+	EndSwitch
+	Return 0
+EndFunc   ;==>_EX_Response
+
+
+; #INTERNAL_USE_ONLY# ==========================================================================================================
 ; Name ..........: _EX_URI
 ; Description ...: Converts a Windows path to a local file URI.
 ; Syntax ........: _EX_URI($sPath)
@@ -262,7 +302,7 @@ EndFunc   ;==>_EX_Status
 ; Syntax ........: _EX_Action($iAction)
 ; Parameters ....: $iAction - One of the following local toolbar actions:
 ;                  |
-;                  |0 - fetch: status.
+;                  |0 - Reload resources.
 ;                  |1 - Read result.
 ;                  |2 - DevTools.
 ; Return values .: True when the action succeeds or the user cancels; False on an operation failure.
@@ -275,8 +315,10 @@ EndFunc   ;==>_EX_Status
 ; ================================================================================================================================
 Func _EX_Action($iAction)
 	Local $bOK = True, $sResult = ""
-	Local $aScript[3] = ["probe();true", "document.getElementById('result').textContent", "document.title"]
+	Local $aScript[3] = ["", "document.getElementById('result').textContent", "document.title"]
 	Switch $iAction
+		Case 0
+			$bOK = _WebView2_Reload($g_EX_iView)
 		Case 2
 			$bOK = _WebView2_OpenDevToolsWindow($g_EX_iView)
 		Case Else
@@ -340,6 +382,15 @@ Func _EX_Check()
 			Sleep(10)
 		WEnd
 		If $g_EX_sQueue <> "SMOKE_MESSAGE" Then ExitLoop
+		$hTimer = TimerInit()
+		While Not ($g_EX_bHTML200 And $g_EX_bCSS200 And $g_EX_bJS200) And TimerDiff($hTimer) < 5000
+			GUIGetMsg()
+			Sleep(10)
+		WEnd
+		If Not ($g_EX_bHTML200 And $g_EX_bCSS200 And $g_EX_bJS200) Then
+			ConsoleWrite("RESPONSE_CHECK html=" & $g_EX_bHTML200 & " css=" & $g_EX_bCSS200 & " js=" & $g_EX_bJS200 & @CRLF)
+			ExitLoop
+		EndIf
 		$bOK = True
 	Until True
 	Return $bOK

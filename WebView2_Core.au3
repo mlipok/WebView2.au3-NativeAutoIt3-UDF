@@ -76,6 +76,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 
 #include "WebView2_Frame.au3"
 #include "WebView2_Download.au3"
+#include "WebView2_Response.au3"
 #include "WebView2_Extensions.au3"
 #include "WebView2_NewWindow.au3"
 
@@ -1483,6 +1484,8 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |FRAME_SCREEN_CAPTURE_STARTING - Called with ($iWebView, $iFrame); return True to cancel capture.
 ;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
 ;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, or [state, saveInProfile].
+;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
+;                  |                                 Observe responses only; do not call blocking WebView2 helpers here.
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
 ; Return values .: On Success - True; On Failure - False.
 ;                  Direct helper returns clear @error/@extended; inspect _WebView2_Error_GetCode/GetExtended.
@@ -1578,6 +1581,11 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 				ExitLoop 1
 			Case $WEBVIEW2_EVENT_DOWNLOAD_STARTING, $WEBVIEW2_EVENT_DOWNLOAD_PROGRESS, $WEBVIEW2_EVENT_DOWNLOAD_STATE_CHANGED
 				$__WebView2ExitValue = __WebView2_Download_SetCallback($iWebView, $iEvent, $fnCallback)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop 1
+			Case $WEBVIEW2_EVENT_WEB_RESOURCE_RESPONSE_RECEIVED
+				$__WebView2ExitValue = __WebView2_Response_SetCallback($iWebView, $fnCallback)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended
 				ExitLoop 1
@@ -3163,6 +3171,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 	__WebView2_Trace("DISPOSE 02 Events unsubscribe START slot=" & $iSlot)
 	__WebView2_Frame_Cleanup($iSlot)
 	__WebView2_Download_Cleanup($iSlot)
+	__WebView2_Response_Cleanup($iSlot)
 	__WebView2_Events_Unsubscribe($iSlot)
 	__WebView2_Trace("DISPOSE 03 Events unsubscribe OK slot=" & $iSlot)
 

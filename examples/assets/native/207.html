@@ -1,5 +1,15 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><title>HTTP status tracking — WIP</title><style>body{font:16px/1.6 "Segoe UI",sans-serif;margin:24px;color:#223;background:#f7f9fc}h1{font-size:25px}button,input,select,textarea{font:inherit;padding:7px;margin:3px}button{cursor:pointer}textarea{width:95%;height:190px;font-family:Consolas,monospace}pre{white-space:pre-wrap;background:#e8eef6;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #bcc9dc;padding:6px 12px}th{cursor:pointer;background:#dce6f5}details{margin-left:18px}mark{background:gold}.wip{border-left:6px solid #d88900;padding:12px;background:#fff0cb}nav{display:flex;gap:8px}input[type=checkbox]{width:20px;height:20px}</style><h1>HTTP status tracking — WIP</h1><p class="wip">#WIP - Work in Progress: native HTTP response events for navigation and page resources are missing. The fetch test below covers only the specified request and is subject to CORS.</p><input id="url" value="https://httpstat.us/404"><button onclick="probe()">fetch: status</button><pre id="result"></pre><script>window.send = text => window.chrome.webview.postMessage(String(text));
-window.demoResult = () => document.title;
-window.demoCheck = () => !!document.querySelector('h1');
-async function probe(){const out=document.getElementById('result');try{const r=await fetch(document.getElementById('url').value);out.textContent=r.status+' '+r.statusText;send(out.textContent)}catch(e){out.textContent='Request failed (network/CORS): '+e.message}}
-</script></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Native HTTP response tracking</title>
+  <link rel="stylesheet" href="207.css">
+  <script defer src="207.js"></script>
+</head>
+<body>
+  <h1>Native HTTP response tracking</h1>
+  <p>AutoIt receives native response events for this document, the CSS and the JavaScript. The status log appears below the browser.</p>
+  <p>To inspect other HTTP responses, enter a URL in the AutoIt address field and click Go. Network access is only needed for external URLs.</p>
+  <pre id="result">Page resources are loading.</pre>
+</body>
+</html>

@@ -32,6 +32,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - virtual HTTPS host to local folder mapping (`ICoreWebView2_3`);
 - web-to-AutoIt `WebMessageReceived` callback;
 - callbacks for navigation, new windows, web messages, permissions, document-audio state and mute state;
+- native web-resource response callbacks with request URI, method, HTTP status and reason phrase;
 - managed tabs and native new-window handoff that preserves `window.opener`;
 - native iframe tracking, messaging, script execution, permissions and read-only shared buffers;
 - screenshot, PDF and MHTML export to files or AutoIt binary values;
@@ -202,6 +203,9 @@ PermissionRequested:
 
 DocumentPlayingAudioChanged / MutedChanged:
     Func Callback($iWebView, $bState)
+
+WebResourceResponseReceived:
+    Func Callback($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase)
 ```
 
 Frame callback shapes and native new-window request handling are documented in [API.md](docs/API.md). Keep callbacks that decide native events prompt; do not call blocking WebView2 helpers from them.
