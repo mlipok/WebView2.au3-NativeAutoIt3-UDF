@@ -75,6 +75,7 @@ Global $__g_aWebView2_Tabs[$WEBVIEW2_MAX_INSTANCES]
 Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;lparam lParam;dword time;long X;long Y;dword lPrivate;endstruct"
 
 #include "WebView2_Frame.au3"
+#include "WebView2_Download.au3"
 #include "WebView2_Extensions.au3"
 #include "WebView2_NewWindow.au3"
 
@@ -1572,6 +1573,11 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 					$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _
 					$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED, $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING
 				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop 1
+			Case $WEBVIEW2_EVENT_DOWNLOAD_STARTING, $WEBVIEW2_EVENT_DOWNLOAD_PROGRESS, $WEBVIEW2_EVENT_DOWNLOAD_STATE_CHANGED
+				$__WebView2ExitValue = __WebView2_Download_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended
 				ExitLoop 1
@@ -3156,6 +3162,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 
 	__WebView2_Trace("DISPOSE 02 Events unsubscribe START slot=" & $iSlot)
 	__WebView2_Frame_Cleanup($iSlot)
+	__WebView2_Download_Cleanup($iSlot)
 	__WebView2_Events_Unsubscribe($iSlot)
 	__WebView2_Trace("DISPOSE 03 Events unsubscribe OK slot=" & $iSlot)
 
