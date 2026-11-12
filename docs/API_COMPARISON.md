@@ -81,7 +81,7 @@ Sources reviewed:
 | `GetFrameUrl(s)` | `_WebView2_GetFrameUrl`, `_WebView2_GetFrameUrls` | FULL | |
 | `GetFrameName(s)` | `_WebView2_GetFrameName`, `_WebView2_GetFrameNames` | FULL | |
 | `GetFrameHtmlSource` | `_WebView2_GetFrameHtmlSource` | PARTIAL | Same-origin DOM frames only; cross-origin metadata available with `_WebView2_GetFrameTree`. |
-| `GetFrame`, `GetFrameById` | `_WebView2_Frame_List`, `_WebView2_GetFrames`, `_WebView2_GetFrameTree` | PARTIAL | Native tracked frame IDs are distinct from CDP IDs and DOM tokens. |
+| `GetFrame`, `GetFrameById` | `_WebView2_Frame_List`, `_WebView2_Frame_GetNativeId`, `_WebView2_GetFrames`, `_WebView2_GetFrameTree` | PARTIAL | UDF tracked IDs, native `FrameId` values, CDP IDs and DOM tokens are distinct. |
 | frame `ExecuteScript*` | `_WebView2_Frame_ExecuteScript` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
 | frame `PostWebMessage*` | `_WebView2_Frame_PostWebMessageAsJson`, `_WebView2_Frame_PostWebMessageAsString` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
 | frame `AddHostObjectToScriptWithOrigins` / `RemoveHostObjectFromScript` | `_WebView2_Frame_AddHostObjectToScriptWithOrigins`, `_WebView2_Frame_RemoveHostObjectFromScript` | IMPLEMENTED | Requires a COM `IDispatch` object and explicit origin list; existing JavaScript references may outlive removal. |
@@ -93,7 +93,7 @@ Sources reviewed:
 | `DecodeB64ToBinary` | internal `__WebView2_Base64_DecodeBinary` | PARTIAL | Used by public PDF/screenshot Binary APIs; standalone public utility is not exposed. |
 | `BackColor` | none | MISSING | Candidate for `ICoreWebView2Controller2::DefaultBackgroundColor`. |
 | `AreBrowserAcceleratorKeysEnabled` | none | MISSING | Candidate for newer `ICoreWebView2Settings*`. |
-| `AreBrowserPopupsAllowed` | none | MISSING | Candidate for `NewWindowRequested`. |
+| `AreBrowserPopupsAllowed` | `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED`, `_WebView2_NewWindow_Complete` | PARTIAL | The host can block or hand off each popup request; no global popup-enable setting is exposed. |
 | `AdditionalBrowserArguments` | none | MISSING | Must be supplied at environment creation through options. |
 | `SetVirtualHostNameToFolderMapping` | `_WebView2_SetVirtualHostNameToFolderMapping` | IMPLEMENTED | Native `ICoreWebView2_3`; x86 and x64 mapping smoke tests passed. |
 | `IsDocumentPlayingAudio` / `IsDocumentPlayingAudioChanged` | `_WebView2_GetIsDocumentPlayingAudio` / `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED` | IMPLEMENTED | Native `ICoreWebView2_8`; verified x86/x64 start and stop transitions. |

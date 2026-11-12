@@ -17,6 +17,8 @@ Global Enum _
 		$__WEBVIEW2_FRAME_OBJECT2, _
 		$__WEBVIEW2_FRAME_DESTROY_TOKEN, _
 		$__WEBVIEW2_FRAME_MESSAGE_TOKEN, _
+		$__WEBVIEW2_FRAME_NAV_START_TOKEN, _
+		$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN, _
 		$__WEBVIEW2_FRAME_ACTIVE, _
 		$__WEBVIEW2_FRAME_FIELDS
 Global $__g_aWebView2_Frames[$__WEBVIEW2_MAX_FRAMES][$__WEBVIEW2_FRAME_FIELDS]
@@ -26,6 +28,8 @@ Global $__g_aWebView2_FrameToken[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameCreatedCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameDestroyedCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameMessageCallback[$WEBVIEW2_MAX_INSTANCES]
+Global $__g_aWebView2_FrameNavStartCallback[$WEBVIEW2_MAX_INSTANCES]
+Global $__g_aWebView2_FrameNavCompleteCallback[$WEBVIEW2_MAX_INSTANCES]
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Frame_QueryInterface
@@ -116,6 +120,18 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 					ExitLoop 1
 				EndIf
 			EndIf
+			If Not __WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_NAV_START) Then
+				If Not __WebView2_Callback_Create($__WEBVIEW2_CB_FRAME_NAV_START, __WebView2_FrameNavStart_Invoke, "ptr;ptr;ptr") Then
+					$iError = $WEBVIEW2_ERR_CALLBACK
+					ExitLoop 1
+				EndIf
+			EndIf
+			If Not __WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_NAV_COMPLETE) Then
+				If Not __WebView2_Callback_Create($__WEBVIEW2_CB_FRAME_NAV_COMPLETE, __WebView2_FrameNavComplete_Invoke, "ptr;ptr;ptr") Then
+					$iError = $WEBVIEW2_ERR_CALLBACK
+					ExitLoop 1
+				EndIf
+			EndIf
 			Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
 			Local $oCore4 = __WebView2_Frame_QueryInterface($pCore, $WEBVIEW2_IID_ICoreWebView2_4, $WEBVIEW2_DTAG_ICoreWebView2_4)
 			$iError = @error
@@ -138,6 +154,10 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_FrameDestroyedCallback[$iWebView] = $fnCallback
 			Case $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED
 				$__g_aWebView2_FrameMessageCallback[$iWebView] = $fnCallback
+			Case $WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING
+				$__g_aWebView2_FrameNavStartCallback[$iWebView] = $fnCallback
+			Case $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED
+				$__g_aWebView2_FrameNavCompleteCallback[$iWebView] = $fnCallback
 		EndSwitch
 		$bResult = True
 	Until True
@@ -214,10 +234,17 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 		$iResult = $oFrame.add_Destroyed(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_DESTROYED), $tDestroyed)
 		If @error Or $iResult <> $WEBVIEW2_S_OK Then ExitLoop 1
 		Local $iMessageToken = 0
+		Local $iNavStartToken = 0, $iNavCompleteToken = 0
 		If IsObj($oFrame2) Then
 			Local $tMessage = DllStructCreate("int64")
 			$iResult = $oFrame2.add_WebMessageReceived(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_MESSAGE), $tMessage)
 			If Not @error And $iResult = $WEBVIEW2_S_OK Then $iMessageToken = DllStructGetData($tMessage, 1)
+			Local $tNavStart = DllStructCreate("int64")
+			$iResult = $oFrame2.add_NavigationStarting(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_NAV_START), $tNavStart)
+			If Not @error And $iResult = $WEBVIEW2_S_OK Then $iNavStartToken = DllStructGetData($tNavStart, 1)
+			Local $tNavComplete = DllStructCreate("int64")
+			$iResult = $oFrame2.add_NavigationCompleted(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_NAV_COMPLETE), $tNavComplete)
+			If Not @error And $iResult = $WEBVIEW2_S_OK Then $iNavCompleteToken = DllStructGetData($tNavComplete, 1)
 		EndIf
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID] = $__g_iWebView2_NextFrameId
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER] = $iView
@@ -226,6 +253,8 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT2] = $oFrame2
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] = DllStructGetData($tDestroyed, 1)
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] = $iMessageToken
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN] = $iNavStartToken
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] = $iNavCompleteToken
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] = True
 		$__g_iWebView2_NextFrameId += 1
 		Local $fnCallback = $__g_aWebView2_FrameCreatedCallback[$iView]
@@ -259,6 +288,8 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 		If IsObj($oFrame) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
 		Local $oFrame2 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT2]
 		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
+		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
+		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
 		For $i = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 			$__g_aWebView2_Frames[$iSlot][$i] = Null
 		Next
@@ -309,6 +340,57 @@ Func __WebView2_FrameMessage_Invoke($pSelf, $pSender, $pArgs)
 EndFunc   ;==>__WebView2_FrameMessage_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_FrameNavStart_Invoke
+; Description ...: Forwards one frame navigation start and permits an immediate cancellation.
+; ===============================================================================================================================
+Func __WebView2_FrameNavStart_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf
+	Do
+		Local $iSlot = __WebView2_Frame_Find($pSender, True)
+		If $iSlot < 0 Or Not $pArgs Then ExitLoop 1
+		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
+		Local $fnCallback = $__g_aWebView2_FrameNavStartCallback[$iView]
+		If Not IsFunc($fnCallback) Then ExitLoop 1
+		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs, $WEBVIEW2_DTAG_ICoreWebView2NavigationStartingEventArgs)
+		If Not IsObj($oArgs) Then ExitLoop 1
+		$oArgs.AddRef()
+		Local $pURI = 0, $bUserInitiated = False, $bRedirected = False
+		Local $iHRESULT = $oArgs.get_Uri($pURI)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		Local $sURI = __WebView2_CoTaskMemString_ReadAndFree($pURI)
+		$oArgs.get_IsUserInitiated($bUserInitiated)
+		$oArgs.get_IsRedirected($bRedirected)
+		Local $vCancel = Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], $sURI, $bUserInitiated, $bRedirected)
+		If Not @error And $vCancel Then $oArgs.put_Cancel(True)
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_FrameNavStart_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_FrameNavComplete_Invoke
+; Description ...: Forwards one completed frame navigation to the host callback.
+; ===============================================================================================================================
+Func __WebView2_FrameNavComplete_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf
+	Do
+		Local $iSlot = __WebView2_Frame_Find($pSender, True)
+		If $iSlot < 0 Or Not $pArgs Then ExitLoop 1
+		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
+		Local $fnCallback = $__g_aWebView2_FrameNavCompleteCallback[$iView]
+		If Not IsFunc($fnCallback) Then ExitLoop 1
+		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventArgs, $WEBVIEW2_DTAG_ICoreWebView2NavigationCompletedEventArgs)
+		If Not IsObj($oArgs) Then ExitLoop 1
+		$oArgs.AddRef()
+		Local $bSuccess = False, $iWebError = 0
+		Local $iHRESULT = $oArgs.get_IsSuccess($bSuccess)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		$oArgs.get_WebErrorStatus($iWebError)
+		Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], $bSuccess, $iWebError)
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_FrameNavComplete_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Frame_Cleanup
 ; Description ...: Removes frame subscriptions before the controller is closed.
 ; Syntax ........: __WebView2_Frame_Cleanup($iView)
@@ -327,6 +409,8 @@ Func __WebView2_Frame_Cleanup($iView)
 			Local $oFrame = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT]
 			Local $oFrame2 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT2]
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
+			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
+			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
 			If IsObj($oFrame) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
 			For $j = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 				$__g_aWebView2_Frames[$i][$j] = Null
@@ -339,6 +423,8 @@ Func __WebView2_Frame_Cleanup($iView)
 	$__g_aWebView2_FrameCreatedCallback[$iView] = Null
 	$__g_aWebView2_FrameDestroyedCallback[$iView] = Null
 	$__g_aWebView2_FrameMessageCallback[$iView] = Null
+	$__g_aWebView2_FrameNavStartCallback[$iView] = Null
+	$__g_aWebView2_FrameNavCompleteCallback[$iView] = Null
 	Return
 EndFunc   ;==>__WebView2_Frame_Cleanup
 
@@ -372,6 +458,43 @@ Func _WebView2_Frame_List($iWebView)
 	If $iError Then __WebView2_Error($sFuncName, $iError, $sMessage, 0)
 	Return SetError($iError, 0, $aResult)
 EndFunc   ;==>_WebView2_Frame_List
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Frame_GetNativeId
+; Description ...: Reads the runtime's FrameId through ICoreWebView2Frame5.
+; Syntax ........: _WebView2_Frame_GetNativeId($iFrame)
+; Parameters ....: $iFrame - Tracked UDF frame ID returned by _WebView2_Frame_List().
+; Return values .: Native UINT32 FrameId on success; -1 with @error on failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The native ID and the UDF's tracked frame ID are different identifiers.
+; Related .......: _WebView2_Frame_List
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2frame5#get_frameid
+; ===============================================================================================================================
+Func _WebView2_Frame_GetNativeId($iFrame)
+	Local $iResult = -1, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Frame_Find($iFrame)
+		If $iSlot < 0 Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $oFrame5 = __WebView2_Frame_QueryInterface($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_POINTER], _
+				$WEBVIEW2_IID_ICoreWebView2Frame5, $WEBVIEW2_DTAG_ICoreWebView2Frame5)
+		$iError = @error
+		$iExtended = @extended
+		If $iError Then ExitLoop 1
+		Local $iNativeId = 0
+		Local $iHRESULT = $oFrame5.get_FrameId($iNativeId)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		$iResult = $iNativeId
+	Until True
+	Return SetError($iError, $iExtended, $iResult)
+EndFunc   ;==>_WebView2_Frame_GetNativeId
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Frame_GetName

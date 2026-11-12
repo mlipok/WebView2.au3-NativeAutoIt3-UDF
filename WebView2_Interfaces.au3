@@ -21,6 +21,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2EnvironmentOptions6 = "{57D29CC3-C84F-42
 Global Const $WEBVIEW2_IID_IUnknown = "{00000000-0000-0000-C000-000000000046}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame = "{F1131A5E-9BA9-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame2 = "{7A6A5834-D185-4DBF-B63F-4A9BC43107D4}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame5 = "{99D199C4-7305-11EE-B962-0242AC120002}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventArgs = "{4D6E7B5E-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
@@ -28,6 +29,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventArgs = "{30D68B7D-20D9-4752-A9CA-EC8448FBB5C1}"
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventArgs = "{0F99A40C-E962-4207-9E92-E3D542EFF849}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventArgs = "{34ACB11C-FC37-4418-9132-F9C21D1EAFB9}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Deferral = "{C10E7F7B-B585-46F0-A623-8BEFBF3E4EE0}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs = "{973AE2EF-FF18-4894-8FB2-3C758F046810}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3 = "{E61670BC-3DCE-4177-86D2-C629AE3CB6AC}"
 
@@ -42,6 +44,8 @@ Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventHandler = "{57213
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventHandler = "{D4C185FE-C81C-4989-97AF-2D3FA7AB5651}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventHandler = "{38059770-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameDestroyedEventHandler = "{59DD7B4C-9BAA-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationStartingEventHandler = "{E79908BF-2D5D-4968-83DB-263FEA2C1DA3}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationCompletedEventHandler = "{609302AD-0E36-4F9A-A210-6A45272842A9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameWebMessageReceivedEventHandler = "{E371E005-6D1D-4517-934B-A8F1629C62A5}"
 Global Const $WEBVIEW2_IID_ICoreWebView2ExecuteScriptCompletedHandler = "{49511172-CC67-4BCA-9923-137112F4C4CC}"
 
@@ -183,12 +187,12 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame = _
 		"IsDestroyed hresult(bool*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame2 = $WEBVIEW2_DTAG_ICoreWebView2Frame & _
-		"add_NavigationStarting hresult();" & _
-		"remove_NavigationStarting hresult();" & _
+		"add_NavigationStarting hresult(ptr;struct*);" & _
+		"remove_NavigationStarting hresult(int64);" & _
 		"add_ContentLoading hresult();" & _
 		"remove_ContentLoading hresult();" & _
-		"add_NavigationCompleted hresult();" & _
-		"remove_NavigationCompleted hresult();" & _
+		"add_NavigationCompleted hresult(ptr;struct*);" & _
+		"remove_NavigationCompleted hresult(int64);" & _
 		"add_DOMContentLoaded hresult();" & _
 		"remove_DOMContentLoaded hresult();" & _
 		"ExecuteScript hresult(wstr;ptr);" & _
@@ -196,6 +200,12 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame2 = $WEBVIEW2_DTAG_ICoreWebView2Fr
 		"PostWebMessageAsString hresult(wstr);" & _
 		"add_WebMessageReceived hresult(ptr;struct*);" & _
 		"remove_WebMessageReceived hresult(int64);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame5 = $WEBVIEW2_DTAG_ICoreWebView2Frame2 & _
+		"add_PermissionRequested hresult();" & _
+		"remove_PermissionRequested hresult();" & _
+		"PostSharedBufferToScript hresult();" & _
+		"get_FrameId hresult(uint*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs = "get_Frame hresult(ptr*);"
 
@@ -242,6 +252,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2NewWindowRequestedEventArgs = _
 		"get_IsUserInitiated hresult(bool*);" & _
 		"GetDeferral hresult(ptr*);" & _
 		"get_WindowFeatures hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Deferral = "Complete hresult();"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs = _
 		"get_Uri hresult(ptr*);" & _

@@ -43,6 +43,7 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_TOKEN_MUTED, _
 		$__WEBVIEW2_INSTANCE_CB_PERMISSION, _
 		$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION, _
+		$__WEBVIEW2_INSTANCE_NEW_WINDOW_FRESH, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -74,6 +75,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 
 #include "WebView2_Frame.au3"
 #include "WebView2_Extensions.au3"
+#include "WebView2_NewWindow.au3"
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Init
@@ -493,6 +495,7 @@ Func _WebView2_Create($hWndParent, $iLeft = 0, $iTop = 0, $iWidth = -1, $iHeight
 		EndIf
 
 		$__WebView2ExitValue = $iSlot
+		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_NEW_WINDOW_FRESH] = True
 		$__WebView2ExitError = @error
 		$__WebView2ExitExtended = @extended
 		ExitLoop 1
@@ -760,6 +763,7 @@ EndFunc   ;==>_WebView2_SetZoomFactor
 Func _WebView2_Navigate($iWebView, $sURI)
 	Local $__WebView2DirectResult = __WebView2_CoreCall_String($iWebView, "Navigate", $sURI)
 	Local $__WebView2DirectError = @error, $__WebView2DirectExtended = @extended
+	If Not $__WebView2DirectError Then $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_NEW_WINDOW_FRESH] = False
 	Return SetError($__WebView2DirectError, $__WebView2DirectExtended, $__WebView2DirectResult)
 EndFunc   ;==>_WebView2_Navigate
 
@@ -782,6 +786,7 @@ EndFunc   ;==>_WebView2_Navigate
 Func _WebView2_NavigateToString($iWebView, $sHTML)
 	Local $__WebView2DirectResult = __WebView2_CoreCall_String($iWebView, "NavigateToString", $sHTML)
 	Local $__WebView2DirectError = @error, $__WebView2DirectExtended = @extended
+	If Not $__WebView2DirectError Then $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_NEW_WINDOW_FRESH] = False
 	Return SetError($__WebView2DirectError, $__WebView2DirectExtended, $__WebView2DirectResult)
 EndFunc   ;==>_WebView2_NavigateToString
 
@@ -1556,7 +1561,8 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 					$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_MUTED] = DllStructGetData($tMuteToken, 1)
 				EndIf
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_MUTED] = $fnCallback
-			Case $WEBVIEW2_EVENT_FRAME_CREATED, $WEBVIEW2_EVENT_FRAME_DESTROYED, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED
+			Case $WEBVIEW2_EVENT_FRAME_CREATED, $WEBVIEW2_EVENT_FRAME_DESTROYED, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _
+					$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED
 				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended
@@ -2519,6 +2525,7 @@ Func __WebView2_NavigationStarting_Invoke($pSelf, $pSender, $pArgs)
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
+		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_NEW_WINDOW_FRESH] = False
 
 		__WebView2_Trace("NAV_START 02 ObjCreateInterface START")
 		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs, $WEBVIEW2_DTAG_ICoreWebView2NavigationStartingEventArgs)
@@ -2599,7 +2606,13 @@ Func __WebView2_NewWindowRequested_Invoke($pSelf, $pSender, $pArgs)
 		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
 		Local $vHandled = Call($fnCallback, $iSlot, $sURI, $bUserInitiated)
 		Local $iCallbackError = @error
-		If Not $iCallbackError And $vHandled Then $oArgs.put_Handled(True)
+		If Not $iCallbackError Then
+			If $vHandled = $WEBVIEW2_NEW_WINDOW_DEFER Then
+				If Not __WebView2_NewWindow_Defer($iSlot, $oArgs, $sURI, $bUserInitiated) Then $oArgs.put_Handled(True)
+			ElseIf $vHandled Then
+				$oArgs.put_Handled(True)
+			EndIf
+		EndIf
 	Until True
 	Return $iResult
 EndFunc   ;==>__WebView2_NewWindowRequested_Invoke
@@ -3128,6 +3141,7 @@ EndFunc   ;==>__WebView2_Events_Unsubscribe
 ; ===============================================================================================================================
 Func __WebView2_Instance_Dispose($iSlot)
 	If $iSlot < 0 Or $iSlot >= $WEBVIEW2_MAX_INSTANCES Then Return
+	__WebView2_NewWindow_CancelForSource($iSlot)
 
 	__WebView2_Trace("DISPOSE 01 START slot=" & $iSlot)
 

@@ -92,7 +92,7 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 - `20_IE_Compatibility.au3` → [`020_IE_Compatibility.au3`](../examples/020_IE_Compatibility.au3); existing behavior retained.
 - `21_Folder_PDF_SlideShow.au3` → [`021_Folder_PDF_SlideShow.au3`](../examples/021_Folder_PDF_SlideShow.au3); existing behavior retained.
 - `22_Tabs.au3` → [`022_Tabs.au3`](../examples/022_Tabs.au3); existing behavior retained.
-- [`023_NewWindowTabs.au3`](../examples/023_NewWindowTabs.au3) demonstrates handling `target="_blank"` and `window.open` by queuing a URI and opening an app-managed tab. This does not preserve JavaScript opener semantics.
+- [`023_NewWindowTabs.au3`](../examples/023_NewWindowTabs.au3) defers `target="_blank"` and `window.open`, creates a fresh app-managed tab outside the native callback, and hands its controller to WebView2 before navigation. The `--smoke` mode verifies `window.opener` and the source `WindowProxy` under x86 and x64 without using the internet.
 
 ## 024_BlazorCalendar.au3
 
@@ -116,7 +116,7 @@ Use `--smoke` as the first argument for the runnable copies to repeat their auto
 
 ## 028_NestedFrames.au3
 
-[Example 028](../examples/028_NestedFrames.au3) displays 33 visible nested iframes in four levels: 1 + 2 + 6 + 24. Keep the `028_NestedFrames` folder beside the script. The local pages are mapped to `https://nested-frames.example/`; no network connection is needed. **List all frames** writes the CDP frame tree and zero-based child paths to the console. **Update next frame label** calls `_WebView2_Frame_List()` and scans tracked root frames and their same-origin descendants from AutoIt. Each click adds `_v2` to exactly one unchanged label. **Update FRAME_0_1_1 to v3** locates that frame by its `name` in the CDP tree and adds `_v3` if missing. Native frame IDs are separate from child indexes. The `--smoke` mode checks the 33 labels and the two update flows; visible rendering and resize still require a GUI run.
+[Example 028](../examples/028_NestedFrames.au3) opens maximized within the desktop work area, keeping the title bar and taskbar visible, and displays 15 nested iframes in four levels: 1 + 2 + 6 + 6. Each third-level frame contains one fourth-level frame, so the example has no extra off-screen siblings. Keep the `028_NestedFrames` folder beside the script. The local pages are mapped to `https://nested-frames.example/`; no network connection is needed. **List all frames** writes the CDP frame tree, zero-based child paths, UDF tracked IDs and native `FrameId` values to the console. The example also counts native frame navigation start/completion callbacks. **Update next frame label** calls `_WebView2_Frame_List()` and scans tracked root frames and their same-origin descendants from AutoIt. Each click adds `_v2` to exactly one unchanged label. **Update FRAME_0_1_1 to v3** locates that frame by its `name` in the CDP tree and adds `_v3` if missing. Each update button darkens and becomes unavailable while its action runs, then returns to its normal state. These frame identifiers are distinct from child indexes. The `--smoke` mode checks the 15 labels, two update flows, frame navigation callbacks and native ID under x86 and x64; visible rendering and resize still require a GUI run.
 
 ## 029_DarkAppearance.au3
 
