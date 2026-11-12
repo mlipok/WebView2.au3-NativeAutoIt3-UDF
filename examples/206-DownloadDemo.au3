@@ -6,13 +6,11 @@
 #include <WindowsConstants.au3>
 #include <EditConstants.au3>
 #include <FileConstants.au3>
-#include <File.au3>
-#include <MsgBoxConstants.au3>
 #include "..\WebView2.au3"
 
 Global $g_EX_hGUI = 0, $g_EX_iView = -1
 Global $g_EX_idAddress = 0, $g_EX_idStatus = 0, $g_EX_sPage = "", $g_EX_sQueue = "", $g_EX_iSender = -1
-Global $g_EX_bDone = False, $g_EX_bOK = False, $g_EX_sPath = ""
+Global $g_EX_bDone = False, $g_EX_bOK = False
 Global $g_EX_bSmoke = False
 Global $g_EX_bSmokeDeny = False
 Global $g_EX_bSmokeCancel = False, $g_EX_bCancelRequested = False
@@ -50,8 +48,8 @@ Func _EX_Run()
 		$g_EX_hGUI = GUICreate("206-DownloadDemo", 1100, 800, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idBack = GUICtrlCreateButton("<", 5, 5, 30, 25), $idForward = GUICtrlCreateButton(">", 40, 5, 30, 25)
 		Local $idReload = GUICtrlCreateButton("Reload", 75, 5, 70, 25), $idStop = GUICtrlCreateButton("Stop", 150, 5, 45, 25)
-		$g_EX_idAddress = GUICtrlCreateInput("", 200, 5, 705, 25)
-		Local $idGo = GUICtrlCreateButton("Go", 910, 5, 50, 25), $idOpen = GUICtrlCreateButton("Open file", 965, 5, 125, 25)
+		$g_EX_idAddress = GUICtrlCreateInput("", 200, 5, 830, 25)
+		Local $idGo = GUICtrlCreateButton("Go", 1035, 5, 55, 25)
 		Local $aLabels[4] = ["Download main ZIP", "Deny main ZIP", "Cancel current", "Reload"]
 		Local $aAction[4]
 		For $i = 0 To 3
@@ -106,8 +104,6 @@ Func _EX_Run()
 					_WebView2_Stop($g_EX_iView)
 				Case $idGo, $g_EX_idAddress
 					_EX_Navigate($g_EX_iView, GUICtrlRead($g_EX_idAddress))
-				Case $idOpen
-					If Not _EX_Open() Then _EX_Status(_WebView2_Error_GetDescription())
 				Case $aAction[0], $aAction[1], $aAction[2], $aAction[3]
 					For $i = 0 To 3
 						If $iMessage = $aAction[$i] Then
@@ -220,29 +216,6 @@ Func _EX_Message($iView, $sMessage, $sSource, $bJSON)
 	EndIf
 	Return 0
 EndFunc   ;==>_EX_Message
-
-
-; #INTERNAL_USE_ONLY# ==========================================================================================================
-; Name ..........: _EX_URI
-; Description ...: Converts a Windows path to a local file URI.
-; Syntax ........: _EX_URI($sPath)
-; Parameters ....: $sPath - Absolute file or folder path.
-; Return values .: URI with special path characters escaped.
-; Author ........: ioa747
-; Modified ......: mLipok
-; Remarks .......: Example helper; the public WebView2 API is unchanged.
-; Related .......:
-; Link ..........:
-; Example .......: No
-; ================================================================================================================================
-Func _EX_URI($sPath)
-	Local $sURI = "file:///" & StringReplace($sPath, "\", "/")
-	$sURI = StringReplace($sURI, "%", "%25")
-	$sURI = StringReplace($sURI, " ", "%20")
-	$sURI = StringReplace($sURI, "#", "%23")
-	$sURI = StringReplace($sURI, "?", "%3F")
-	Return $sURI
-EndFunc   ;==>_EX_URI
 
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
@@ -430,31 +403,6 @@ Func _EX_Permission($iView, $sURI, $iKind, $bUserInitiated)
 	If StringLeft(StringLower($sURI), StringLen($g_EX_sOrigin)) = $g_EX_sOrigin And $iKind = $WEBVIEW2_PERMISSION_KIND_MULTIPLE_AUTOMATIC_DOWNLOADS Then Return $WEBVIEW2_PERMISSION_STATE_ALLOW
 	Return $WEBVIEW2_PERMISSION_STATE_DEFAULT
 EndFunc   ;==>_EX_Permission
-
-
-; #INTERNAL_USE_ONLY# ==========================================================================================================
-; Name ..........: _EX_Open
-; Description ...: Opens a selected local file in the feature-specific viewer or editor.
-; Syntax ........: _EX_Open()
-; Parameters ....: None.
-; Return values .: True on success or cancellation; False on failure.
-; Author ........: ioa747
-; Modified ......: mLipok
-; Remarks .......: Example helper; the public WebView2 API is unchanged.
-; Related .......:
-; Link ..........:
-; Example .......: No
-; ================================================================================================================================
-Func _EX_Open()
-	Local $bOK = True
-	Local $sPath = FileOpenDialog("Open local document", @MyDocumentsDir, "Document (*.pdf;*.html;*.htm;*.png;*.jpg;*.svg;*.txt;*.csv;*.json)", $FD_FILEMUSTEXIST, "", $g_EX_hGUI)
-	If Not @error Then
-		$g_EX_sPath = $sPath
-		$bOK = _EX_Navigate($g_EX_iView, _EX_URI($sPath))
-		If $bOK Then GUICtrlSetData($g_EX_idAddress, _EX_URI($sPath))
-	EndIf
-	Return $bOK
-EndFunc   ;==>_EX_Open
 
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
