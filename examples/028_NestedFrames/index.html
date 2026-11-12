@@ -3,8 +3,8 @@
 <head><meta charset="utf-8"><title>Nested frames</title>
 <style>body{font:14px Segoe UI,Arial,sans-serif;margin:14px}iframe{display:block;width:calc(100% - 4px);height:720px;border:3px solid #3578a8;box-sizing:border-box}code{background:#eee;padding:3px}</style></head>
 <body>
-<h1>Nested frames: 1 + 2 + 6 + 24 = 33</h1>
-<p>Each iframe has a visible border and label. Sibling paths start at zero; UDF frame IDs are separate. Each click on <b>Update next frame label</b> changes one previously unchanged label. After 33 clicks, all labels have the <code>_v2</code> suffix. <b>Update FRAME_0_1_1 to v3</b> targets that frame directly and adds <code>_v3</code> once.</p>
+<h1>Nested frames: 1 + 2 + 6 + 6 = 15</h1>
+<p>Each iframe has a visible border and label. Sibling paths start at zero; UDF frame IDs are separate. Each click on <b>Update next frame label</b> changes one previously unchanged label. After 15 clicks, all labels have the <code>_v2</code> suffix. <b>Update FRAME_0_1_1 to v3</b> targets that frame directly and adds <code>_v3</code> once.</p>
 <iframe name="FRAME_0" src="frame.html?path=0&amp;level=1"></iframe>
 <script>
 window.listFramePaths=()=>{

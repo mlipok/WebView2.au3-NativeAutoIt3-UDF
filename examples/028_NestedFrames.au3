@@ -2,6 +2,7 @@
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
 #include <GUIConstantsEx.au3>
+#include <WinAPIGdi.au3>
 #include <WindowsConstants.au3>
 #include "..\WebView2.au3"
 
@@ -10,12 +11,14 @@ Opt("MustDeclareVars", 1)
 Global $g_iView = -1
 Global $g_idStatus = 0
 Global $g_iFrameNavStarted = 0, $g_iFrameNavCompleted = 0
+Global Const $g_iUpdateButtonReadyColor = 0xDCEBFA
+Global Const $g_iUpdateButtonBusyColor = 0x8FA9C2
 
 _Example()
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example
-; Description ...: Shows a 1-2-3-4 nested iframe tree and zero-based child paths.
+; Description ...: Shows a 1-2-3-1 nested iframe tree and zero-based child paths.
 ; Syntax ........: _Example()
 ; Parameters ....: None.
 ; Return values .: None.
@@ -29,8 +32,10 @@ Func _Example()
 	Local $idList = GUICtrlCreateButton("List all frames", 12, 10, 150, 30)
 	Local $idStep = GUICtrlCreateButton("Update next frame label", 174, 10, 190, 30)
 	Local $idDirect = GUICtrlCreateButton("Update FRAME_0_1_1 to v3", 376, 10, 205, 30)
+	GUICtrlSetBkColor($idStep, $g_iUpdateButtonReadyColor)
+	GUICtrlSetBkColor($idDirect, $g_iUpdateButtonReadyColor)
 	$g_idStatus = GUICtrlCreateLabel("Initializing...", 595, 16, 390, 22)
-	GUISetState(@SW_SHOW, $hGUI)
+	GUISetState(@SW_MAXIMIZE, $hGUI)
 	Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\028_NestedFrames_" & (@AutoItX64 ? "x64" : "x86")
 	If Not _WebView2_Init(Default, $sProfile) Then
 		GUICtrlSetData($g_idStatus, "Initialization failed: " & _WebView2_Error_GetDescription())
@@ -55,7 +60,7 @@ Func _Example()
 	While True
 		If $bSmoke And $g_iView >= 0 And TimerDiff($tSmoke) > 1000 Then
 			Local $sCount = _WebView2_ExecuteScript($g_iView, "window.listFramePaths().split(String.fromCharCode(10)).length", 1000)
-			If Not @error And $sCount = "33" Then
+			If Not @error And $sCount = "15" Then
 				$bSmokePassed = True
 				$aNativeFrames = _WebView2_Frame_List($g_iView)
 				$bSmokePassed = UBound($aNativeFrames) > 0 And $g_iFrameNavStarted > 0 And $g_iFrameNavCompleted > 0
@@ -63,7 +68,7 @@ Func _Example()
 					$iNativeId = _WebView2_Frame_GetNativeId($aNativeFrames[0])
 					$bSmokePassed = Not @error And $iNativeId > 0
 				EndIf
-				For $iLevel = 1 To 33
+				For $iLevel = 1 To 15
 					Local $iChanged = _StepDeeper()
 					If @error Or $iChanged <> 1 Then
 						$bSmokePassed = False
@@ -109,27 +114,50 @@ Func _Example()
 							$iNativeId = _WebView2_Frame_GetNativeId($aNativeFrames[$iFrame])
 							ConsoleWrite("Tracked frame=" & $aNativeFrames[$iFrame] & " native FrameId=" & (@error ? "unavailable" : $iNativeId) & @CRLF)
 						Next
-						GUICtrlSetData($g_idStatus, "Frame tree and paths written to console (33 if fully loaded)")
+						GUICtrlSetData($g_idStatus, "Frame tree and paths written to console (15 if fully loaded)")
 					EndIf
 				EndIf
 			Case $idStep
 				If $g_iView >= 0 Then
+					_SetUpdateButtonBusy($idStep, True)
 					Local $sResult = _StepDeeper()
-					GUICtrlSetData($g_idStatus, @error ? "Step failed" : "Next label changed: " & $sResult)
+					Local $iStepError = @error
+					_SetUpdateButtonBusy($idStep, False)
+					GUICtrlSetData($g_idStatus, $iStepError ? "Step failed" : "Next label changed: " & $sResult)
 				EndIf
 			Case $idDirect
 				If $g_iView >= 0 Then
+					_SetUpdateButtonBusy($idDirect, True)
 					Local $iDirectChanged = _UpdateDirectFrameLabel()
-					GUICtrlSetData($g_idStatus, @error ? "Direct update failed" : "FRAME_0_1_1: " & ($iDirectChanged ? "added _v3" : "already has _v3"))
+					Local $iDirectError = @error
+					_SetUpdateButtonBusy($idDirect, False)
+					GUICtrlSetData($g_idStatus, $iDirectError ? "Direct update failed" : "FRAME_0_1_1: " & ($iDirectChanged ? "added _v3" : "already has _v3"))
 				EndIf
 		EndSwitch
 	WEnd
-	If $bSmoke Then ConsoleWrite("Nested frame smoke: " & ($bSmokePassed ? "PASS (33 frames)" : "FAIL") & @CRLF)
+	If $bSmoke Then ConsoleWrite("Nested frame smoke: " & ($bSmokePassed ? "PASS (15 frames)" : "FAIL") & @CRLF)
 	_WebView2_Cleanup()
 	GUIDelete($hGUI)
 	If $bSmoke And Not $bSmokePassed Then Exit 1
 	Return
 EndFunc   ;==>_Example
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _SetUpdateButtonBusy
+; Description ...: Disables and darkens an update button until its operation finishes.
+; Syntax ........: _SetUpdateButtonBusy($idButton, $bBusy)
+; Parameters ....: $idButton - Update button control ID.
+;                  $bBusy - True while the button's operation is running.
+; Return values .: None.
+; Author ........: ioa747
+; Modified ......: mLipok
+; ===============================================================================================================================
+Func _SetUpdateButtonBusy($idButton, $bBusy)
+	GUICtrlSetBkColor($idButton, $bBusy ? $g_iUpdateButtonBusyColor : $g_iUpdateButtonReadyColor)
+	GUICtrlSetState($idButton, $bBusy ? $GUI_DISABLE : $GUI_ENABLE)
+	_WinAPI_RedrawWindow(GUICtrlGetHandle($idButton), 0, 0, BitOR($RDW_INVALIDATE, $RDW_UPDATENOW))
+	Return
+EndFunc   ;==>_SetUpdateButtonBusy
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _StepDeeper
