@@ -8,12 +8,17 @@ button { font: inherit; padding: 9px 16px; cursor: pointer; }
 aside { margin-top: 18px; padding: 16px; background: #e8eef6; }
 </style>
 <h1>Native file downloads</h1>
-<p>The AutoIt host decides whether to allow or deny each download, chooses a unique destination under the temporary folder, and receives native progress and state events.</p>
-<p>Use <strong>Allow download</strong> or <strong>Deny next download</strong> in the AutoIt toolbar. The page button below uses the same download source. Use <strong>Cancel current</strong> while a transfer is active.</p>
-<button onclick="download()">Download sample file</button>
-<aside>The example generates a local text file. No internet connection is needed.</aside>
+<p>The AutoIt host decides whether to allow or deny each download, chooses a unique destination under Documents, and receives native progress and state events.</p>
+<p>Use <strong>Download main ZIP</strong> or <strong>Deny main ZIP</strong> in the AutoIt toolbar. The page button below uses the same GitHub source. Use <strong>Cancel current</strong> while a transfer is active.</p>
+<button onclick="downloadArchive()">Download GitHub main ZIP</button>
+<aside>This download needs an internet connection. The separate AutoIt <code>--smoke</code> modes generate a local file and need no internet.</aside>
 <script>
 window.demoCheck = () => !!document.querySelector('h1');
+function downloadArchive() {
+  const link = document.createElement('a');
+  link.href = 'https://codeload.github.com/mlipok/WebView2.au3-NativeAutoIt3-UDF/zip/refs/heads/main';
+  link.click();
+}
 function download() {
   const block = 'WebView2 download example\n'.repeat(1024);
   const chunks = Array(640).fill(block);
