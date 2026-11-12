@@ -39,6 +39,8 @@ Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs = "{973AE2E
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs2 = "{74D7127F-9DE6-4200-8734-42D6FB4FF741}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3 = "{E61670BC-3DCE-4177-86D2-C629AE3CB6AC}"
 Global Const $WEBVIEW2_IID_ICoreWebView2ScreenCaptureStartingEventArgs = "{892C03FD-AEE3-5EBA-A1FA-6FD2F6484B2B}"
+Global Const $WEBVIEW2_IID_ICoreWebView2DownloadStartingEventArgs = "{E99BBE21-43E9-4544-A732-282764EAFA60}"
+Global Const $WEBVIEW2_IID_ICoreWebView2DownloadOperation = "{3D6B6CF2-AFE1-44C7-A995-C65117714336}"
 
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler = "{4E8A3389-C9D8-4BD2-B6B5-124FEE6CC14D}"
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2ControllerCompletedHandler = "{6C4819F3-C9B7-4260-8127-C9F5BDE7F68C}"
@@ -196,8 +198,39 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2_3 = $WEBVIEW2_DTAG_ICoreWebView2 & _
 Global Const $WEBVIEW2_DTAG_ICoreWebView2_4 = $WEBVIEW2_DTAG_ICoreWebView2_3 & _
 		"add_FrameCreated hresult(ptr;struct*);" & _
 		"remove_FrameCreated hresult(int64);" & _
-		"add_DownloadStarting hresult();" & _
-		"remove_DownloadStarting hresult();"
+		"add_DownloadStarting hresult(ptr;struct*);" & _
+		"remove_DownloadStarting hresult(int64);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2DownloadStartingEventArgs = _
+		"get_DownloadOperation hresult(ptr*);" & _
+		"get_Cancel hresult(bool*);" & _
+		"put_Cancel hresult(bool);" & _
+		"get_ResultFilePath hresult(ptr*);" & _
+		"put_ResultFilePath hresult(wstr);" & _
+		"get_Handled hresult(bool*);" & _
+		"put_Handled hresult(bool);" & _
+		"GetDeferral hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2DownloadOperation = _
+		"add_BytesReceivedChanged hresult(ptr;struct*);" & _
+		"remove_BytesReceivedChanged hresult(int64);" & _
+		"add_EstimatedEndTimeChanged hresult();" & _
+		"remove_EstimatedEndTimeChanged hresult();" & _
+		"add_StateChanged hresult(ptr;struct*);" & _
+		"remove_StateChanged hresult(int64);" & _
+		"get_Uri hresult(ptr*);" & _
+		"get_ContentDisposition hresult(ptr*);" & _
+		"get_MimeType hresult(ptr*);" & _
+		"get_TotalBytesToReceive hresult(int64*);" & _
+		"get_BytesReceived hresult(int64*);" & _
+		"get_EstimatedEndTime hresult(ptr*);" & _
+		"get_ResultFilePath hresult(ptr*);" & _
+		"get_State hresult(int*);" & _
+		"get_InterruptReason hresult(int*);" & _
+		"Cancel hresult();" & _
+		"Pause hresult();" & _
+		"Resume hresult();" & _
+		"get_CanResume hresult(bool*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2_8 = $WEBVIEW2_DTAG_ICoreWebView2_4 & _
 		"add_ClientCertificateRequested hresult();" & _
