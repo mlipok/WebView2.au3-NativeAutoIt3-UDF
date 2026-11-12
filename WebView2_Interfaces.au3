@@ -10,6 +10,8 @@
 ; ===============================================================================================================================
 
 Global Const $WEBVIEW2_IID_ICoreWebView2Environment = "{B96D755E-0319-4E92-A296-23436F46A1FC}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Environment12 = "{F503DB9B-739F-48DD-B151-FDFCF253F54E}"
+Global Const $WEBVIEW2_IID_ICoreWebView2SharedBuffer = "{B747A495-0C6F-449E-97B8-2F81E9D6AB43}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Controller = "{4D00C0D1-9434-4EB6-8078-8697A560334F}"
 Global Const $WEBVIEW2_IID_ICoreWebView2 = "{76ECEACB-0462-4D94-AC83-423A6793775E}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_3 = "{A0D6DF20-3B92-416D-AA0C-437A9C727857}"
@@ -21,7 +23,10 @@ Global Const $WEBVIEW2_IID_ICoreWebView2EnvironmentOptions6 = "{57D29CC3-C84F-42
 Global Const $WEBVIEW2_IID_IUnknown = "{00000000-0000-0000-C000-000000000046}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame = "{F1131A5E-9BA9-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame2 = "{7A6A5834-D185-4DBF-B63F-4A9BC43107D4}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame3 = "{B50D82CC-CC28-481D-9614-CB048895E6A0}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame4 = "{188782DC-92AA-4732-AB3C-FCC59F6F68B9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame5 = "{99D199C4-7305-11EE-B962-0242AC120002}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame6 = "{0DE611FD-31E9-5DDC-9D71-95EDA26EFF32}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventArgs = "{4D6E7B5E-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
@@ -31,7 +36,9 @@ Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventArgs = "{0F99A40C
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventArgs = "{34ACB11C-FC37-4418-9132-F9C21D1EAFB9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Deferral = "{C10E7F7B-B585-46F0-A623-8BEFBF3E4EE0}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs = "{973AE2EF-FF18-4894-8FB2-3C758F046810}"
+Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs2 = "{74D7127F-9DE6-4200-8734-42D6FB4FF741}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3 = "{E61670BC-3DCE-4177-86D2-C629AE3CB6AC}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ScreenCaptureStartingEventArgs = "{892C03FD-AEE3-5EBA-A1FA-6FD2F6484B2B}"
 
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler = "{4E8A3389-C9D8-4BD2-B6B5-124FEE6CC14D}"
 Global Const $WEBVIEW2_IID_ICoreWebView2CreateCoreWebView2ControllerCompletedHandler = "{6C4819F3-C9B7-4260-8127-C9F5BDE7F68C}"
@@ -47,6 +54,8 @@ Global Const $WEBVIEW2_IID_ICoreWebView2FrameDestroyedEventHandler = "{59DD7B4C-
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationStartingEventHandler = "{E79908BF-2D5D-4968-83DB-263FEA2C1DA3}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationCompletedEventHandler = "{609302AD-0E36-4F9A-A210-6A45272842A9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameWebMessageReceivedEventHandler = "{E371E005-6D1D-4517-934B-A8F1629C62A5}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FramePermissionRequestedEventHandler = "{845D0EDD-8BD8-429B-9915-4821789F23E9}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameScreenCaptureStartingEventHandler = "{A6C1D8AD-BB80-59C5-895B-FBA1698B9309}"
 Global Const $WEBVIEW2_IID_ICoreWebView2ExecuteScriptCompletedHandler = "{49511172-CC67-4BCA-9923-137112F4C4CC}"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment = _
@@ -55,6 +64,33 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment = _
 		"get_BrowserVersionString hresult(ptr*);" & _
 		"add_NewBrowserVersionAvailable hresult();" & _
 		"remove_NewBrowserVersionAvailable hresult();"
+
+; Environment2 through Environment11 add 16 methods before Environment12.
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment12 = $WEBVIEW2_DTAG_ICoreWebView2Environment & _
+		"CreateWebResourceRequest hresult();" & _
+		"CreateCoreWebView2CompositionController hresult();" & _
+		"CreateCoreWebView2PointerInfo hresult();" & _
+		"GetAutomationProviderForWindow hresult();" & _
+		"add_BrowserProcessExited hresult();" & _
+		"remove_BrowserProcessExited hresult();" & _
+		"CreatePrintSettings hresult();" & _
+		"get_UserDataFolder hresult();" & _
+		"add_ProcessInfosChanged hresult();" & _
+		"remove_ProcessInfosChanged hresult();" & _
+		"GetProcessInfos hresult();" & _
+		"CreateContextMenuItem hresult();" & _
+		"CreateCoreWebView2ControllerOptions hresult();" & _
+		"CreateCoreWebView2ControllerWithOptions hresult();" & _
+		"CreateCoreWebView2CompositionControllerWithOptions hresult();" & _
+		"get_FailureReportFolderPath hresult();" & _
+		"CreateSharedBuffer hresult(uint64;ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2SharedBuffer = _
+		"get_Size hresult(uint64*);" & _
+		"get_Buffer hresult(ptr*);" & _
+		"OpenStream hresult(ptr*);" & _
+		"get_FileMappingHandle hresult(ptr*);" & _
+		"Close hresult();"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Controller = _
 		"get_IsVisible hresult(bool*);" & _
@@ -201,11 +237,19 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame2 = $WEBVIEW2_DTAG_ICoreWebView2Fr
 		"add_WebMessageReceived hresult(ptr;struct*);" & _
 		"remove_WebMessageReceived hresult(int64);"
 
-Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame5 = $WEBVIEW2_DTAG_ICoreWebView2Frame2 & _
-		"add_PermissionRequested hresult();" & _
-		"remove_PermissionRequested hresult();" & _
-		"PostSharedBufferToScript hresult();" & _
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame3 = $WEBVIEW2_DTAG_ICoreWebView2Frame2 & _
+		"add_PermissionRequested hresult(ptr;struct*);" & _
+		"remove_PermissionRequested hresult(int64);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame4 = $WEBVIEW2_DTAG_ICoreWebView2Frame3 & _
+		"PostSharedBufferToScript hresult(ptr;int;wstr);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame5 = $WEBVIEW2_DTAG_ICoreWebView2Frame4 & _
 		"get_FrameId hresult(uint*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame6 = $WEBVIEW2_DTAG_ICoreWebView2Frame5 & _
+		"add_ScreenCaptureStarting hresult(ptr;struct*);" & _
+		"remove_ScreenCaptureStarting hresult(int64);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs = "get_Frame hresult(ptr*);"
 
@@ -269,6 +313,19 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs3 = _
 		"put_Handled hresult(bool);" & _
 		"get_SavesInProfile hresult(bool*);" & _
 		"put_SavesInProfile hresult(bool);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs2 = _
+		$WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs & _
+		"get_Handled hresult(bool*);" & _
+		"put_Handled hresult(bool);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ScreenCaptureStartingEventArgs = _
+		"get_Cancel hresult(bool*);" & _
+		"put_Cancel hresult(bool);" & _
+		"get_Handled hresult(bool*);" & _
+		"put_Handled hresult(bool);" & _
+		"get_OriginalSourceFrameInfo hresult(ptr*);" & _
+		"GetDeferral hresult(ptr*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2WebMessageReceivedEventArgs = _
 		"get_Source hresult(ptr*);" & _

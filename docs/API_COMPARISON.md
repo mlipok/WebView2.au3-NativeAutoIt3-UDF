@@ -84,6 +84,7 @@ Sources reviewed:
 | `GetFrame`, `GetFrameById` | `_WebView2_Frame_List`, `_WebView2_Frame_GetNativeId`, `_WebView2_GetFrames`, `_WebView2_GetFrameTree` | PARTIAL | UDF tracked IDs, native `FrameId` values, CDP IDs and DOM tokens are distinct. |
 | frame `ExecuteScript*` | `_WebView2_Frame_ExecuteScript` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
 | frame `PostWebMessage*` | `_WebView2_Frame_PostWebMessageAsJson`, `_WebView2_Frame_PostWebMessageAsString` | IMPLEMENTED | Native `ICoreWebView2Frame2`; tracked frames only. |
+| frame `PermissionRequested`, `PostSharedBufferToScript`, `ScreenCaptureStarting` | `_WebView2_SetCallback` frame events, `_WebView2_Frame_PostSharedBuffer` | PARTIAL | Immediate permission decisions and capture cancellation are supported; binary buffers are sent read-only to tracked frames. Deferred decisions and writable buffer lifetime management are not exposed. |
 | frame `AddHostObjectToScriptWithOrigins` / `RemoveHostObjectFromScript` | `_WebView2_Frame_AddHostObjectToScriptWithOrigins`, `_WebView2_Frame_RemoveHostObjectFromScript` | IMPLEMENTED | Requires a COM `IDispatch` object and explicit origin list; existing JavaScript references may outlive removal. |
 | `AddExtension` | `_WebView2_AddExtension` | PARTIAL | Runtime-dependent experimental CDP path in v0.4.0. Native `ICoreWebView2Profile7` is preferable long term. |
 | `RemoveExtension` | `_WebView2_RemoveExtension` | PARTIAL | Same limitation. |

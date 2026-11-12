@@ -13,6 +13,7 @@
 11. **Web message security belongs to the host application.** Validate message origin and payload before invoking privileged native actions.
 12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Tracked frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; navigation events use `ICoreWebView2Frame2` and native `FrameId` uses `ICoreWebView2Frame5` when supported by the Runtime.
 13. **Frame host objects require explicit origins.** The UDF rejects wildcard and empty origin lists, but the host must still validate frame messages and keep the COM `IDispatch` object alive. Removing an object does not revoke JavaScript references already obtained.
+14. **Frame shared buffers are sent read-only.** `_WebView2_Frame_PostSharedBuffer()` accepts binary payloads under 2 GB and posts them to a tracked frame. It does not expose a writable shared memory view or a JavaScript-to-AutoIt shared-buffer channel. The page must release the received buffer.
 
 ## Recommended validation pass on Windows
 
@@ -41,9 +42,9 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- review remaining later frame capabilities, including `ICoreWebView2Frame3` permission events, `ICoreWebView2Frame4` shared buffers and `ICoreWebView2Frame6` screen-capture events; `Frame5` native IDs and `Frame2` navigation events are implemented;
+- review later frame capabilities beyond `ICoreWebView2Frame6`; immediate `Frame3` permission decisions, read-only `Frame4` shared buffers, `Frame5` native IDs, and `Frame6` screen-capture cancellation are implemented;
 - download events and download control;
-- deferred and frame-level permission handling, and script-dialog callbacks; immediate top-level permission decisions are implemented;
+- deferred permission handling and script-dialog callbacks; immediate top-level and frame-level permission decisions are implemented;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;
 - asynchronous/nonblocking public variants of current synchronous helpers.
@@ -57,7 +58,7 @@ Review external ideas against the current native UDF before implementing them. T
 | Source | Candidate | Current UDF state | Next review step |
 | --- | --- | --- | --- |
 | [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Native mute getter/setter and changed callback | Implemented through `ICoreWebView2_8`; x86/x64 getter/setter, event and cleanup smoke tests passed. | Keep this migration item for provenance; monitor upstream behavior and regression reports. |
-| [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Permission request policy, event and response | Immediate top-level `PermissionRequested` callback reads origin, kind and user-initiated flag and returns Default/Allow/Deny. A two-element return can disable profile persistence through `PermissionRequestedEventArgs3`. No deferral, per-kind policy table or frame callback is exposed. | Design a bounded deferred-decision lifecycle and frame behavior separately; retain the immediate callback for fast policy decisions. |
+| [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Permission request policy, event and response | Immediate top-level and frame `PermissionRequested` callbacks read origin, kind and user-initiated flag and return Default/Allow/Deny. A two-element return can disable profile persistence through `PermissionRequestedEventArgs3`. No deferral or per-kind policy table is exposed. | Design a bounded deferred-decision lifecycle separately; retain the immediate callbacks for fast policy decisions. |
 | [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Native fullscreen-change event | `_WebView2_IsFullScreen()` provides a state read; no native change callback is exposed. | Compare native event behavior with the existing state helper. |
 | [Ralle1976/Autoit-WebView2-UDF](https://github.com/Ralle1976/Autoit-WebView2-UDF) | Runtime installation prompt helper | Runtime detection and version queries exist; the UDF does not install the Runtime. | Decide whether a separate host-level opt-in helper or documentation is appropriate. |
 | [Ralle1976/Autoit-WebView2-UDF](https://github.com/Ralle1976/Autoit-WebView2-UDF) | Asynchronous script execution | The public script helper is synchronous. | Compare callback and error contracts before considering an asynchronous variant. |

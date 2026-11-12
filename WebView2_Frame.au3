@@ -15,10 +15,14 @@ Global Enum _
 		$__WEBVIEW2_FRAME_POINTER, _
 		$__WEBVIEW2_FRAME_OBJECT, _
 		$__WEBVIEW2_FRAME_OBJECT2, _
+		$__WEBVIEW2_FRAME_OBJECT3, _
+		$__WEBVIEW2_FRAME_OBJECT6, _
 		$__WEBVIEW2_FRAME_DESTROY_TOKEN, _
 		$__WEBVIEW2_FRAME_MESSAGE_TOKEN, _
 		$__WEBVIEW2_FRAME_NAV_START_TOKEN, _
 		$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN, _
+		$__WEBVIEW2_FRAME_PERMISSION_TOKEN, _
+		$__WEBVIEW2_FRAME_CAPTURE_TOKEN, _
 		$__WEBVIEW2_FRAME_ACTIVE, _
 		$__WEBVIEW2_FRAME_FIELDS
 Global $__g_aWebView2_Frames[$__WEBVIEW2_MAX_FRAMES][$__WEBVIEW2_FRAME_FIELDS]
@@ -30,6 +34,8 @@ Global $__g_aWebView2_FrameDestroyedCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameMessageCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameNavStartCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameNavCompleteCallback[$WEBVIEW2_MAX_INSTANCES]
+Global $__g_aWebView2_FramePermissionCallback[$WEBVIEW2_MAX_INSTANCES]
+Global $__g_aWebView2_FrameCaptureCallback[$WEBVIEW2_MAX_INSTANCES]
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Frame_QueryInterface
@@ -132,6 +138,18 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 					ExitLoop 1
 				EndIf
 			EndIf
+			If Not __WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_PERMISSION) Then
+				If Not __WebView2_Callback_Create($__WEBVIEW2_CB_FRAME_PERMISSION, __WebView2_FramePermission_Invoke, "ptr;ptr;ptr") Then
+					$iError = $WEBVIEW2_ERR_CALLBACK
+					ExitLoop 1
+				EndIf
+			EndIf
+			If Not __WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_SCREEN_CAPTURE) Then
+				If Not __WebView2_Callback_Create($__WEBVIEW2_CB_FRAME_SCREEN_CAPTURE, __WebView2_FrameCapture_Invoke, "ptr;ptr;ptr") Then
+					$iError = $WEBVIEW2_ERR_CALLBACK
+					ExitLoop 1
+				EndIf
+			EndIf
 			Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
 			Local $oCore4 = __WebView2_Frame_QueryInterface($pCore, $WEBVIEW2_IID_ICoreWebView2_4, $WEBVIEW2_DTAG_ICoreWebView2_4)
 			$iError = @error
@@ -158,6 +176,10 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_FrameNavStartCallback[$iWebView] = $fnCallback
 			Case $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED
 				$__g_aWebView2_FrameNavCompleteCallback[$iWebView] = $fnCallback
+			Case $WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED
+				$__g_aWebView2_FramePermissionCallback[$iWebView] = $fnCallback
+			Case $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING
+				$__g_aWebView2_FrameCaptureCallback[$iWebView] = $fnCallback
 		EndSwitch
 		$bResult = True
 	Until True
@@ -230,6 +252,10 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 		$oFrame.AddRef()
 		Local $oFrame2 = __WebView2_Frame_QueryInterface($pFrame, $WEBVIEW2_IID_ICoreWebView2Frame2, $WEBVIEW2_DTAG_ICoreWebView2Frame2)
 		If @error Then $oFrame2 = Null
+		Local $oFrame3 = __WebView2_Frame_QueryInterface($pFrame, $WEBVIEW2_IID_ICoreWebView2Frame3, $WEBVIEW2_DTAG_ICoreWebView2Frame3)
+		If @error Then $oFrame3 = Null
+		Local $oFrame6 = __WebView2_Frame_QueryInterface($pFrame, $WEBVIEW2_IID_ICoreWebView2Frame6, $WEBVIEW2_DTAG_ICoreWebView2Frame6)
+		If @error Then $oFrame6 = Null
 		Local $tDestroyed = DllStructCreate("int64")
 		$iResult = $oFrame.add_Destroyed(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_DESTROYED), $tDestroyed)
 		If @error Or $iResult <> $WEBVIEW2_S_OK Then ExitLoop 1
@@ -246,15 +272,30 @@ Func __WebView2_FrameCreated_Invoke($pSelf, $pSender, $pArgs)
 			$iResult = $oFrame2.add_NavigationCompleted(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_NAV_COMPLETE), $tNavComplete)
 			If Not @error And $iResult = $WEBVIEW2_S_OK Then $iNavCompleteToken = DllStructGetData($tNavComplete, 1)
 		EndIf
+		Local $iPermissionToken = 0, $iCaptureToken = 0
+		If IsObj($oFrame3) Then
+			Local $tPermission = DllStructCreate("int64")
+			$iResult = $oFrame3.add_PermissionRequested(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_PERMISSION), $tPermission)
+			If Not @error And $iResult = $WEBVIEW2_S_OK Then $iPermissionToken = DllStructGetData($tPermission, 1)
+		EndIf
+		If IsObj($oFrame6) Then
+			Local $tCapture = DllStructCreate("int64")
+			$iResult = $oFrame6.add_ScreenCaptureStarting(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_SCREEN_CAPTURE), $tCapture)
+			If Not @error And $iResult = $WEBVIEW2_S_OK Then $iCaptureToken = DllStructGetData($tCapture, 1)
+		EndIf
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID] = $__g_iWebView2_NextFrameId
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER] = $iView
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_POINTER] = $pFrame
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT] = $oFrame
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT2] = $oFrame2
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT3] = $oFrame3
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT6] = $oFrame6
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] = DllStructGetData($tDestroyed, 1)
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] = $iMessageToken
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN] = $iNavStartToken
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] = $iNavCompleteToken
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] = $iPermissionToken
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] = $iCaptureToken
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] = True
 		$__g_iWebView2_NextFrameId += 1
 		Local $fnCallback = $__g_aWebView2_FrameCreatedCallback[$iView]
@@ -290,6 +331,10 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
 		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
 		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
+		Local $oFrame3 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT3]
+		If IsObj($oFrame3) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
+		Local $oFrame6 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT6]
+		If IsObj($oFrame6) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
 		For $i = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 			$__g_aWebView2_Frames[$iSlot][$i] = Null
 		Next
@@ -391,6 +436,78 @@ Func __WebView2_FrameNavComplete_Invoke($pSelf, $pSender, $pArgs)
 EndFunc   ;==>__WebView2_FrameNavComplete_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_FramePermission_Invoke
+; Description ...: Applies an immediate permission decision for a tracked frame.
+; ===============================================================================================================================
+Func __WebView2_FramePermission_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf
+	Do
+		Local $iSlot = __WebView2_Frame_Find($pSender, True)
+		If $iSlot < 0 Or Not $pArgs Then ExitLoop 1
+		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
+		Local $fnCallback = $__g_aWebView2_FramePermissionCallback[$iView]
+		If Not IsFunc($fnCallback) Then ExitLoop 1
+		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs, $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs)
+		If Not IsObj($oArgs) Then ExitLoop 1
+		$oArgs.AddRef()
+		Local $pURI = 0, $iKind = 0, $bUserInitiated = False
+		Local $iHRESULT = $oArgs.get_Uri($pURI)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		Local $sURI = __WebView2_CoTaskMemString_ReadAndFree($pURI)
+		$iHRESULT = $oArgs.get_PermissionKind($iKind)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		$iHRESULT = $oArgs.get_IsUserInitiated($bUserInitiated)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		Local $vDecision = Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], $sURI, $iKind, $bUserInitiated)
+		If @error Then ExitLoop 1
+		Local $iState = $vDecision
+		If IsArray($vDecision) Then
+			If UBound($vDecision) <> 2 Then ExitLoop 1
+			$iState = $vDecision[0]
+		EndIf
+		If Not IsInt($iState) Or $iState < $WEBVIEW2_PERMISSION_STATE_ALLOW Or $iState > $WEBVIEW2_PERMISSION_STATE_DENY Then ExitLoop 1
+		Local $oArgs2 = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs2, $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs2)
+		If Not IsObj($oArgs2) Then ExitLoop 1
+		$oArgs2.AddRef()
+		If IsArray($vDecision) Then
+			Local $oArgs3 = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3, $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs3)
+			If Not IsObj($oArgs3) Then ExitLoop 1
+			$oArgs3.AddRef()
+			$iHRESULT = $oArgs3.put_SavesInProfile($vDecision[1])
+			If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		EndIf
+		$iHRESULT = $oArgs.put_State($iState)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		$oArgs2.put_Handled(True)
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_FramePermission_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_FrameCapture_Invoke
+; Description ...: Permits a tracked frame to cancel its screen capture request.
+; ===============================================================================================================================
+Func __WebView2_FrameCapture_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf
+	Do
+		Local $iSlot = __WebView2_Frame_Find($pSender, True)
+		If $iSlot < 0 Or Not $pArgs Then ExitLoop 1
+		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
+		Local $fnCallback = $__g_aWebView2_FrameCaptureCallback[$iView]
+		If Not IsFunc($fnCallback) Then ExitLoop 1
+		Local $vCancel = Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
+		If @error Or Not $vCancel Then ExitLoop 1
+		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2ScreenCaptureStartingEventArgs, $WEBVIEW2_DTAG_ICoreWebView2ScreenCaptureStartingEventArgs)
+		If Not IsObj($oArgs) Then ExitLoop 1
+		$oArgs.AddRef()
+		Local $iHRESULT = $oArgs.put_Cancel(True)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		$oArgs.put_Handled(True)
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_FrameCapture_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Frame_Cleanup
 ; Description ...: Removes frame subscriptions before the controller is closed.
 ; Syntax ........: __WebView2_Frame_Cleanup($iView)
@@ -408,9 +525,13 @@ Func __WebView2_Frame_Cleanup($iView)
 		If $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OWNER] = $iView Then
 			Local $oFrame = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT]
 			Local $oFrame2 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT2]
+			Local $oFrame3 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT3]
+			Local $oFrame6 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT6]
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
+			If IsObj($oFrame3) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
+			If IsObj($oFrame6) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
 			If IsObj($oFrame) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
 			For $j = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 				$__g_aWebView2_Frames[$i][$j] = Null
@@ -425,6 +546,8 @@ Func __WebView2_Frame_Cleanup($iView)
 	$__g_aWebView2_FrameMessageCallback[$iView] = Null
 	$__g_aWebView2_FrameNavStartCallback[$iView] = Null
 	$__g_aWebView2_FrameNavCompleteCallback[$iView] = Null
+	$__g_aWebView2_FramePermissionCallback[$iView] = Null
+	$__g_aWebView2_FrameCaptureCallback[$iView] = Null
 	Return
 EndFunc   ;==>__WebView2_Frame_Cleanup
 
@@ -532,6 +655,88 @@ Func _WebView2_Frame_GetName($iFrame)
 	If $iError Then __WebView2_Error($sFuncName, $iError, $sMessage, $iExtended)
 	Return SetError($iError, $iExtended, $sResult)
 EndFunc   ;==>_WebView2_Frame_GetName
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Frame_PostSharedBuffer
+; Description ...: Sends binary data to one frame as a read-only shared ArrayBuffer.
+; Syntax ........: _WebView2_Frame_PostSharedBuffer($iFrame, $bData[, $sAdditionalJSON = ""])
+; Parameters ....: $iFrame - Tracked frame ID.
+;                  $bData - Nonempty AutoIt binary value (less than 2 GB).
+;                  $sAdditionalJSON - Optional JSON metadata delivered with the buffer.
+; Return values .: True, or False with @error set; @extended contains the native HRESULT.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Script handles sharedbufferreceived and calls chrome.webview.releaseBuffer on the received ArrayBuffer.
+; Related .......: _WebView2_Frame_List
+; Link ..........: https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2frame4
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Frame_PostSharedBuffer($iFrame, $bData, $sAdditionalJSON = "")
+	Local Const $sFuncName = "_WebView2_Frame_PostSharedBuffer"
+	Local $sMessage = "Frame shared buffer delivery failed."
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		Local $iSlot = __WebView2_Frame_Find($iFrame)
+		If $iSlot < 0 Or Not IsBinary($bData) Or Not IsString($sAdditionalJSON) Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $iSize = BinaryLen($bData)
+		If $iSize < 1 Or $iSize >= 2147483648 Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $oFrame4 = __WebView2_Frame_QueryInterface($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_POINTER], _
+				$WEBVIEW2_IID_ICoreWebView2Frame4, $WEBVIEW2_DTAG_ICoreWebView2Frame4)
+		$iError = @error
+		$iExtended = @extended
+		If $iError Then ExitLoop 1
+		Local $oEnvironment12 = __WebView2_Frame_QueryInterface($__g_pWebView2_Environment, _
+				$WEBVIEW2_IID_ICoreWebView2Environment12, $WEBVIEW2_DTAG_ICoreWebView2Environment12)
+		$iError = @error
+		$iExtended = @extended
+		If $iError Then ExitLoop 1
+		Local $pBuffer = 0
+		Local $iHRESULT = $oEnvironment12.CreateSharedBuffer($iSize, $pBuffer)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Or Not $pBuffer Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		Local $oBuffer = ObjCreateInterface($pBuffer, $WEBVIEW2_IID_ICoreWebView2SharedBuffer, $WEBVIEW2_DTAG_ICoreWebView2SharedBuffer)
+		If Not IsObj($oBuffer) Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $WEBVIEW2_E_NOINTERFACE
+			ExitLoop 1
+		EndIf
+		Local $pBytes = 0
+		$iHRESULT = $oBuffer.get_Buffer($pBytes)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Or Not $pBytes Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		Local $tBytes = DllStructCreate("byte[" & $iSize & "]", $pBytes)
+		If @error Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		DllStructSetData($tBytes, 1, $bData)
+		If @error Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		$iHRESULT = $oFrame4.PostSharedBufferToScript($pBuffer, $WEBVIEW2_SHARED_BUFFER_READ_ONLY, $sAdditionalJSON)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		$bResult = True
+	Until True
+	If $iError Then __WebView2_Error($sFuncName, $iError, $sMessage, $iExtended)
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Frame_PostSharedBuffer
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_Frame_ExecuteScript
