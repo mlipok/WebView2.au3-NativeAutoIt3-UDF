@@ -1,5 +1,3 @@
-; #WIP - Work in Progress
-; Native virtual-host-to-folder mapping is not implemented.
 ; Standalone functional copy/adaptation of the GitHub example by ioa747.
 ; Source: https://github.com/ioa747/NetWebView2Lib/blob/main/examples/017-MappedFolder.au3
 #Tidy_ILC_Pos=44
@@ -16,6 +14,8 @@ Global $g_EX_hGUI = 0, $g_EX_iView = -1
 Global $g_EX_idAddress = 0, $g_EX_idStatus = 0, $g_EX_sPage = "", $g_EX_sQueue = "", $g_EX_iSender = -1
 Global $g_EX_bDone = False, $g_EX_bOK = False, $g_EX_sPath = ""
 Global $g_EX_bSmoke = False
+Global Const $g_EX_sHost = "udf-virtual-host.example"
+Global Const $g_EX_sSampleFolder = @ScriptDir & "\assets\native"
 
 Exit _EX_Run()
 
@@ -40,7 +40,7 @@ Func _EX_Run()
 		Local $idBack = GUICtrlCreateButton("<", 5, 5, 30, 25), $idForward = GUICtrlCreateButton(">", 40, 5, 30, 25)
 		Local $idReload = GUICtrlCreateButton("Reload", 75, 5, 70, 25), $idStop = GUICtrlCreateButton("Stop", 150, 5, 45, 25)
 		$g_EX_idAddress = GUICtrlCreateInput("", 200, 5, 705, 25)
-		Local $idGo = GUICtrlCreateButton("Go", 910, 5, 50, 25), $idOpen = GUICtrlCreateButton("Open file", 965, 5, 125, 25)
+		Local $idGo = GUICtrlCreateButton("Go", 910, 5, 50, 25), $idOpen = GUICtrlCreateButton("Open mapped file", 965, 5, 125, 25)
 		Local $aLabels[3] = ["Document source", "Local page", "DevTools"]
 		Local $aAction[3]
 		For $i = 0 To 2
@@ -57,11 +57,11 @@ Func _EX_Run()
 		If @error Then ExitLoop
 		_WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_NAVIGATION_COMPLETED, _EX_Done)
 		_WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED, _EX_Message)
-		$g_EX_sPage = _EX_URI(@ScriptDir & "\assets\native\217.html")
-		If Not _EX_Navigate($g_EX_iView, $g_EX_sPage) Then ExitLoop
+		$g_EX_sPage = "https://" & $g_EX_sHost & "/217.html"
+		If Not _EX_LoadLocal() Then ExitLoop
 		If Not _EX_Wait() Then ExitLoop
 		GUICtrlSetData($g_EX_idAddress, $g_EX_sPage)
-		_EX_Status("Loaded example 217. Page messages are handled in the AutoIt loop.")
+		_EX_Status("Mapped " & $g_EX_sSampleFolder & " to https://" & $g_EX_sHost & "/")
 		If $g_EX_bSmoke Then
 			If _EX_Check() Then
 				ConsoleWrite("EX_SMOKE_OK example=217 arch=" & (@AutoItX64 ? "x64" : "x86") & @CRLF)
@@ -193,11 +193,11 @@ EndFunc   ;==>_EX_Message
 
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
-; Name ..........: _EX_URI
-; Description ...: Converts a Windows path to a local file URI.
-; Syntax ........: _EX_URI($sPath)
-; Parameters ....: $sPath - Absolute file or folder path.
-; Return values .: URI with special path characters escaped.
+; Name ..........: _EX_LoadLocal
+; Description ...: Maps the bundled asset folder and loads the local demonstration page.
+; Syntax ........: _EX_LoadLocal()
+; Parameters ....: None.
+; Return values .: True on success, False on mapping or navigation failure.
 ; Author ........: ioa747
 ; Modified ......: mLipok
 ; Remarks .......: Example helper; the public WebView2 API is unchanged.
@@ -205,14 +205,16 @@ EndFunc   ;==>_EX_Message
 ; Link ..........:
 ; Example .......: No
 ; ================================================================================================================================
-Func _EX_URI($sPath)
-	Local $sURI = "file:///" & StringReplace($sPath, "\", "/")
-	$sURI = StringReplace($sURI, "%", "%25")
-	$sURI = StringReplace($sURI, " ", "%20")
-	$sURI = StringReplace($sURI, "#", "%23")
-	$sURI = StringReplace($sURI, "?", "%3F")
-	Return $sURI
-EndFunc   ;==>_EX_URI
+Func _EX_LoadLocal()
+	Local $bOK = False
+	Do
+		If Not FileExists($g_EX_sSampleFolder & "\217.html") Or Not FileExists($g_EX_sSampleFolder & "\217.css") Or Not FileExists($g_EX_sSampleFolder & "\217.js") Or Not FileExists($g_EX_sSampleFolder & "\217-details.html") Then ExitLoop
+		If Not _WebView2_SetVirtualHostNameToFolderMapping($g_EX_iView, $g_EX_sHost, $g_EX_sSampleFolder) Then ExitLoop
+		$bOK = _EX_Navigate($g_EX_iView, $g_EX_sPage)
+		If $bOK Then GUICtrlSetData($g_EX_idAddress, $g_EX_sPage)
+	Until True
+	Return $bOK
+EndFunc   ;==>_EX_LoadLocal
 
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
@@ -278,7 +280,7 @@ Func _EX_Action($iAction)
 	Local $aScript[3] = ["location.href", "location.href", "document.title"]
 	Switch $iAction
 		Case 1
-			$bOK = _EX_Navigate($g_EX_iView, $g_EX_sPage)
+			$bOK = _EX_LoadLocal()
 		Case 2
 			$bOK = _WebView2_OpenDevToolsWindow($g_EX_iView)
 		Case Else
@@ -292,7 +294,7 @@ EndFunc   ;==>_EX_Action
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
 ; Name ..........: _EX_Open
-; Description ...: Opens a selected local file in the feature-specific viewer or editor.
+; Description ...: Maps the selected file's folder and opens it through the virtual HTTPS host.
 ; Syntax ........: _EX_Open()
 ; Parameters ....: None.
 ; Return values .: True on success or cancellation; False on failure.
@@ -308,8 +310,26 @@ Func _EX_Open()
 	Local $sPath = FileOpenDialog("Open local document", @MyDocumentsDir, "Document (*.pdf;*.html;*.htm;*.png;*.jpg;*.svg;*.txt;*.csv;*.json)", $FD_FILEMUSTEXIST, "", $g_EX_hGUI)
 	If Not @error Then
 		$g_EX_sPath = $sPath
-		$bOK = _EX_Navigate($g_EX_iView, _EX_URI($sPath))
-		If $bOK Then GUICtrlSetData($g_EX_idAddress, _EX_URI($sPath))
+		Local $iSeparator = StringInStr($sPath, "\", 0, -1)
+		If $iSeparator < 1 Then
+			$bOK = False
+		Else
+			Local $sFolder = StringLeft($sPath, $iSeparator)
+			Local $sName = StringTrimLeft($sPath, $iSeparator)
+			$bOK = _WebView2_SetVirtualHostNameToFolderMapping($g_EX_iView, $g_EX_sHost, $sFolder)
+			If $bOK Then
+				Local $sEncodedName = _WebView2_EncodeURI($g_EX_iView, $sName)
+				$bOK = (@error = 0)
+				If $bOK Then
+					Local $sURI = "https://" & $g_EX_sHost & "/" & $sEncodedName
+					$bOK = _EX_Navigate($g_EX_iView, $sURI)
+					If $bOK Then
+						GUICtrlSetData($g_EX_idAddress, $sURI)
+						_EX_Status("Mapped " & $sFolder & " to https://" & $g_EX_sHost & "/")
+					EndIf
+				EndIf
+			EndIf
+		EndIf
 	EndIf
 	Return $bOK
 EndFunc   ;==>_EX_Open

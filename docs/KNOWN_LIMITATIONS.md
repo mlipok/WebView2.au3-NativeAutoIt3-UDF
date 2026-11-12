@@ -49,7 +49,7 @@ Useful candidates for later releases include:
 - accelerator-key settings and default background color through newer interface revisions;
 - asynchronous/nonblocking public variants of current synchronous helpers.
 
-The functional GitHub example copies retain explicit WIP entries for PDF.js and the older virtual-folder example. Example 207 now exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
+The functional GitHub example copies retain an explicit WIP entry for PDF.js. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
 
 ## TODO: Migration from other projects
 
@@ -72,7 +72,3 @@ Review external ideas against the current native UDF before implementing them. T
 | [AutoIt Forum WebView2 0.10.0 extension announcement](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/page/2/#findComment-1555760) | Native browser-extension management | Native environment switch and profile add/list/enable/remove wrappers are implemented alongside the experimental CDP helpers; targeted x86/x64 runs verified those operations and enabled-state persistence across initialization cycles. | Confirm the sample GUI manually and review behavior with older Runtimes; the example content script ran after reloading its local page. |
 
 For each daily review, add only a genuinely new or materially changed candidate, link its source, record the current UDF status and avoid duplicates. Proposals are reported in the ongoing project chat; implementation requires a separate task.
-
-## TODO: Refresh mapped-folder example
-
-`217-MappedFolder.au3` still uses `file:///` and its WIP text says virtual-host mapping is not implemented. Review that example separately against the implemented `_WebView2_SetVirtualHostNameToFolderMapping()` API.

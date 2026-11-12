@@ -1,0 +1,4 @@
+body { font: 16px/1.5 "Segoe UI", sans-serif; margin: 30px; color: #203047; background: #f7f9fc; }
+h1 { color: #164a7f; }
+#asset-status { padding: 12px; background: #e0f2e9; }
+button { font: inherit; padding: 8px 14px; }

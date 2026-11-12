@@ -1,5 +1,16 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><title>Folder mapping — WIP</title><style>body{font:16px/1.6 "Segoe UI",sans-serif;margin:24px;color:#223;background:#f7f9fc}h1{font-size:25px}button,input,select,textarea{font:inherit;padding:7px;margin:3px}button{cursor:pointer}textarea{width:95%;height:190px;font-family:Consolas,monospace}pre{white-space:pre-wrap;background:#e8eef6;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #bcc9dc;padding:6px 12px}th{cursor:pointer;background:#dce6f5}details{margin-left:18px}mark{background:gold}.wip{border-left:6px solid #d88900;padding:12px;background:#fff0cb}nav{display:flex;gap:8px}input[type=checkbox]{width:20px;height:20px}</style><h1>Folder mapping — WIP</h1><p class="wip">#WIP - Work in Progress: native virtual-host-to-folder mapping is not yet implemented in the UDF. This example demonstrates file:/// navigation to folder resources.</p><p>Use the AutoIt toolbar to open a local PDF, image, or HTML file.</p><p><a href="201.html">Another local page</a></p><script>window.send = text => window.chrome.webview.postMessage(String(text));
-window.demoResult = () => document.title;
-window.demoCheck = () => !!document.querySelector('h1');
-
-</script></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mapped folder example</title>
+  <link rel="stylesheet" href="217.css">
+  <script defer src="217.js"></script>
+</head>
+<body>
+  <h1>Folder mapped to a virtual HTTPS host</h1>
+  <p>This document, its stylesheet, and its script are loaded from a local folder through <code>https://udf-virtual-host.example/</code>.</p>
+  <p id="asset-status">Waiting for the local script.</p>
+  <button id="send-message" type="button">Send a message to AutoIt</button>
+  <p><a href="217-details.html">Open another file from the mapped folder</a></p>
+</body>
+</html>
