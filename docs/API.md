@@ -129,12 +129,29 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED` — callback `($iWebView, $iFrame, $sURI, $iKind, $bUserInitiated)`. Return `ALLOW` or `DENY`, optionally as `[state, saveInProfile]`, to handle the frame request immediately. Return `DEFAULT` to let the request continue to the normal WebView2 handling path. The optional profile flag requires a compatible Runtime.
 - `$WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING` — callback `($iWebView, $iFrame)`. Return `True` to cancel that frame's screen capture request and mark it handled; return `False` to leave it to WebView2. Do not block inside the callback.
 - `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED` — callback `($iWebView, $sURI, $bUserInitiated)`; return `True` to suppress the popup, or `$WEBVIEW2_NEW_WINDOW_DEFER` to request native handoff in the host loop.
+- `$WEBVIEW2_EVENT_DOWNLOAD_STARTING` — callback `($iWebView, $iDownload, $sURI, $sSuggestedPath, $sMimeType)`; return a policy described below.
+- `$WEBVIEW2_EVENT_DOWNLOAD_PROGRESS` — callback `($iWebView, $iDownload, $iBytesReceived, $iTotalBytes)`.
+- `$WEBVIEW2_EVENT_DOWNLOAD_STATE_CHANGED` — callback `($iWebView, $iDownload, $iState, $iInterruptReason)`.
 
 Callback signatures are documented in README.md and the examples.
 
 ### Native new-window handoff
 
 Return `$WEBVIEW2_NEW_WINDOW_DEFER` from the `NewWindowRequested` callback. Outside that callback, call `_WebView2_NewWindow_Request_List([$iSource = Default])` to get pending request IDs, optionally `_WebView2_NewWindow_Request_GetInfo($iRequest)` to read `[source ID, URI, user-initiated flag]`, and create a fresh controller in the same environment. Call `_WebView2_NewWindow_Complete($iRequest, $iNewWebView)` **before** navigating that controller. The UDF calls native `put_NewWindow` and completes the deferral; WebView2 then navigates the target itself and preserves `window.opener` and the opener's `WindowProxy`. `_WebView2_NewWindow_Cancel($iRequest)` blocks a pending request. Destroying the source controller cancels its pending requests. The host must complete or cancel requests promptly and must not create a controller inside the native callback. [Example 023](../examples/023_NewWindowTabs.au3) demonstrates this flow.
+
+### Native downloads
+
+Register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_DOWNLOAD_STARTING, $fn)` before triggering a download. The callback receives `($iWebView, $iDownload, $sURI, $sSuggestedPath, $sMimeType)` and may return:
+
+- `Default` to keep the Runtime's normal path and download UI;
+- `$WEBVIEW2_DOWNLOAD_CANCEL` to deny the download before saving;
+- `[$sAbsolutePath, $bHideDefaultUI]` to choose a destination and optionally hide WebView2's download UI.
+
+The UDF rejects an existing destination or a nonabsolute path by cancelling the request. WebView2 can overwrite an existing file when given its path, so applications should create unique names and validate the download source before accepting it. The starting callback is synchronous: return promptly and do not invoke blocking WebView2 helpers in it.
+
+`$WEBVIEW2_EVENT_DOWNLOAD_PROGRESS` receives `($iWebView, $iDownload, $iBytesReceived, $iTotalBytes)`. Total bytes can be `-1` when unknown. `$WEBVIEW2_EVENT_DOWNLOAD_STATE_CHANGED` receives `($iWebView, $iDownload, $iState, $iInterruptReason)`. State constants are `$WEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS`, `$WEBVIEW2_DOWNLOAD_STATE_INTERRUPTED`, and `$WEBVIEW2_DOWNLOAD_STATE_COMPLETED`.
+
+`_WebView2_Download_List($iWebView)` returns tracked IDs. `_WebView2_Download_GetInfo($iDownload)` returns `[URI, file path, MIME type, received bytes, total bytes, state, interrupt reason]`. `_WebView2_Download_Cancel($iDownload)` cancels an operation. The registry retains at most 64 active/recent operations across all views; completed entries are replaced by new downloads when full, and all entries are released when their view is destroyed. See [example 206](../examples/206-DownloadDemo.au3).
 
 ## Diagnostics
 

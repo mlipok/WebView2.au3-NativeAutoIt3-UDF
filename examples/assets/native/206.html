@@ -1,5 +1,33 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><title>File downloads — WIP</title><style>body{font:16px/1.6 "Segoe UI",sans-serif;margin:24px;color:#223;background:#f7f9fc}h1{font-size:25px}button,input,select,textarea{font:inherit;padding:7px;margin:3px}button{cursor:pointer}textarea{width:95%;height:190px;font-family:Consolas,monospace}pre{white-space:pre-wrap;background:#e8eef6;padding:16px}table{border-collapse:collapse}td,th{border:1px solid #bcc9dc;padding:6px 12px}th{cursor:pointer;background:#dce6f5}details{margin-left:18px}mark{background:gold}.wip{border-left:6px solid #d88900;padding:12px;background:#fff0cb}nav{display:flex;gap:8px}input[type=checkbox]{width:20px;height:20px}</style><h1>File downloads — WIP</h1><p class="wip">#WIP - Work in Progress: DownloadStarting, progress, and cancellation callbacks are missing. Downloads use the default WebView2 behavior.</p><button onclick="download()">Download sample file</button><script>window.send = text => window.chrome.webview.postMessage(String(text));
-window.demoResult = () => document.title;
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Native file downloads</title>
+<style>
+body { font: 16px/1.5 "Segoe UI", sans-serif; margin: 24px; color: #223; background: #f7f9fc; }
+button { font: inherit; padding: 9px 16px; cursor: pointer; }
+aside { margin-top: 18px; padding: 16px; background: #e8eef6; }
+</style>
+<h1>Native file downloads</h1>
+<p>The AutoIt host decides whether to allow or deny each download, chooses a unique destination under Documents, and receives native progress and state events.</p>
+<p>Use <strong>Download main ZIP</strong> or <strong>Deny main ZIP</strong> in the AutoIt toolbar. The page button below uses the same GitHub source. Use <strong>Cancel current</strong> while a transfer is active.</p>
+<button onclick="downloadArchive()">Download GitHub main ZIP</button>
+<aside>This download needs an internet connection. The separate AutoIt <code>--smoke</code> modes generate a local file and need no internet.</aside>
+<script>
 window.demoCheck = () => !!document.querySelector('h1');
-function download(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['AutoIt WebView2\n'],{type:'text/plain'}));a.download='demo.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
-</script></html>
+function downloadArchive() {
+  const link = document.createElement('a');
+  link.href = 'https://codeload.github.com/mlipok/WebView2.au3-NativeAutoIt3-UDF/zip/refs/heads/main';
+  link.click();
+}
+function download() {
+  const block = 'WebView2 download example\n'.repeat(1024);
+  const chunks = Array(640).fill(block);
+  const url = URL.createObjectURL(new Blob(chunks, { type: 'text/plain' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'demo.txt';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+</script>
+</html>
