@@ -4,10 +4,7 @@ Native Microsoft Edge WebView2 hosting for AutoIt — **pure AutoIt + Win32 WebV
 
 Version: **0.6.0**
 
-**COM initialization note:** v0.1.5 correctly treats both `S_OK` and `S_FALSE` from `CoInitializeEx()` as success and reports actual failing HRESULT values.
 WebView2 SDK loader pinned by setup tooling: **Microsoft.Web.WebView2 1.0.4191.47**
-
-**Shutdown lifetime note:** v0.1.5 removes explicit `Release()` calls for persistent AutoIt COM wrappers and lets wrapper destruction perform the matching release after event unsubscribe and `Controller.Close()`.
 
 ## Project origin
 
@@ -24,7 +21,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - native `WebView2Loader.dll` loading for x86/x64 AutoIt;
 - STA COM initialization and cleanup;
 - shared `ICoreWebView2Environment`;
-- up to 32 sequentially-created WebView2 instances;
+- up to 32 live WebView2 instances;
 - create/destroy and parent-window bounds management;
 - navigation to URL or an HTML string;
 - back / forward / reload / stop;
@@ -34,7 +31,11 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - native-to-web messages (`PostWebMessageAsString`, `PostWebMessageAsJson`);
 - virtual HTTPS host to local folder mapping (`ICoreWebView2_3`);
 - web-to-AutoIt `WebMessageReceived` callback;
-- callbacks for navigation start/completion, title changes, document-audio state and mute state;
+- callbacks for navigation, new windows, web messages, permissions, document-audio state and mute state;
+- managed tabs and native new-window handoff that preserves `window.opener`;
+- native iframe tracking, messaging, script execution, permissions and read-only shared buffers;
+- screenshot, PDF and MHTML export to files or AutoIt binary values;
+- native profile extension installation, listing, enable/disable and removal (opt-in);
 - DevTools window;
 - runtime detection/version query;
 - diagnostic `@error`, `@extended`, and description helpers.
@@ -48,6 +49,8 @@ WebView2_Interfaces.au3
 WebView2_CallbackObject.au3
 WebView2_Core.au3
 WebView2_Frame.au3
+WebView2_NewWindow.au3
+WebView2_Extensions.au3
 WebView2_DOM.au3
 WebView2_IECompat.au3
 WebView2_Advanced.au3
@@ -68,11 +71,14 @@ examples/
     029_DarkAppearance.au3
     030_XPathElements.au3
     031_PermissionRequests.au3
+    032_NativeExtensions.au3
+    033_AdvancedFrameAPIs.au3
 docs/
     API.md
     ARCHITECTURE.md
     API_COMPARISON.md
     AU3WEBDRIVER_MAPPING.md
+    EXAMPLES.md
     KNOWN_LIMITATIONS.md
 tools/
     Get-WebView2Loader.ps1
@@ -87,7 +93,7 @@ bin/
 
 ### 1. WebView2 native loader
 
-This project archive currently includes the x86 and x64 `WebView2Loader.dll` files used by the tested baseline. To refresh them from the pinned official Microsoft.Web.WebView2 NuGet package, run:
+The GitHub source checkout does not track `WebView2Loader.dll`. The release package includes verified x86 and x64 copies. In a source checkout, or to refresh the release copies from the pinned official Microsoft.Web.WebView2 NuGet package, run:
 
 ```powershell
 .\tools\Get-WebView2Loader.ps1
@@ -129,7 +135,8 @@ ConsoleWrite(_WebView2_Runtime_GetVersion() & @CRLF)
 Local $hGUI = GUICreate("WebView2.au3", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
 GUISetState(@SW_SHOW, $hGUI)
 
-If Not _WebView2_Init() Then Exit MsgBox($MB_ICONERROR, "WebView2", _WebView2_Error_GetDescription())
+Local $sProfile = @LocalAppDataDir & "\WebView2.au3\README-Basic"
+If Not _WebView2_Init(Default, $sProfile) Then Exit MsgBox($MB_ICONERROR, "WebView2", _WebView2_Error_GetDescription())
 
 Local $iWebView = _WebView2_Create($hGUI)
 If @error Then Exit MsgBox($MB_ICONERROR, "WebView2", _WebView2_Error_GetDescription())
@@ -150,6 +157,8 @@ GUIDelete($hGUI)
 ```
 
 See the complete examples in [`examples/`](examples/).
+
+The basic example keeps its WebView2 profile under the current user's local application data folder. An uncompiled script that uses WebView2's default profile can otherwise create a profile beside `AutoIt3.exe`.
 
 Version 0.5.0 adds managed tabs: `_WebView2_Tab_Create()`, `_WebView2_Tab_Activate()`, `_WebView2_Tab_Close()` and `_WebView2_Tab_List()`. A tab ID is also its WebView2 instance ID. `_WebView2_Instance_List()` lists every live instance, including views not managed as tabs. Both list functions return an AutoIt array with the count in `[0]` and IDs in `[1..count]`. See [`022_Tabs.au3`](examples/022_Tabs.au3). For `target="_blank"` and `window.open`, register `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED`; return `$WEBVIEW2_NEW_WINDOW_DEFER` and create a fresh tab in the host loop, then pass it to `_WebView2_NewWindow_Complete()`. [`023_NewWindowTabs.au3`](examples/023_NewWindowTabs.au3) demonstrates native handoff, which preserves `window.opener`. Returning `True` still suppresses a popup.
 
@@ -182,7 +191,20 @@ DocumentTitleChanged:
 
 WebMessageReceived:
     Func Callback($iWebView, $sMessage, $sSource, $bJSON)
+
+NewWindowRequested:
+    Func Callback($iWebView, $sURI, $bUserInitiated)
+    Return True to suppress, or $WEBVIEW2_NEW_WINDOW_DEFER for native handoff.
+
+PermissionRequested:
+    Func Callback($iWebView, $sURI, $iKind, $bUserInitiated)
+    Return $WEBVIEW2_PERMISSION_STATE_DEFAULT, _ALLOW or _DENY.
+
+DocumentPlayingAudioChanged / MutedChanged:
+    Func Callback($iWebView, $bState)
 ```
+
+Frame callback shapes and native new-window request handling are documented in [API.md](docs/API.md). Keep callbacks that decide native events prompt; do not call blocking WebView2 helpers from them.
 
 For web-to-host messaging JavaScript can use:
 
