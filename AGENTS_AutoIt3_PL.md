@@ -1,4 +1,4 @@
-# Instrukcje AutoIt 3 — tłumaczenie polskie
+# Instrukcje AutoIt3 — tłumaczenie polskie
 
 Przy pracy z plikami źródłowymi AutoIt po przeczytaniu głównego `AGENTS.md` przeczytaj i stosuj `AGENTS_AutoIt3_rules.md`. Główny `AGENTS.md` określa dozwolony zakres i ma pierwszeństwo w razie sprzeczności zasad. `AGENTS_AutoIt3_rules.md` jest nadrzędną angielską wersją wydzielonych reguł AutoIt.
 

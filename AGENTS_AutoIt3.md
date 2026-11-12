@@ -1,4 +1,4 @@
-# AutoIt 3 instructions
+# AutoIt3 instructions
 
 For work on AutoIt source files, read and apply `AGENTS_AutoIt3_rules.md` after reading the main `AGENTS.md`. The main `AGENTS.md` defines the permitted scope and takes precedence if instructions conflict. `AGENTS_AutoIt3_rules.md` is the authoritative English version of the extracted AutoIt rules.
 

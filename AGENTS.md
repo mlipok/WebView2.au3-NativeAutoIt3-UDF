@@ -1,8 +1,10 @@
 # WebView2.au3 project instructions
 
-## AutoIt 3 rules
+## AutoIt3 rules
 
-When working on AutoIt source files, read and apply `AGENTS_AutoIt3.md` and the authoritative `AGENTS_AutoIt3_rules.md` in addition to this file. The main `AGENTS.md` defines the permitted scope and takes precedence if instructions conflict. The Polish translations are `AGENTS_AutoIt3_PL.md` and `AGENTS_AutoIt3_reguły.md`; keep them synchronized as required by `AGENTS_AutoIt3.md`.
+When working on AutoIt source files, read and apply `AGENTS_AutoIt3.md` and the authoritative `AGENTS_AutoIt3_rules.md` in addition to this file.
+
+The main `AGENTS.md` defines the permitted scope and takes precedence if instructions conflict.
 
 ## Scope
 

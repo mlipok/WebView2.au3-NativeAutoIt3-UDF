@@ -1,4 +1,13 @@
-# Reguły AutoIt 3 — tłumaczenie polskie
+# Reguły AutoIt3 — tłumaczenie polskie
+
+## Wykluczenia z kontroli
+
+- Nie sprawdzaj plików pasujących do wzorca `*_stripped.au3`.
+- Nie sprawdzaj plików pasujących do wzorców `* copy.au3` lub `*-copy.au3`, także ich odpowiedników w języku środowiska Windows, takich jak polskie `* kopia.au3` i `*-kopia.au3`.
+- Nie sprawdzaj plików pasujących do wzorca `*.au3.bak`; są to kopie zapasowe tworzone przez narzędzia takie jak grepWin.
+- Nie sprawdzaj katalogów o nazwie `BackUp` ani katalogów pasujących do wzorca `*test*`, włącznie z zawartymi w nich plikami i podkatalogami.
+- Dopasowuj te wzorce bez rozróżniania wielkości liter.
+- Stosuj wykluczenia podczas wyszukiwania odwołań, analizy zależności, przeglądu kodu i wprowadzania zmian.
 
 ## Kontrola kodu AutoIt
 
