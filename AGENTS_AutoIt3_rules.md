@@ -1,0 +1,56 @@
+# AutoIt 3 rules
+
+## AutoIt code validation
+
+Keep all `*.au3` source files in the repository in **UTF-8 without BOM** (the file must not start with `EF BB BF`) and use CRLF line endings. For every change, check the encoding before saving, after saving, and after running formatting tools; if an edited file has a BOM, remove it when saving. Do not replace UTF-8 with UTF-16. The `$FO_UTF8_NOBOM` constant controls how `FileOpen()` reads or writes data files; it does not replace checking the encoding of the `*.au3` source file itself. This rule does not expand the scope of files permitted for a given task.
+
+Use the portable AutoIt installation at `Z:\AutoItPortable\`:
+
+- AutoIt 3.3.18.0: `Z:\AutoItPortable\App\AutoIt3.exe`.
+- Au3Check 3.3.18.0: `Z:\AutoItPortable\App\Au3Check.exe`.
+- Tidy 25.205.1420.7: `Z:\AutoItPortable\App\SciTE\Tidy\Tidy.exe`.
+
+After preparing or modifying any `*.au3` code, run these tools in order:
+
+1. Tidy — format the code.
+2. Au3Check — check syntax and errors with:
+   `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`.
+
+Run Tidy only with an explicit path to an existing, specific `.au3` file, passed as its sole argument as documented by this installation's SciTE `au3.properties`. Do not add `/q`. Never run Tidy without a file path or with `/?`, even to test the program, check its invocation syntax, display help, or diagnose a problem. These invocations can open an interactive file-selection window and leave a `Tidy.exe` process running. Determine how to invoke it from documentation or existing valid invocations, without launching Tidy in this way.
+After running Tidy, check that its process has exited. If a file-selection window appears, close it and ensure that no orphaned `Tidy.exe` process remains.
+
+If Au3Check fails to start with a DLL relocation or process-launch error in the restricted Codex environment, retry the same command outside that environment using `Z:\AutoItPortable\App\Au3Check.exe`. Record the tool path, version, execution context, and actual error and warning counts. Never report a launch failure as a syntax-check result. Check dependent modules through their public include entry point when a standalone check lacks required declarations.
+
+If the file uses an AutoIt3Wrapper directive, use exactly:
+
+```autoit
+#AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
+```
+
+In the change report, state the results of both checks, including all errors and warnings. If either tool could not be run, say so explicitly in the report.
+
+Changes limited solely to the color, size, or position of interface elements do not require GUI tests. Do not run a GUI test only to confirm such changes. Still run Tidy and Au3Check for modified `*.au3` files. If program behavior also changes, verify that behavior to the extent needed.
+
+## AutoIt function headers, UDF development, and best coding practices
+
+- Before creating or reviewing a UDF, also check `AutoIt_Best_coding_practices.md` for guidance on function use, variable names and scope, initialization, constants, Au3Check directives, magic numbers, and `#include-once`. Treat its guidance as recommendations; follow the specific repository rules in this file where they differ.
+- When writing, reviewing, or calling AutoIt functions, check `Function_notes.md` for function values, optional parameters, return values, `@error`, and `@extended`. If a called function reports failure through `@error`, check that flag immediately before relying on its return value.
+- Before writing or reviewing an AutoIt function header, check `UDF-spec.md`, especially **Functions → Headers** and **Internal use only**. The source page is marked as a work in progress; where it differs from the repository-specific rules below, follow these rules.
+- Use a `; #FUNCTION#` block for public functions and a `; #INTERNAL_USE_ONLY#` block for helper functions. Keep the standard field layout used in this repository: `Name`, `Description`, `Syntax`, `Parameters`, `Return values`, `Author`, `Modified`, `Remarks`, `Related`, `Link`, `Example`.
+- Keep `Description` concise. In `Parameters`, explain the meaning of arguments, default values, and `ByRef` where these affect use of the function. The header must match the actual signature and execution paths.
+- Use `Modified` to name people who helped modify the function. Do not put dates, change descriptions, or version history there.
+- In `Return values`, describe the actual values returned on success and failure. Where the function makes this distinction, use `On Success - ...` and `On Failure - ... and sets @error ...`. Do not force this split on functions that merely preserve a received `@error` or return a Boolean without setting their own error state.
+- Document `@error` codes in that function's `Return values`, not in `Remarks` or in a combined list under another function. A single code may appear on one line; list multiple codes on separate lines with their meanings. Include only codes that the function actually sets or propagates.
+- If a function propagates `@error` and `@extended` from another function, say so in `Return values` and identify the source. Explain `@extended` when it carries information useful to the caller. Do not assign a helper function's error codes meanings they do not have in the public function.
+- Use `Remarks` for behavior, limitations, and the meaning of states—for example, whether COM accepting a command confirms that a document was actually displayed. Do not move lists of `@error` codes there.
+
+Example for a function with several error codes:
+
+```autoit
+; Return values .: On Success - 1.
+;                  On Failure - 0 and sets @error to one of the following:
+;                    1 = Invalid input.
+;                    2 = Unavailable GUI.
+;                    3 = Operation failed.
+;                  @extended contains the underlying error when available.
+```
