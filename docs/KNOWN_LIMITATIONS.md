@@ -51,22 +51,6 @@ Useful candidates for later releases include:
 
 The functional GitHub example copies have explicit WIP entries for downloads, HTTP response tracking, PDF.js and the older virtual-folder example. See [EXAMPLES.md](EXAMPLES.md).
 
-## TODO: Unify example virtual-host names
-
-Review completed on 2026-11-12. The download example 206 on the separate `feat/native-downloads` branch already maps `https://udf-virtual-host.example/206.html`. Seven other examples still map their own hosts. Change them on a dedicated implementation branch; keep the folder mapping local to each example and update every origin check alongside the URL.
-
-| Example | Current virtual host | Changes required |
-| --- | --- | --- |
-| `024_BlazorCalendar.au3` | `autoit-calendar.example` | Change the host/origin constants and the URL in `024_BlazorCalendar/README.md`; verify the WebAssembly ready/message exchange and cached resources under the new origin. Give this example an explicit profile outside the AutoIt installation directory before running it. |
-| `026_VirtualHostMapping.au3` | `autoit-mapping.example` | Change the host/origin constants and verify local HTML, CSS, JavaScript and message-source checks. Give this example an explicit profile outside the AutoIt installation directory before running it. |
-| `027_NativeFrames.au3` | `native-frame.example` | Change the mapping and navigation URL together with the origin allowlist passed to `_WebView2_Frame_AddHostObjectToScriptWithOrigins()`. |
-| `028_NestedFrames.au3` | `nested-frames.example` | Change the mapping and navigation URL; verify frame listing and label updates. |
-| `031_PermissionRequests.au3` | `autoit-permission.example` | Change the host/origin constants and verify that permission decisions still apply only to the intended local page. |
-| `032_NativeExtensions.au3` | `extension-demo.local` | Change the mapping and navigation URL **and** the `matches` pattern in `assets/native/032-extension/manifest.json`. Reinstall the sample extension in its persistent example profile to verify the updated content-script match. |
-| `033_AdvancedFrameAPIs.au3` | `advanced-frame.example` | Change the mapping and navigation URL together with the exact frame-message source and geolocation-request origin checks. |
-
-Before implementation, check whether the shared host could reuse origin-scoped permissions, storage, service workers or extension state in any profile shared by examples. Keep each example's profile separate, preserve its existing resource-access mode, and run focused x86/x64 checks for the affected features. `217-MappedFolder.au3` is outside this rename because it currently uses `file:///`; its WIP text about missing UDF mapping is outdated and should be addressed separately.
-
 ## TODO: Migration from other projects
 
 Review external ideas against the current native UDF before implementing them. These entries are proposals, not claims of API compatibility or commitments to copy third-party code. Preserve this section as the single project TODO for findings from the three monitored sources. Last reviewed: 2026-11-11.
@@ -88,3 +72,19 @@ Review external ideas against the current native UDF before implementing them. T
 | [AutoIt Forum WebView2 0.10.0 extension announcement](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/page/2/#findComment-1555760) | Native browser-extension management | Native environment switch and profile add/list/enable/remove wrappers are implemented alongside the experimental CDP helpers; targeted x86/x64 runs verified those operations and enabled-state persistence across initialization cycles. | Confirm the sample GUI manually and review behavior with older Runtimes; the example content script ran after reloading its local page. |
 
 For each daily review, add only a genuinely new or materially changed candidate, link its source, record the current UDF status and avoid duplicates. Proposals are reported in the ongoing project chat; implementation requires a separate task.
+
+## TODO: Unify example virtual-host names
+
+Review completed on 2026-11-12. The download example 206 on the separate `feat/native-downloads` branch already maps `https://udf-virtual-host.example/206.html`. Seven other examples still map their own hosts. Change them on a dedicated implementation branch; keep the folder mapping local to each example and update every origin check alongside the URL.
+
+| Example | Current virtual host | Changes required |
+| --- | --- | --- |
+| `024_BlazorCalendar.au3` | `autoit-calendar.example` | Change the host/origin constants and the URL in `024_BlazorCalendar/README.md`; verify the WebAssembly ready/message exchange and cached resources under the new origin. Give this example an explicit profile outside the AutoIt installation directory before running it. |
+| `026_VirtualHostMapping.au3` | `autoit-mapping.example` | Change the host/origin constants and verify local HTML, CSS, JavaScript and message-source checks. Give this example an explicit profile outside the AutoIt installation directory before running it. |
+| `027_NativeFrames.au3` | `native-frame.example` | Change the mapping and navigation URL together with the origin allowlist passed to `_WebView2_Frame_AddHostObjectToScriptWithOrigins()`. |
+| `028_NestedFrames.au3` | `nested-frames.example` | Change the mapping and navigation URL; verify frame listing and label updates. |
+| `031_PermissionRequests.au3` | `autoit-permission.example` | Change the host/origin constants and verify that permission decisions still apply only to the intended local page. |
+| `032_NativeExtensions.au3` | `extension-demo.local` | Change the mapping and navigation URL **and** the `matches` pattern in `assets/native/032-extension/manifest.json`. Reinstall the sample extension in its persistent example profile to verify the updated content-script match. |
+| `033_AdvancedFrameAPIs.au3` | `advanced-frame.example` | Change the mapping and navigation URL together with the exact frame-message source and geolocation-request origin checks. |
+
+Before implementation, check whether the shared host could reuse origin-scoped permissions, storage, service workers or extension state in any profile shared by examples. Keep each example's profile separate, preserve its existing resource-access mode, and run focused x86/x64 checks for the affected features. `217-MappedFolder.au3` is outside this rename because it currently uses `file:///`; its WIP text about missing UDF mapping is outdated and should be addressed separately.
