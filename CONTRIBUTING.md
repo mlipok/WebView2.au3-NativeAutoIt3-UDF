@@ -6,7 +6,7 @@ Contributions are welcome, especially fixes validated with both AutoIt x86 and x
 
 1. Keep the public API in `WebView2.au3` backward compatible unless the change is explicitly documented as breaking.
 2. Keep COM lifetime changes isolated and explain every `AddRef`, wrapper lifetime, event unsubscribe and controller-close decision.
-3. Follow the repository's `AGENTS.md` and the linked AutoIt rules. Pass Tidy an explicit existing `.au3` file path and ensure its process exits; never invoke its file-selection dialog as a test.
+3. Follow the repository's `AGENTS.md` and any AutoIt rules it links to. Pass Tidy an explicit existing `.au3` file path as its sole argument and ensure its process exits; never invoke its file-selection dialog as a test.
 4. Run `tools\Validate-Project.ps1`.
 5. Run Au3Check with warnings 1-7 against `WebView2.au3` and every changed example. If the checker cannot start in a restricted environment, retry outside it and distinguish a launch failure from reported syntax errors.
 6. Smoke-test affected examples with the installed Evergreen WebView2 Runtime. Test both AutoIt architectures when claiming x86 and x64 behavior.
