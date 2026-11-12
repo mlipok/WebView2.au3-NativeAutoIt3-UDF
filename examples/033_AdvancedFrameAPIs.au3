@@ -40,8 +40,8 @@ Func _Example()
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _OnFrameMessage) Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED, _OnFramePermission) Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING, _OnFrameCapture) Then ExitLoop 1
-		If Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "advanced-frame.example", @ScriptDir & "\033_AdvancedFrameAPIs") Then ExitLoop 1
-		If Not _WebView2_Navigate($g_iView, "https://advanced-frame.example/index.html") Then ExitLoop 1
+		If Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "udf-virtual-host.example", @ScriptDir & "\033_AdvancedFrameAPIs") Then ExitLoop 1
+		If Not _WebView2_Navigate($g_iView, "https://udf-virtual-host.example/index.html") Then ExitLoop 1
 		$bSetup = True
 	Until True
 	If Not $bSetup Then
@@ -96,7 +96,7 @@ EndFunc   ;==>_OnFrameCreated
 
 Func _OnFrameMessage($iView, $iFrame, $sMessage, $sSource, $bJSON)
 	#forceref $bJSON
-	If $iView <> $g_iView Or $iFrame <> $g_iFrame Or $sSource <> "https://advanced-frame.example/frame.html" Then Return
+	If $iView <> $g_iView Or $iFrame <> $g_iFrame Or $sSource <> "https://udf-virtual-host.example/frame.html" Then Return
 	Switch $sMessage
 		Case "ready"
 			$g_bFrameReady = True
@@ -115,7 +115,7 @@ EndFunc   ;==>_OnFrameMessage
 
 Func _OnFramePermission($iView, $iFrame, $sURI, $iKind, $bUserInitiated)
 	#forceref $bUserInitiated
-	If $iView = $g_iView And $iFrame = $g_iFrame And $sURI = "https://advanced-frame.example/" And $iKind = $WEBVIEW2_PERMISSION_KIND_GEOLOCATION Then
+	If $iView = $g_iView And $iFrame = $g_iFrame And $sURI = "https://udf-virtual-host.example/" And $iKind = $WEBVIEW2_PERMISSION_KIND_GEOLOCATION Then
 		$g_iPermissionCount += 1
 		Local $aDecision[2] = [$WEBVIEW2_PERMISSION_STATE_DENY, False]
 		Return $aDecision

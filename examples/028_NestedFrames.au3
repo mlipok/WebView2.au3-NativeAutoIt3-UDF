@@ -49,9 +49,9 @@ Func _Example()
 		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, _OnFrameNavStart) Or _
 				Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _OnFrameNavComplete) Then
 			GUICtrlSetData($g_idStatus, "Frame navigation events failed: " & _WebView2_Error_GetDescription())
-		ElseIf Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "nested-frames.example", @ScriptDir & "\028_NestedFrames", $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY) Then
+		ElseIf Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "udf-virtual-host.example", @ScriptDir & "\028_NestedFrames", $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY) Then
 			GUICtrlSetData($g_idStatus, "Mapping failed: " & _WebView2_Error_GetDescription())
-		ElseIf Not _WebView2_Navigate($g_iView, "https://nested-frames.example/index.html") Then
+		ElseIf Not _WebView2_Navigate($g_iView, "https://udf-virtual-host.example/index.html") Then
 			GUICtrlSetData($g_idStatus, "Navigation failed: " & _WebView2_Error_GetDescription())
 		EndIf
 	EndIf

@@ -7,7 +7,7 @@
 
 Opt("MustDeclareVars", 1)
 
-Global Const $g_sHost = "autoit-mapping.example"
+Global Const $g_sHost = "udf-virtual-host.example"
 Global Const $g_sOrigin = "https://" & $g_sHost & "/"
 Global $g_iWebView = -1
 Global $g_idStatus = 0
@@ -37,7 +37,8 @@ Func _Example()
 	GUISetState(@SW_SHOW, $hGUI)
 
 	Do
-		If Not _WebView2_Init() Then
+		Local $sProfile = @TempDir & "\WebView2VirtualHostMapping_" & @AutoItPID
+		If Not _WebView2_Init(Default, $sProfile) Then
 			_Example_Status("Initialization failed: " & _WebView2_Error_GetDescription())
 			ExitLoop
 		EndIf

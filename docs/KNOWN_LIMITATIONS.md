@@ -72,3 +72,7 @@ Review external ideas against the current native UDF before implementing them. T
 | [AutoIt Forum WebView2 0.10.0 extension announcement](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/page/2/#findComment-1555760) | Native browser-extension management | Native environment switch and profile add/list/enable/remove wrappers are implemented alongside the experimental CDP helpers; targeted x86/x64 runs verified those operations and enabled-state persistence across initialization cycles. | Confirm the sample GUI manually and review behavior with older Runtimes; the example content script ran after reloading its local page. |
 
 For each daily review, add only a genuinely new or materially changed candidate, link its source, record the current UDF status and avoid duplicates. Proposals are reported in the ongoing project chat; implementation requires a separate task.
+
+## TODO: Refresh mapped-folder example
+
+`217-MappedFolder.au3` still uses `file:///` and its WIP text says virtual-host mapping is not implemented. Review that example separately against the implemented `_WebView2_SetVirtualHostNameToFolderMapping()` API.

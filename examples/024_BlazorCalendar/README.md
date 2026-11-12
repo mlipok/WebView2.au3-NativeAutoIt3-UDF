@@ -4,7 +4,9 @@ This is a standalone Blazor WebAssembly application hosted by `024_BlazorCalenda
 
 ## Run and rebuild
 
-Install WebView2 Runtime and place the matching x86/x64 `WebView2Loader.dll` in the UDF's `bin` folder. Run `examples/024_BlazorCalendar.au3` with AutoIt x86 or x64. Keep `examples/024_BlazorCalendar/published` beside it. The host maps this folder to `https://autoit-calendar.example/`, then navigates to `index.html`. All application files are local. The Year, Month, Week and Reload sample events buttons are in the AutoIt window; the calendar also has view and period controls.
+Install WebView2 Runtime and place the matching x86/x64 `WebView2Loader.dll` in the UDF's `bin` folder. Run `examples/024_BlazorCalendar.au3` with AutoIt x86 or x64. Keep `examples/024_BlazorCalendar/published` beside it. The host maps this folder to `https://udf-virtual-host.example/`, then navigates to `index.html`. All application files are local. The Year, Month, Week and Reload sample events buttons are in the AutoIt window; the calendar also has view and period controls.
+
+Pass `--smoke` to verify that the local WebAssembly app reports readiness and acknowledges the sample JSON data. The mode exits automatically after acknowledgment or a 20-second timeout.
 
 To rebuild the bundled WASM output, install .NET SDK 10 and run `dotnet publish CalendarHost/CalendarHost.csproj -c Release -o publish`. Copy the generated `publish/wwwroot` contents into `published`. `CalendarHost` references the vendored `BlazorCalendar` source. The checked-in `published` files allow running the example without the SDK. The source snapshot used here is upstream commit `9ae813d`.
 

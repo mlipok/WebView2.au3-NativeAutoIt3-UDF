@@ -44,9 +44,9 @@ Func _Example()
 			GUICtrlSetData($g_idStatus, "Destroyed event unavailable: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _OnFrameMessage) Then
 			GUICtrlSetData($g_idStatus, "Message event unavailable: " & _WebView2_Error_GetDescription())
-		ElseIf Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "native-frame.example", @ScriptDir & "\027_NativeFrames", $WEBVIEW2_HOST_RESOURCE_ACCESS_ALLOW) Then
+		ElseIf Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "udf-virtual-host.example", @ScriptDir & "\027_NativeFrames", $WEBVIEW2_HOST_RESOURCE_ACCESS_ALLOW) Then
 			GUICtrlSetData($g_idStatus, "Mapping failed: " & _WebView2_Error_GetDescription())
-		ElseIf Not _WebView2_Navigate($g_iView, "https://native-frame.example/index.html") Then
+		ElseIf Not _WebView2_Navigate($g_iView, "https://udf-virtual-host.example/index.html") Then
 			GUICtrlSetData($g_idStatus, "Navigation failed: " & _WebView2_Error_GetDescription())
 		EndIf
 	EndIf
@@ -94,7 +94,7 @@ EndFunc   ;==>_Example
 Func _OnFrameCreated($iView, $iFrame)
 	If $iView = $g_iView Then
 		$g_iFrame = $iFrame
-		Local $aOrigins[1] = ["https://native-frame.example/"]
+		Local $aOrigins[1] = ["https://udf-virtual-host.example/"]
 		Local $bAdded = _WebView2_Frame_AddHostObjectToScriptWithOrigins($iFrame, "sample", $g_oHost, $aOrigins)
 		GUICtrlSetData($g_idStatus, $bAdded ? "Frame created; host object ready" : "Host object failed: " & _WebView2_Error_GetDescription())
 	EndIf
