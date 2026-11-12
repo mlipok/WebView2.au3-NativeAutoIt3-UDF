@@ -15,7 +15,7 @@ Global $g_EX_bSmoke = False
 Global $g_EX_bSmokeDeny = False
 Global $g_EX_bSmokeCancel = False, $g_EX_bCancelRequested = False
 Global $g_EX_bSmokeRemote = False
-Global Const $g_EX_sOrigin = "https://download-demo.example/"
+Global Const $g_EX_sOrigin = "https://udf-virtual-host.example/"
 Global Const $g_EX_sArchiveURL = "https://codeload.github.com/mlipok/WebView2.au3-NativeAutoIt3-UDF/zip/refs/heads/main"
 Global $g_EX_iDownload = 0, $g_EX_iState = -1, $g_EX_iBytes = 0, $g_EX_iTotal = -1
 Global $g_EX_iStartCount = 0, $g_EX_iDenied = 0, $g_EX_bDenyNext = False, $g_EX_sDownloadPath = ""
@@ -70,7 +70,7 @@ Func _EX_Run()
 		If Not _WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_DOWNLOAD_STARTING, _EX_DownloadStarting) Then ExitLoop
 		If Not _WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_DOWNLOAD_PROGRESS, _EX_DownloadProgress) Then ExitLoop
 		If Not _WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_DOWNLOAD_STATE_CHANGED, _EX_DownloadState) Then ExitLoop
-		If Not _WebView2_SetVirtualHostNameToFolderMapping($g_EX_iView, "download-demo.example", @ScriptDir & "\assets\native") Then ExitLoop
+		If Not _WebView2_SetVirtualHostNameToFolderMapping($g_EX_iView, "udf-virtual-host.example", @ScriptDir & "\assets\native") Then ExitLoop
 		$g_EX_sPage = $g_EX_sOrigin & "206.html"
 		If Not _EX_Navigate($g_EX_iView, $g_EX_sPage) Then ExitLoop
 		If Not _EX_Wait() Then ExitLoop
