@@ -12,6 +12,8 @@ Contributions are welcome, especially fixes validated with both AutoIt x86 and x
 6. Smoke-test affected examples with the installed Evergreen WebView2 Runtime. Test both AutoIt architectures when claiming x86 and x64 behavior.
 7. Update `CHANGELOG.md` and relevant files under `docs\`. Update `RELEASE_NOTES.md` when preparing a release.
 
+For a new interactive example, keep its test controls visible beside WebView2. When a sequence of actions needs explanation, provide a native operation log that appends and scrolls to the newest event, plus a yellow guide with the test steps, expected results and the mechanism being demonstrated. Open the main example window maximized within the Windows work area, retaining its title bar, minimize control and the taskbar. Keep modal dialogs at the size appropriate to their purpose and preserve automated smoke behavior.
+
 ## Source layout
 
 - `WebView2_Core.au3` — lifecycle, navigation, events and base settings.

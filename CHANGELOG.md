@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Examples 200–218 and 220–221 now maximize before they are shown, so their windows do not visibly change size during startup.
+- Fixed early examples so WebView2 fills the maximized window at startup, follows window resizing, and uses a separate profile for each example instead of the browser's default profile.
+- Example windows now open maximized within the Windows work area, with their title bars and taskbar visible. Interactive examples with useful step-by-step checks now show a scrolling AutoIt operation log and a yellow guide beside the WebView2 content.
 - Fixed example 034 so its controls no longer cover the WebView2 heading or leave an oversized gray area when the window is enlarged.
 - Example 034 now keeps a scrolling operation log grouped by button clicks beside WebView2 and explains the expected rejection of messages sent after a worker ends.
 - Applications can now send JSON to a dedicated worker started by an iframe, receive its JSON replies, and detect when it ends. Example 034 demonstrates the complete exchange.

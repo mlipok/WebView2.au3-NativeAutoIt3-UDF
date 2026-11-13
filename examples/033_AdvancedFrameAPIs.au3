@@ -2,12 +2,14 @@
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
 #include <GUIConstantsEx.au3>
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <WindowsConstants.au3>
 #include "..\WebView2.au3"
 
 Opt("MustDeclareVars", 1)
 
-Global $g_iView = -1, $g_iFrame = 0, $g_idStatus = 0
+Global $g_iView = -1, $g_iFrame = 0, $g_idStatus = 0, $g_idLog = 0, $g_idGuide = 0
 Global $g_bFrameReady = False, $g_bBufferReceived = False, $g_bGeoDenied = False
 Global $g_iPermissionCount = 0, $g_iCaptureCount = 0
 
@@ -25,16 +27,31 @@ Exit _Example()
 ; ===============================================================================================================================
 Func _Example()
 	Local $iExitCode = 0
-	Local $hGUI = GUICreate("WebView2 - Advanced frame APIs", 920, 600, -1, -1, $WS_OVERLAPPEDWINDOW)
+	Local $hGUI = GUICreate("WebView2 - Advanced frame APIs", 920, 600, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	Local $idBuffer = GUICtrlCreateButton("Send read-only buffer to frame", 12, 10, 225, 30)
 	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 250, 16, 650, 24)
-	GUISetState(@SW_SHOW, $hGUI)
+	GUICtrlSetResizing($idBuffer, $GUI_DOCKALL)
+	GUICtrlSetResizing($g_idStatus, $GUI_DOCKALL)
+	GUICtrlCreateLabel("Operation log", 5, 51, 290, 18)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	$g_idLog = GUICtrlCreateEdit("", 5, 72, 290, 518, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Send the read-only buffer, then request geolocation and screen capture inside the iframe." & @CRLF & "EXPECTED RESULT" & @CRLF & "The iframe reports the buffer text; permission and capture requests are denied or cancelled." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 delivers shared bytes and raises native permission and capture events for the frame."
+	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 420, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+	GUICtrlSetBkColor(-1, 0xFFF4C2)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	GUISetState(@SW_MAXIMIZE, $hGUI)
+	Local $aPanelSize = WinGetClientSize($hGUI)
+	If IsArray($aPanelSize) Then
+		GUICtrlSetPos($g_idLog, 5, 72, 290, $aPanelSize[1] - 82)
+		GUICtrlSetPos($g_idGuide, 305, $aPanelSize[1] - 180, $aPanelSize[0] - 310, 170)
+	EndIf
 	Local $bSetup = False
 	Do
 		Local $sProfile = @TempDir & "\WebView2AdvancedFrames_" & @AutoItPID
 		If Not _WebView2_Init(Default, $sProfile) Then ExitLoop 1
 		Local $aSize = WinGetClientSize($hGUI)
-		$g_iView = _WebView2_Create($hGUI, 0, 48, $aSize[0], $aSize[1] - 48)
+		$g_iView = _WebView2_Create($hGUI, 305, 48, $aSize[0] - 310, $aSize[1] - 238)
 		If @error Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_CREATED, _OnFrameCreated) Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _OnFrameMessage) Then ExitLoop 1
@@ -80,7 +97,11 @@ Func _Example()
 				_SendBuffer()
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				$aSize = WinGetClientSize($hGUI)
-				If IsArray($aSize) Then _WebView2_SetBounds($g_iView, 0, 48, $aSize[0], $aSize[1] - 48)
+				If IsArray($aSize) Then
+					GUICtrlSetPos($g_idLog, 5, 72, 290, $aSize[1] - 82)
+					GUICtrlSetPos($g_idGuide, 305, $aSize[1] - 180, $aSize[0] - 310, 170)
+					_WebView2_SetBounds($g_iView, 305, 48, $aSize[0] - 310, $aSize[1] - 238)
+				EndIf
 		EndSwitch
 		Sleep(10)
 	WEnd
@@ -143,6 +164,8 @@ EndFunc   ;==>_SendBuffer
 
 Func _Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
+	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
 	ConsoleWrite($sText & @CRLF)
 	Return
 EndFunc   ;==>_Status

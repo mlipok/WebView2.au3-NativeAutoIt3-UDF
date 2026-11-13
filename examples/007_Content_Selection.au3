@@ -28,17 +28,19 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - HTML source + selected text", 1050, 720, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - HTML source + selected text", 1050, 720, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idSource = GUICtrlCreateButton("HTML source", 10, 10, 120, 30)
 		Local $idSelected = GUICtrlCreateButton("Selected text", 140, 10, 120, 30)
-		GUISetState(@SW_SHOW, $hGUI)
-		If Not _WebView2_Init() Then
+		GUISetState(@SW_MAXIMIZE, $hGUI)
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\007_Content_Selection"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		Local $iWebView = _WebView2_Create($hGUI, 0, 50, 1050, 670)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 50, $aInitialClient[0], $aInitialClient[1] - 50)
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error
@@ -52,6 +54,9 @@ Func _Example()
 					MsgBox($MB_ICONINFORMATION, "HTML source", _WebView2_GetHtmlSource($iWebView))
 				Case $idSelected
 					MsgBox($MB_ICONINFORMATION, "Selected text", _WebView2_GetSelectedText($iWebView))
+				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
+					Local $aResize = WinGetClientSize($hGUI)
+					If IsArray($aResize) Then _WebView2_SetBounds($iWebView, 0, 50, $aResize[0], $aResize[1] - 50)
 				Case $GUI_EVENT_CLOSE
 					ExitLoop
 			EndSwitch

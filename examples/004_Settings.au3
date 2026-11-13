@@ -28,7 +28,7 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - Settings", 1100, 760, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - Settings", 1100, 760, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idContext = GUICtrlCreateCheckbox("Context menu", 10, 10, 110, 25)
 		Local $idDevTools = GUICtrlCreateCheckbox("DevTools", 130, 10, 90, 25)
 		Local $idStatus = GUICtrlCreateCheckbox("Status bar", 230, 10, 90, 25)
@@ -39,15 +39,17 @@ Func _Example()
 		GUICtrlSetState($idStatus, $GUI_CHECKED)
 		GUICtrlSetState($idDialogs, $GUI_CHECKED)
 		GUICtrlSetState($idZoom, $GUI_CHECKED)
-		GUISetState(@SW_SHOW, $hGUI)
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 
-		If Not _WebView2_Init() Then
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\004_Settings"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		Local $iWebView = _WebView2_Create($hGUI, 0, 45, 1100, 715)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 45, $aInitialClient[0], $aInitialClient[1] - 45)
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error

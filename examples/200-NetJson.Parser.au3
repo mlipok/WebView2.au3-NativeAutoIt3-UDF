@@ -5,13 +5,14 @@
 #include <GUIConstantsEx.au3>
 #include <WindowsConstants.au3>
 #include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <FileConstants.au3>
 #include <File.au3>
 #include <MsgBoxConstants.au3>
 #include "..\WebView2.au3"
 
 Global $g_EX_hGUI = 0, $g_EX_iView = -1
-Global $g_EX_idAddress = 0, $g_EX_idStatus = 0, $g_EX_sPage = "", $g_EX_sQueue = "", $g_EX_iSender = -1
+Global $g_EX_idAddress = 0, $g_EX_idStatus = 0, $g_EX_idGuide = 0, $g_EX_sPage = "", $g_EX_sQueue = "", $g_EX_iSender = -1
 Global $g_EX_bDone = False, $g_EX_bOK = False, $g_EX_sPath = ""
 Global $g_EX_bSmoke = False
 
@@ -45,13 +46,26 @@ Func _EX_Run()
 			$aAction[$i] = GUICtrlCreateButton($aLabels[$i], 5 + $i * 175, 35, 170, 25)
 			GUICtrlSetResizing(-1, $GUI_DOCKALL)
 		Next
-		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 655, 1090, 135, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+		GUICtrlSetResizing($idBack, $GUI_DOCKALL)
+		GUICtrlSetResizing($idForward, $GUI_DOCKALL)
+		GUICtrlSetResizing($idReload, $GUI_DOCKALL)
+		GUICtrlSetResizing($idStop, $GUI_DOCKALL)
+		GUICtrlSetResizing($g_EX_idAddress, $GUI_DOCKALL)
+		GUICtrlSetResizing($idGo, $GUI_DOCKALL)
+		GUICtrlSetResizing($idOpen, $GUI_DOCKALL)
+		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 65, 290, 725, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+		GUICtrlSetResizing(-1, $GUI_DOCKALL)
+		Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Read JSON, Pretty JSON and Compact JSON." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log shows parsed data and both formatted forms." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt exchanges JSON text with the page and parses or serializes it."
+		$g_EX_idGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+		GUICtrlSetBkColor(-1, 0xFFF4C2)
+		GUICtrlSetResizing(-1, $GUI_DOCKALL)
+		GUISetState(@SW_MAXIMIZE, $g_EX_hGUI)
 		GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hGUI)
 		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\200-NetJson.Parser"
 		If $g_EX_bSmoke Then $sProfile = @TempDir & "\WebView2-Example-Profile-" & @AutoItPID
 		_WebView2_SetDebugLevel($WEBVIEW2_DEBUG_ERROR)
 		If Not _WebView2_Init(Default, $sProfile) Then ExitLoop
-		$g_EX_iView = _WebView2_Create($g_EX_hGUI, 5, 65, 1090, 580)
+		$g_EX_iView = _WebView2_Create($g_EX_hGUI, 305, 65, 790, 545)
 		If @error Then ExitLoop
 		_WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_NAVIGATION_COMPLETED, _EX_Done)
 		_WebView2_SetCallback($g_EX_iView, $WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED, _EX_Message)
@@ -67,7 +81,12 @@ Func _EX_Run()
 			EndIf
 			ExitLoop
 		EndIf
-		GUISetState(@SW_SHOW, $g_EX_hGUI)
+		Local $aMaxSize = WinGetClientSize($g_EX_hGUI)
+		If IsArray($aMaxSize) Then
+			GUICtrlSetPos($g_EX_idStatus, 5, 65, 290, $aMaxSize[1] - 75)
+			GUICtrlSetPos($g_EX_idGuide, 305, $aMaxSize[1] - 180, $aMaxSize[0] - 310, 170)
+			_WebView2_SetBounds($g_EX_iView, 305, 65, $aMaxSize[0] - 310, $aMaxSize[1] - 255)
+		EndIf
 		Local $bClose = False
 		While Not $bClose
 			Local $iMessage = GUIGetMsg()
@@ -95,9 +114,10 @@ Func _EX_Run()
 				Case $GUI_EVENT_RESIZED, $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE
 					Local $aClient = WinGetClientSize($g_EX_hGUI)
 					If IsArray($aClient) Then
-						GUICtrlSetPos($g_EX_idStatus, 5, $aClient[1] - 145, $aClient[0] - 10, 135)
-						Local $iWidth = $aClient[0] - 10
-						_WebView2_SetBounds($g_EX_iView, 5, 65, $iWidth, $aClient[1] - 220)
+						GUICtrlSetPos($g_EX_idStatus, 5, 65, 290, $aClient[1] - 75)
+						GUICtrlSetPos($g_EX_idGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
+						Local $iWidth = $aClient[0] - 310
+						_WebView2_SetBounds($g_EX_iView, 305, 65, $iWidth, $aClient[1] - 255)
 					EndIf
 			EndSwitch
 			If $g_EX_sQueue <> "" Then
@@ -248,7 +268,8 @@ EndFunc   ;==>_EX_Navigate
 ; Example .......: No
 ; ================================================================================================================================
 Func _EX_Status($sText)
-	GUICtrlSetData($g_EX_idStatus, $sText & @CRLF & GUICtrlRead($g_EX_idStatus))
+	_GUICtrlEdit_AppendText($g_EX_idStatus, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	GUICtrlSendMsg($g_EX_idStatus, $EM_SCROLLCARET, 0, 0)
 	ConsoleWrite($sText & @CRLF)
 	Return 0
 EndFunc   ;==>_EX_Status

@@ -28,18 +28,20 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - ExecuteScript result", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - ExecuteScript result", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idTitle = GUICtrlCreateButton("Get title", 10, 10, 100, 30)
 		Local $idText = GUICtrlCreateButton("Get text", 120, 10, 100, 30)
 		Local $idChange = GUICtrlCreateButton("Change DOM", 230, 10, 100, 30)
-		GUISetState(@SW_SHOW, $hGUI)
-		If Not _WebView2_Init() Then
+		GUISetState(@SW_MAXIMIZE, $hGUI)
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\005_Script_Result"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		Local $iWebView = _WebView2_Create($hGUI, 0, 50, 1000, 650)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 50, $aInitialClient[0], $aInitialClient[1] - 50)
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error
@@ -55,6 +57,9 @@ Func _Example()
 					MsgBox($MB_ICONINFORMATION, "DOM text", _WebView2_ExecuteScript($iWebView, "document.getElementById('demo').textContent"))
 				Case $idChange
 					_WebView2_ExecuteScript($iWebView, "document.getElementById('demo').textContent='Changed by AutoIt'; true;")
+				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
+					Local $aResize = WinGetClientSize($hGUI)
+					If IsArray($aResize) Then _WebView2_SetBounds($iWebView, 0, 50, $aResize[0], $aResize[1] - 50)
 				Case $GUI_EVENT_CLOSE
 					ExitLoop
 			EndSwitch

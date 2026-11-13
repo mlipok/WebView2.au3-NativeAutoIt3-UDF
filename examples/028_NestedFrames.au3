@@ -2,6 +2,8 @@
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
 #include <GUIConstantsEx.au3>
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <WinAPIGdi.au3>
 #include <WindowsConstants.au3>
 #include "..\WebView2.au3"
@@ -9,7 +11,7 @@
 Opt("MustDeclareVars", 1)
 
 Global $g_iView = -1
-Global $g_idStatus = 0
+Global $g_idStatus = 0, $g_idLog = 0, $g_idGuide = 0
 Global $g_iFrameNavStarted = 0, $g_iFrameNavCompleted = 0
 Global Const $g_iUpdateButtonReadyColor = 0xDCEBFA
 Global Const $g_iUpdateButtonBusyColor = 0x8FA9C2
@@ -28,31 +30,48 @@ _Example()
 ; ===============================================================================================================================
 Func _Example()
 	Local $aNativeFrames[0], $iNativeId = -1
-	Local $hGUI = GUICreate("WebView2 - Nested frames", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
+	Local $hGUI = GUICreate("WebView2 - Nested frames", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	Local $idList = GUICtrlCreateButton("List all frames", 12, 10, 150, 30)
 	Local $idStep = GUICtrlCreateButton("Update next frame label", 174, 10, 190, 30)
 	Local $idDirect = GUICtrlCreateButton("Update FRAME_0_1_1 to v3", 376, 10, 205, 30)
 	GUICtrlSetBkColor($idStep, $g_iUpdateButtonReadyColor)
 	GUICtrlSetBkColor($idDirect, $g_iUpdateButtonReadyColor)
 	$g_idStatus = GUICtrlCreateLabel("Initializing...", 595, 16, 390, 22)
+	GUICtrlSetResizing($idList, $GUI_DOCKALL)
+	GUICtrlSetResizing($idStep, $GUI_DOCKALL)
+	GUICtrlSetResizing($idDirect, $GUI_DOCKALL)
+	GUICtrlSetResizing($g_idStatus, $GUI_DOCKALL)
+	GUICtrlCreateLabel("Operation log", 5, 53, 290, 18)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	$g_idLog = GUICtrlCreateEdit("", 5, 74, 290, 616, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click List all frames; click Update next frame label repeatedly, then Update FRAME_0_1_1 to v3." & @CRLF & "EXPECTED RESULT" & @CRLF & "One visible label gains _v2 per click; the named frame gains _v3. The tree has 15 frames." & @CRLF & "HOW IT WORKS" & @CRLF & "The UDF lists tracked nested iframe IDs and runs a script in the selected frame."
+	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 520, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+	GUICtrlSetBkColor(-1, 0xFFF4C2)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	GUISetState(@SW_MAXIMIZE, $hGUI)
+	Local $aPanelSize = WinGetClientSize($hGUI)
+	If IsArray($aPanelSize) Then
+		GUICtrlSetPos($g_idLog, 5, 74, 290, $aPanelSize[1] - 84)
+		GUICtrlSetPos($g_idGuide, 305, $aPanelSize[1] - 180, $aPanelSize[0] - 310, 170)
+	EndIf
 	Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\028_NestedFrames_" & (@AutoItX64 ? "x64" : "x86")
 	If Not _WebView2_Init(Default, $sProfile) Then
-		GUICtrlSetData($g_idStatus, "Initialization failed: " & _WebView2_Error_GetDescription())
+		_Example_Status("Initialization failed: " & _WebView2_Error_GetDescription())
 	Else
 		Local $aSize = WinGetClientSize($hGUI)
-		$g_iView = _WebView2_Create($hGUI, 0, 50, $aSize[0], $aSize[1] - 50)
+		$g_iView = _WebView2_Create($hGUI, 305, 50, $aSize[0] - 310, $aSize[1] - 240)
 		If @error Then
-			GUICtrlSetData($g_idStatus, "Creation failed: " & _WebView2_Error_GetDescription())
+			_Example_Status("Creation failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_CREATED, _OnFrameCreated) Then
-			GUICtrlSetData($g_idStatus, "Frame tracking failed: " & _WebView2_Error_GetDescription())
+			_Example_Status("Frame tracking failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, _OnFrameNavStart) Or _
 				Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _OnFrameNavComplete) Then
-			GUICtrlSetData($g_idStatus, "Frame navigation events failed: " & _WebView2_Error_GetDescription())
+			_Example_Status("Frame navigation events failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "udf-virtual-host.example", @ScriptDir & "\028_NestedFrames", $WEBVIEW2_HOST_RESOURCE_ACCESS_DENY) Then
-			GUICtrlSetData($g_idStatus, "Mapping failed: " & _WebView2_Error_GetDescription())
+			_Example_Status("Mapping failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_Navigate($g_iView, "https://udf-virtual-host.example/index.html") Then
-			GUICtrlSetData($g_idStatus, "Navigation failed: " & _WebView2_Error_GetDescription())
+			_Example_Status("Navigation failed: " & _WebView2_Error_GetDescription())
 		EndIf
 	EndIf
 	Local $bSmoke = $CmdLine[0] > 0 And $CmdLine[1] = "--smoke"
@@ -99,13 +118,17 @@ Func _Example()
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				If $g_iView >= 0 Then
 					$aSize = WinGetClientSize($hGUI)
-					If IsArray($aSize) Then _WebView2_SetBounds($g_iView, 0, 50, $aSize[0], $aSize[1] - 50)
+					If IsArray($aSize) Then
+						GUICtrlSetPos($g_idLog, 5, 74, 290, $aSize[1] - 84)
+						GUICtrlSetPos($g_idGuide, 305, $aSize[1] - 180, $aSize[0] - 310, 170)
+						_WebView2_SetBounds($g_iView, 305, 50, $aSize[0] - 310, $aSize[1] - 240)
+					EndIf
 				EndIf
 			Case $idList
 				If $g_iView >= 0 Then
 					Local $sTree = _WebView2_GetFrameTree($g_iView)
 					If @error Then
-						GUICtrlSetData($g_idStatus, "Frame tree failed: " & _WebView2_Error_GetDescription())
+						_Example_Status("Frame tree failed: " & _WebView2_Error_GetDescription())
 					Else
 						ConsoleWrite("CDP frame tree: " & $sTree & @CRLF)
 						Local $sPaths = _WebView2_ExecuteScript($g_iView, "window.listFramePaths()")
@@ -118,7 +141,7 @@ Func _Example()
 							Local $sFrameName = _WebView2_Frame_GetName($aNativeFrames[$iFrame])
 							ConsoleWrite("Tracked frame=" & $aNativeFrames[$iFrame] & " parent=" & $iParentId & " native FrameId=" & $sNativeId & " name=" & $sFrameName & @CRLF)
 						Next
-						GUICtrlSetData($g_idStatus, "Frame tree and paths written to console (15 if fully loaded)")
+						_Example_Status("Frame tree and paths written to console (15 if fully loaded)")
 					EndIf
 				EndIf
 			Case $idStep
@@ -127,7 +150,7 @@ Func _Example()
 					Local $sResult = _StepDeeper()
 					Local $iStepError = @error
 					_SetUpdateButtonBusy($idStep, False)
-					GUICtrlSetData($g_idStatus, $iStepError ? "Step failed" : "Next label changed: " & $sResult)
+					_Example_Status($iStepError ? "Step failed" : "Next label changed: " & $sResult)
 				EndIf
 			Case $idDirect
 				If $g_iView >= 0 Then
@@ -135,7 +158,7 @@ Func _Example()
 					Local $iDirectChanged = _UpdateDirectFrameLabel()
 					Local $iDirectError = @error
 					_SetUpdateButtonBusy($idDirect, False)
-					GUICtrlSetData($g_idStatus, $iDirectError ? "Direct update failed" : "FRAME_0_1_1: " & ($iDirectChanged ? "added _v3" : "already has _v3"))
+					_Example_Status($iDirectError ? "Direct update failed" : "FRAME_0_1_1: " & ($iDirectChanged ? "added _v3" : "already has _v3"))
 				EndIf
 		EndSwitch
 	WEnd
@@ -344,3 +367,23 @@ Func _OnFrameNavComplete($iView, $iFrame, $bSuccess, $iWebError)
 	$g_iFrameNavCompleted += 1
 	Return
 EndFunc   ;==>_OnFrameNavComplete
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_Status
+; Description ...: Updates the native status label and operation log.
+; Syntax ........: _Example_Status($sText)
+; Parameters ....: $sText - Status message.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Keeps the newest entry visible.
+; Related .......: _Example
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_Status($sText)
+	GUICtrlSetData($g_idStatus, $sText)
+	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_Status

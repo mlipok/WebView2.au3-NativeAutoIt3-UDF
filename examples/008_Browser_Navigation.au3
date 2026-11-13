@@ -28,21 +28,23 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - Browser navigation", 1200, 800, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - Browser navigation", 1200, 800, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idBack = GUICtrlCreateButton("Back", 10, 10, 60, 30)
 		Local $idForward = GUICtrlCreateButton("Forward", 80, 10, 70, 30)
 		Local $idReload = GUICtrlCreateButton("Reload", 160, 10, 70, 30)
 		Local $idStop = GUICtrlCreateButton("Stop", 240, 10, 60, 30)
 		Local $idGo = GUICtrlCreateButton("Go", 1110, 10, 60, 30)
 		Local $idURL = GUICtrlCreateInput("https://www.autoitscript.com", 310, 10, 790, 30)
-		GUISetState(@SW_SHOW, $hGUI)
-		If Not _WebView2_Init() Then
+		GUISetState(@SW_MAXIMIZE, $hGUI)
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\008_Browser_Navigation"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		Local $iWebView = _WebView2_Create($hGUI, 0, 50, 1200, 750)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 50, $aInitialClient[0], $aInitialClient[1] - 50)
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error
