@@ -36,7 +36,7 @@ Func _Example()
 	$g_idLog = GUICtrlCreateEdit("", 5, 102, 290, 438, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Send JSON or run a frame script. Change frame name, then reload the iframe." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log reports the new name and ContentLoading before DOMContentLoaded for each frame navigation." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt subscribes to native frame lifecycle events and addresses this iframe directly."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Send JSON to frame; expect a frame message." & @CRLF & "2. Click Run frame script; expect the frame title." & @CRLF & "3. Click Change frame name; expect a name-change event." & @CRLF & "4. Click Reload frame; expect ContentLoading, then DOMContentLoaded." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt subscribes to native frame events and addresses this iframe directly. Each click starts a new group in the green operation log."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 370, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor(-1, 0xFFF4C2)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
@@ -44,6 +44,10 @@ Func _Example()
 	Local $idScript = GUICtrlCreateButton("Run frame script", 205, 38, 180, 30)
 	Local $idRename = GUICtrlCreateButton("Change frame name", 398, 38, 180, 30)
 	Local $idReload = GUICtrlCreateButton("Reload frame", 591, 38, 180, 30)
+	GUICtrlSetResizing($idSend, $GUI_DOCKALL)
+	GUICtrlSetResizing($idScript, $GUI_DOCKALL)
+	GUICtrlSetResizing($idRename, $GUI_DOCKALL)
+	GUICtrlSetResizing($idReload, $GUI_DOCKALL)
 	GUISetState(@SW_MAXIMIZE, $hGUI)
 	Local $aPanelSize = WinGetClientSize($hGUI)
 	If IsArray($aPanelSize) Then
@@ -119,17 +123,21 @@ Func _Example()
 					EndIf
 				EndIf
 			Case $idSend
+				_Example_LogClick("Send JSON to frame")
 				If $g_iFrame >= 0 Then
 					If Not _WebView2_Frame_PostWebMessageAsJson($g_iFrame, '{"type":"greeting","text":"Hello from AutoIt"}') Then _Example_Status("Send failed: " & _WebView2_Error_GetDescription())
 				EndIf
 			Case $idScript
+				_Example_LogClick("Run frame script")
 				If $g_iFrame >= 0 Then
 					Local $sResult = _WebView2_Frame_ExecuteScript($g_iFrame, "document.title")
 					_Example_Status(@error ? "Script failed" : "Frame title: " & $sResult)
 				EndIf
 			Case $idRename
+				_Example_LogClick("Change frame name")
 				If $g_iFrame >= 0 Then _WebView2_Frame_ExecuteScript($g_iFrame, "window.name='renamed-frame'")
 			Case $idReload
+				_Example_LogClick("Reload frame")
 				If $g_iFrame >= 0 Then _WebView2_Frame_ExecuteScript($g_iFrame, "location.reload()")
 		EndSwitch
 	WEnd
@@ -269,6 +277,25 @@ Func _OnFrameMessage($iView, $iFrame, $sMessage, $sSource, $bJSON)
 	EndIf
 	Return
 EndFunc   ;==>_OnFrameMessage
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sButton)
+; Parameters ....: $sButton - Caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automatic smoke actions do not use this helper.
+; Related .......: _Example_Status
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sButton)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sButton & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _Example_Status
