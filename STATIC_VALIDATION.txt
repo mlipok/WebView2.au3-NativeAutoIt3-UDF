@@ -1,3 +1,11 @@
+# 2026-11-13: maximize before showing example windows
+
+- Examples 200–218 and 220–221 now call `GUISetState(@SW_MAXIMIZE, $g_EX_hGUI)` before `GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hGUI)`; the later client-size adjustment remains in place.
+- The local copy of example 217 already had this ordering. It was preserved and incorporated into the branch with the other 21 examples.
+- All 22 changed AutoIt files remain UTF-8 without BOM with CRLF line endings. Tidy was invoked on one explicit existing staging file at a time, made no formatting changes, and left no process running.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` failed to launch in the restricted Codex process with a DLL relocation error. Repeating the checks outside it with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7` reported 0 errors and 0 warnings for each of the 22 examples.
+- This change affects window display order. No GUI test was run solely for this layout change, so the visible startup transition is not confirmed by runtime testing.
+
 # 2026-11-13: PR #26 profile isolation and initial/resize bounds
 
 - The 24 changed AutoIt examples remain UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file, with no extra switch or orphaned process.

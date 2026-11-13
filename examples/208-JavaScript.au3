@@ -59,6 +59,7 @@ Func _EX_Run()
 		$g_EX_idGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 		GUICtrlSetBkColor(-1, 0xFFF4C2)
 		GUICtrlSetResizing(-1, $GUI_DOCKALL)
+		GUISetState(@SW_MAXIMIZE, $g_EX_hGUI)
 		GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hGUI)
 		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\208-JavaScript"
 		If $g_EX_bSmoke Then $sProfile = @TempDir & "\WebView2-Example-Profile-" & @AutoItPID
@@ -80,7 +81,6 @@ Func _EX_Run()
 			EndIf
 			ExitLoop
 		EndIf
-		GUISetState(@SW_MAXIMIZE, $g_EX_hGUI)
 		Local $aMaxSize = WinGetClientSize($g_EX_hGUI)
 		If IsArray($aMaxSize) Then
 			GUICtrlSetPos($g_EX_idStatus, 5, 65, 290, $aMaxSize[1] - 75)
