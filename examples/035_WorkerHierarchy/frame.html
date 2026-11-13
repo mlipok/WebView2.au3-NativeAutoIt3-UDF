@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Iframe worker owner</title></head>
+<body style="font:16px Arial,sans-serif;background:#eef6fc;padding:12px">
+  <h2>This iframe can create its own worker</h2>
+  <p id="frame-state">The iframe has no worker.</p>
+  <script>
+    let frameWorker = null;
+    function startFrameWorker() {
+      if (frameWorker) return false;
+      frameWorker = new Worker('root.js');
+      document.getElementById('frame-state').textContent = 'The iframe owns a worker.';
+      return true;
+    }
+    function stopFrameWorker() {
+      if (!frameWorker) return false;
+      frameWorker.terminate();
+      frameWorker = null;
+      document.getElementById('frame-state').textContent = 'The iframe stopped its worker.';
+      return true;
+    }
+    window.addEventListener('load', () => chrome.webview.postMessage('ready'));
+  </script>
+</body>
+</html>

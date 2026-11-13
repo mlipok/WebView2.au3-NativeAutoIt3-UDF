@@ -1,3 +1,11 @@
+# 2026-11-13: page- and worker-created dedicated workers
+
+- Based on Microsoft WebView2.idl from SDK 1.0.4129.50: `ICoreWebView2_29` adds the main-document worker event after 48 methods introduced by `_9` through `_28`; `ICoreWebView2DedicatedWorker` exposes child creation. The native interfaces are queried optionally.
+- The four modified UDF `.au3` modules and new example 035 are UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file, made no formatting changes and left no process running.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/035_WorkerHierarchy.au3`.
+- Targeted `035_WorkerHierarchy.au3 --smoke` runs passed under AutoIt x64 and x86: four tracked workers, the expected immediate parent IDs and two direct JSON replies with `sum:7`. The existing example 034 `--smoke` passed under x64 and x86 after the UDF change.
+- The visible example 035 button sequence and resize were not tested manually. The smoke test uses a process-specific temporary profile and local virtual-host assets; no external network resource is needed.
+
 # 2026-11-13: maximize before showing example windows
 
 - Examples 200–218 and 220–221 now call `GUISetState(@SW_MAXIMIZE, $g_EX_hGUI)` before `GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hGUI)`; the later client-size adjustment remains in place.
