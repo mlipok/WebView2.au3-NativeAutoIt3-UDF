@@ -243,6 +243,12 @@ Do not trust messages merely because they came through `WebMessageReceived`. If 
 - AutoIt 3.3.18.0 or newer recommended;
 - matching x86/x64 `WebView2Loader.dll` from the Microsoft.Web.WebView2 package.
 
+## Development instructions
+
+The shared AutoIt guidance in this repository comes from [mlipok/AutoIt3-AGENTS.md](https://github.com/mlipok/AutoIt3-AGENTS.md). This project keeps a copy of its `AGENTS_AutoIt3_*.md` rule and reference files. Read this project's [AGENTS.md](AGENTS.md) for the WebView2-specific scope and precedence. Adjust the tool paths in `AGENTS_AutoIt3_local_Installation.md` for your own development environment.
+
+The `AGENTS*.md` files are development instructions. Applications that use this UDF do not need these files. Anyone changing this UDF must read and apply them.
+
 ## Status
 
 v0.6.0 is an **early native UDF release**. The new virtual-host, permission and example paths have x86/x64 smoke coverage. Some examples and visible GUI paths remain unverified; see [KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) and [EXAMPLES.md](docs/EXAMPLES.md).
