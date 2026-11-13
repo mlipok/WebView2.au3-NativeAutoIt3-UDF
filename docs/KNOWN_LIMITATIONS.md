@@ -50,10 +50,6 @@ Useful candidates for later releases include:
 
 PDF.js rendering in example 214 was confirmed by the user in a running WebView2 session on 2026-11-13; this does not verify its omitted upstream extraction and selection/link-lock demonstrations. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
 
-## TODO: Example operation log audit
-
-Review every runnable example under `examples/`. For each manual AutoIt button in an example with an operation log, append a blank line and a timestamped `'<button caption>' was clicked.` entry before its action; keep the action's results in the same log group and scroll to the newest entry. Check that the yellow test guide names the exact buttons and expected results. Do not label automated smoke steps as user clicks. Record justified exceptions for examples without an operation log, update example documentation and validation, and avoid unrelated UDF changes.
-
 ## TODO: Migration from other projects
 
 Review external ideas against the current native UDF before implementing them. These entries are proposals, not claims of API compatibility or commitments to copy third-party code. Preserve this section as the single project TODO for findings from the three monitored sources. Last reviewed: 2026-11-11.

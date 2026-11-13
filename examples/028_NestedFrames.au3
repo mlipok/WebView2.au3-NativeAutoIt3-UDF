@@ -126,6 +126,7 @@ Func _Example()
 					EndIf
 				EndIf
 			Case $idList
+				_Example_LogClick("List all frames")
 				If $g_iView >= 0 Then
 					Local $sTree = _WebView2_GetFrameTree($g_iView)
 					If @error Then
@@ -146,6 +147,7 @@ Func _Example()
 					EndIf
 				EndIf
 			Case $idStep
+				_Example_LogClick("Update next frame label")
 				If $g_iView >= 0 Then
 					_SetUpdateButtonBusy($idStep, True)
 					Local $sResult = _StepDeeper()
@@ -154,6 +156,7 @@ Func _Example()
 					_Example_Status($iStepError ? "Step failed" : "Next label changed: " & $sResult)
 				EndIf
 			Case $idDirect
+				_Example_LogClick("Update FRAME_0_1_1 to v3")
 				If $g_iView >= 0 Then
 					_SetUpdateButtonBusy($idDirect, True)
 					Local $iDirectChanged = _UpdateDirectFrameLabel()
@@ -368,6 +371,25 @@ Func _OnFrameNavComplete($iView, $iFrame, $bSuccess, $iWebError)
 	$g_iFrameNavCompleted += 1
 	Return
 EndFunc   ;==>_OnFrameNavComplete
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _Example_Status

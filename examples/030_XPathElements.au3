@@ -96,6 +96,7 @@ Func _Example()
 						_WebView2_SetBounds($g_iWebView, 305, 46, $aClient[0] - 310, $aClient[1] - 236)
 					EndIf
 				Case $idRun
+					_Example_LogClick("Find and fill by XPath")
 					_Example_FillByXPath()
 			EndSwitch
 			Sleep(10)
@@ -212,6 +213,25 @@ Func _Example_Html()
 			'</form><p id="result">Waiting...</p></body></html>'
 	Return $sHtml
 EndFunc   ;==>_Example_Html
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_Status

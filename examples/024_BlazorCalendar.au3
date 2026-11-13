@@ -49,7 +49,7 @@ Func _Example()
 	$g_idCalendarLog = GUICtrlCreateEdit("", 5, 70, 290, 720, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idCalendarLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Wait for ready and sample-data acknowledgment. Switch Year, Month and Week; select a range, double-click a day and click an event." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log reports the selected range or event ID, and overlapping and all-day events stay visible." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt sends JSON to local Blazor WebAssembly in WebView2; the calendar returns JSON messages. No server or database is used."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Wait for readiness. Click Year, Month and Week, then Reload sample events; select a range, double-click a day and click an event." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log reports the data acknowledgment, selected range or event ID; overlapping and all-day events stay visible." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt sends JSON to local Blazor WebAssembly in WebView2; the calendar returns JSON messages. No server or database is used."
 	$g_idCalendarGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor(-1, 0xFFF4C2)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
@@ -112,12 +112,16 @@ Func _Example()
 					EndIf
 				EndIf
 			Case $idYear
+				_Example_LogClick("Year")
 				_Example_SetView("year")
 			Case $idMonth
+				_Example_LogClick("Month")
 				_Example_SetView("month")
 			Case $idWeek
+				_Example_LogClick("Week")
 				_Example_SetView("week")
 			Case $idReloadData
+				_Example_LogClick("Reload sample events")
 				_Example_SendInitialData()
 		EndSwitch
 	WEnd
@@ -245,6 +249,25 @@ EndFunc   ;==>_Example_OnNavigationCompleted
 ; Link ..........:
 ; Example .......: No
 ; ===============================================================================================================================
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idCalendarLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idCalendarLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
+
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idCalendarStatus, StringLeft($sText, 180))
 	_GUICtrlEdit_AppendText($g_idCalendarLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)

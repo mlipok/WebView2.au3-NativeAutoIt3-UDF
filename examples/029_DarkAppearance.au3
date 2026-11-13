@@ -106,12 +106,16 @@ Func _Example()
 						_WebView2_SetBounds($g_iWebView, 305, 46, $aClient[0] - 310, $aClient[1] - 236)
 					EndIf
 				Case $idLight
+					_Example_LogClick("Prefer light")
 					_Example_SetScheme("light")
 				Case $idDark
+					_Example_LogClick("Prefer dark")
 					_Example_SetScheme("dark")
 				Case $idForce
+					_Example_LogClick("Force dark")
 					_Example_ForceDark(True)
 				Case $idReset
+					_Example_LogClick("Stop forcing")
 					_Example_ForceDark(False)
 			EndSwitch
 			Sleep(10)
@@ -229,6 +233,25 @@ EndFunc   ;==>_Example_Html
 ; Link ..........:
 ; Example .......: Yes
 ; ===============================================================================================================================
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
+
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
 	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)

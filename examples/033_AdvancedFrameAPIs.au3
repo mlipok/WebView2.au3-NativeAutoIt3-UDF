@@ -37,7 +37,7 @@ Func _Example()
 	$g_idLog = GUICtrlCreateEdit("", 5, 72, 290, 518, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Send the read-only buffer, then request geolocation and screen capture inside the iframe." & @CRLF & "EXPECTED RESULT" & @CRLF & "The iframe reports the buffer text; permission and capture requests are denied or cancelled." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 delivers shared bytes and raises native permission and capture events for the frame."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Send read-only buffer to frame, then request geolocation and screen capture inside the iframe." & @CRLF & "EXPECTED RESULT" & @CRLF & "The iframe reports the buffer text; permission and capture requests are denied or cancelled." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 delivers shared bytes and raises native permission and capture events for the frame."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 420, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor(-1, 0xFFF4C2)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
@@ -95,6 +95,7 @@ Func _Example()
 			Case $GUI_EVENT_CLOSE
 				ExitLoop
 			Case $idBuffer
+				_Example_LogClick("Send read-only buffer to frame")
 				_SendBuffer()
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				$aSize = WinGetClientSize($hGUI)
@@ -162,6 +163,25 @@ Func _SendBuffer()
 	If Not $bSent Then _Status("Shared buffer failed: " & _WebView2_Error_GetDescription())
 	Return $bSent
 EndFunc   ;==>_SendBuffer
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
 
 Func _Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)

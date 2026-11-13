@@ -111,6 +111,7 @@ Func _Example()
 					EndIf
 				EndIf
 			Case $idReload
+				_Example_LogClick("Reload local page")
 				_Example_LoadPage()
 		EndSwitch
 		Sleep(10)
@@ -206,6 +207,25 @@ EndFunc   ;==>_Example_OnNavigation
 ; Link ..........:
 ; Example .......: No
 ; ===============================================================================================================================
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
+
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
 	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)

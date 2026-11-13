@@ -65,7 +65,7 @@ Func _Example()
 	$g_idLog = GUICtrlCreateEdit("", 5, 100, 290, 260, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click List, Install sample, Reload page, Disable, Reload page, Enable and Reload page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The framed page message changes only after reload when the extension content script runs." & @CRLF & "HOW IT WORKS" & @CRLF & "A native profile extension injects JavaScript into a matching page; installation and state persist in the profile."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click List, Install sample, Reload page, Disable, Reload page, Enable, Reload page, Remove and Reload page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The framed page message changes only after reload when the extension content script runs; Remove clears it after reload." & @CRLF & "HOW IT WORKS" & @CRLF & "A native profile extension injects JavaScript into a matching page; installation and state persist in the profile."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 190, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor(-1, 0xFFF4C2)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
@@ -96,6 +96,7 @@ Func _Example()
 				GUICtrlSetPos($g_idGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
 				_WebView2_SetBounds($g_iWebView, 305, 76, $aClient[0] - 310, $aClient[1] - 266)
 			Case $idAdd
+				_Example_LogClick("Install sample")
 				$g_sExtensionId = _WebView2_NativeExtension_Add($g_iWebView, $sFolder)
 				If @error Then
 					_Example_Fail("Install")
@@ -104,14 +105,19 @@ Func _Example()
 					_Example_List()
 				EndIf
 			Case $idList
+				_Example_LogClick("List")
 				_Example_List()
 			Case $idDisable
+				_Example_LogClick("Disable")
 				_Example_Change(False, False)
 			Case $idEnable
+				_Example_LogClick("Enable")
 				_Example_Change(True, False)
 			Case $idRemove
+				_Example_LogClick("Remove")
 				_Example_Change(False, True)
 			Case $idReload
+				_Example_LogClick("Reload page")
 				_Example_Reload()
 		EndSwitch
 	WEnd
@@ -187,6 +193,25 @@ EndFunc   ;==>_Example_OnNavigation
 ; Name ..........: _Example_Status
 ; Description ...: Shows the current operation result.
 ; ===============================================================================================================================
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
+
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
 	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)

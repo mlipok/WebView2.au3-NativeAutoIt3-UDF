@@ -58,7 +58,7 @@ Func _EX_Run()
 		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 65, 290, 725, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 		GUICtrlSetBkColor($g_EX_idStatus, 0xE2F0E4)
 		GUICtrlSetResizing(-1, $GUI_DOCKALL)
-		Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Open a mapped local file, then click Local page to return." & @CRLF & "EXPECTED RESULT" & @CRLF & "Relative resources load from the selected folder under the virtual HTTPS host." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 maps a local folder to a virtual host; no local server is needed."
+		Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Open mapped file, then Document source and Local page to return; use DevTools to inspect resources if needed." & @CRLF & "EXPECTED RESULT" & @CRLF & "Relative resources load from the selected folder under the virtual HTTPS host." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 maps a local folder to a virtual host; no local server is needed."
 		$g_EX_idGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 		GUICtrlSetBkColor(-1, 0xFFF4C2)
 		GUICtrlSetResizing(-1, $GUI_DOCKALL)
@@ -97,20 +97,27 @@ Func _EX_Run()
 				Case $GUI_EVENT_CLOSE
 					$bClose = True
 				Case $idBack
+					_EX_LogClick("<")
 					_WebView2_GoBack($g_EX_iView)
 				Case $idForward
+					_EX_LogClick(">")
 					_WebView2_GoForward($g_EX_iView)
 				Case $idReload
+					_EX_LogClick("Reload")
 					_WebView2_Reload($g_EX_iView)
 				Case $idStop
+					_EX_LogClick("Stop")
 					_WebView2_Stop($g_EX_iView)
 				Case $idGo, $g_EX_idAddress
+					If $iMessage = $idGo Then _EX_LogClick("Go")
 					_EX_Navigate($g_EX_iView, GUICtrlRead($g_EX_idAddress))
 				Case $idOpen
+					_EX_LogClick("Open mapped file")
 					If Not _EX_Open() Then _EX_Status(_WebView2_Error_GetDescription())
 				Case $aAction[0], $aAction[1], $aAction[2]
 					For $i = 0 To 2
 						If $iMessage = $aAction[$i] Then
+							_EX_LogClick($aLabels[$i])
 							If Not _EX_Action($i) Then _EX_Status(_WebView2_Error_GetDescription())
 						EndIf
 					Next
@@ -258,6 +265,25 @@ Func _EX_Navigate($iView, $sURI)
 	Return _WebView2_Navigate($iView, $sURI)
 EndFunc   ;==>_EX_Navigate
 
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _EX_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _EX_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _EX_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_EX_idStatus, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_EX_idStatus, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_EX_LogClick
 
 ; #INTERNAL_USE_ONLY# ==========================================================================================================
 ; Name ..........: _EX_Status
