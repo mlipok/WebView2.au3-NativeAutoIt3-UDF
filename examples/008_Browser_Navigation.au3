@@ -28,14 +28,14 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - Browser navigation", 1200, 800, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - Browser navigation", 1200, 800, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idBack = GUICtrlCreateButton("Back", 10, 10, 60, 30)
 		Local $idForward = GUICtrlCreateButton("Forward", 80, 10, 70, 30)
 		Local $idReload = GUICtrlCreateButton("Reload", 160, 10, 70, 30)
 		Local $idStop = GUICtrlCreateButton("Stop", 240, 10, 60, 30)
 		Local $idGo = GUICtrlCreateButton("Go", 1110, 10, 60, 30)
 		Local $idURL = GUICtrlCreateInput("https://www.autoitscript.com", 310, 10, 790, 30)
-		GUISetState(@SW_SHOW, $hGUI)
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 		If Not _WebView2_Init() Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error

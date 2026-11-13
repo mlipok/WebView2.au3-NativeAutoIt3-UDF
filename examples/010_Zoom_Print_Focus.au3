@@ -28,12 +28,12 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - Zoom + Print + Focus", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - Zoom + Print + Focus", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idZoom125 = GUICtrlCreateButton("Zoom 125%", 10, 10, 100, 30)
 		Local $idReset = GUICtrlCreateButton("Reset zoom", 120, 10, 100, 30)
 		Local $idFocus = GUICtrlCreateButton("Focus", 230, 10, 80, 30)
 		Local $idPrint = GUICtrlCreateButton("Print", 320, 10, 80, 30)
-		GUISetState(@SW_SHOW, $hGUI)
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 		If Not _WebView2_Init() Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error

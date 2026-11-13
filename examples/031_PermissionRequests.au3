@@ -2,6 +2,8 @@
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
 #include <GUIConstantsEx.au3>
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <WindowsConstants.au3>
 #include "..\WebView2.au3"
 
@@ -9,7 +11,7 @@ Opt("MustDeclareVars", 1)
 
 Global Const $g_sHost = "udf-virtual-host.example"
 Global Const $g_sOrigin = "https://" & $g_sHost & "/"
-Global $g_iWebView = -1, $g_idStatus = 0
+Global $g_iWebView = -1, $g_idStatus = 0, $g_idLog = 0, $g_idGuide = 0
 Global $g_bReady = False, $g_bRequestPending = False, $g_bPageDone = False
 Global $g_iDecision = $WEBVIEW2_PERMISSION_STATE_DENY, $g_iDecisionCount = 0
 Global $g_sMode = "deny", $g_sPageResult = ""
@@ -33,14 +35,29 @@ Exit _Example()
 ; ===============================================================================================================================
 Func _Example()
 	Local $iExitCode = 1
-	Local $hGUI = GUICreate("WebView2 - Permission requests", 800, 520, -1, -1, $WS_OVERLAPPEDWINDOW)
+	Local $hGUI = GUICreate("WebView2 - Permission requests", 800, 520, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 10, 10, 780, 25)
-	GUISetState(@SW_SHOW, $hGUI)
+
+	GUICtrlSetResizing($g_idStatus, $GUI_DOCKALL)
+	GUICtrlCreateLabel("Operation log", 5, 43, 290, 18)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	$g_idLog = GUICtrlCreateEdit("", 5, 64, 290, 446, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Deny geolocation, then Allow geolocation." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page reports denial first; Allow may return coordinates or a location-provider error." & @CRLF & "HOW IT WORKS" & @CRLF & "A native WebView2 permission callback decides each request without saving the decision."
+	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 340, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+	GUICtrlSetBkColor(-1, 0xFFF4C2)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	GUISetState(@SW_MAXIMIZE, $hGUI)
+	Local $aPanelSize = WinGetClientSize($hGUI)
+	If IsArray($aPanelSize) Then
+		GUICtrlSetPos($g_idLog, 5, 64, 290, $aPanelSize[1] - 74)
+		GUICtrlSetPos($g_idGuide, 305, $aPanelSize[1] - 180, $aPanelSize[0] - 310, 170)
+	EndIf
 	Do
 		Local $sProfile = @TempDir & "\WebView2PermissionExample_" & @AutoItPID
 		If Not _WebView2_Init(Default, $sProfile) Then ExitLoop
 		Local $aSize = WinGetClientSize($hGUI)
-		$g_iWebView = _WebView2_Create($hGUI, 0, 40, $aSize[0], $aSize[1] - 40)
+		$g_iWebView = _WebView2_Create($hGUI, 305, 40, $aSize[0] - 310, $aSize[1] - 230)
 		If @error Then ExitLoop
 		If Not _WebView2_SetCallback($g_iWebView, $WEBVIEW2_EVENT_PERMISSION_REQUESTED, _Example_OnPermission) Then ExitLoop
 		If Not _WebView2_SetCallback($g_iWebView, $WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED, _Example_OnMessage) Then ExitLoop
@@ -95,7 +112,11 @@ Func _Example()
 				ExitLoop
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				Local $aClient = WinGetClientSize($hGUI)
-				If IsArray($aClient) And $g_iWebView >= 0 Then _WebView2_SetBounds($g_iWebView, 0, 40, $aClient[0], $aClient[1] - 40)
+				If IsArray($aClient) And $g_iWebView >= 0 Then
+					GUICtrlSetPos($g_idLog, 5, 64, 290, $aClient[1] - 74)
+					GUICtrlSetPos($g_idGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
+					_WebView2_SetBounds($g_iWebView, 305, 40, $aClient[0] - 310, $aClient[1] - 230)
+				EndIf
 		EndSwitch
 		Sleep(10)
 	WEnd
@@ -188,6 +209,8 @@ EndFunc   ;==>_Example_OnMessage
 ; ===============================================================================================================================
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
+	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
 	ConsoleWrite($sText & @CRLF)
 	Return
 EndFunc   ;==>_Example_Status

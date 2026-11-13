@@ -28,10 +28,10 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - CSS injection", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - CSS injection", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		Local $idInject = GUICtrlCreateButton("Inject CSS", 10, 10, 120, 30)
 		Local $idClear = GUICtrlCreateButton("Clear CSS", 140, 10, 120, 30)
-		GUISetState(@SW_SHOW, $hGUI)
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 		If Not _WebView2_Init() Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error

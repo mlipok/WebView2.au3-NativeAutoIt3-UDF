@@ -1,4 +1,6 @@
 #include <GUIConstantsEx.au3>
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <WindowsConstants.au3>
 #include <MsgBoxConstants.au3>
 #include "..\WebView2.au3"
@@ -15,7 +17,7 @@ Global $g_iWebView = -1
 Global $g_sExtensionId = ""
 Global Const $g_sSampleName = "WebView2 Native Extension Sample"
 Global $g_hGUI = 0
-Global $g_idStatus = 0
+Global $g_idStatus = 0, $g_idLog = 0, $g_idGuide = 0
 Global $g_bRefreshState = False
 Global $g_bReloadNeeded = False
 Global $g_bReloadInProgress = False
@@ -31,7 +33,7 @@ Func _Example()
 	Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\032_NativeExtensions"
 	If Not _WebView2_NativeExtensions_EnableForEnvironment() Then Return _Example_Fail("Enable extensions")
 	If Not _WebView2_Init(Default, $sProfile) Then Return _Example_Fail("Initialize")
-	$g_hGUI = GUICreate("WebView2 - Native extensions", 700, 370, -1, -1, $WS_OVERLAPPEDWINDOW)
+	$g_hGUI = GUICreate("WebView2 - Native extensions", 700, 370, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	Local $idList = GUICtrlCreateButton("List", 10, 8, 75, 28)
 	Local $idRemove = GUICtrlCreateButton("Remove", 95, 8, 85, 28)
 	Local $idAdd = GUICtrlCreateButton("Install sample", 204, 8, 115, 28)
@@ -51,9 +53,29 @@ Func _Example()
 	GUICtrlSetResizing($idEnable, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
 	GUICtrlSetResizing($idReload, BitOR($GUI_DOCKLEFT, $GUI_DOCKTOP, $GUI_DOCKSIZE))
 	$g_idStatus = GUICtrlCreateLabel("Ready. The profile is preserved between runs.", 12, 44, 815, 28)
-	GUISetState(@SW_SHOW, $g_hGUI)
+	GUICtrlSetResizing($idList, $GUI_DOCKALL)
+	GUICtrlSetResizing($idRemove, $GUI_DOCKALL)
+	GUICtrlSetResizing($idAdd, $GUI_DOCKALL)
+	GUICtrlSetResizing($idDisable, $GUI_DOCKALL)
+	GUICtrlSetResizing($idEnable, $GUI_DOCKALL)
+	GUICtrlSetResizing($idReload, $GUI_DOCKALL)
+	GUICtrlSetResizing($g_idStatus, $GUI_DOCKALL)
+	GUICtrlCreateLabel("Operation log", 5, 79, 290, 18)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	$g_idLog = GUICtrlCreateEdit("", 5, 100, 290, 260, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click List, Install sample, Reload page, Disable, Reload page, Enable and Reload page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The framed page message changes only after reload when the extension content script runs." & @CRLF & "HOW IT WORKS" & @CRLF & "A native profile extension injects JavaScript into a matching page; installation and state persist in the profile."
+	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 190, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+	GUICtrlSetBkColor(-1, 0xFFF4C2)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	GUISetState(@SW_MAXIMIZE, $g_hGUI)
+	Local $aPanelSize = WinGetClientSize($g_hGUI)
+	If IsArray($aPanelSize) Then
+		GUICtrlSetPos($g_idLog, 5, 100, 290, $aPanelSize[1] - 110)
+		GUICtrlSetPos($g_idGuide, 305, $aPanelSize[1] - 180, $aPanelSize[0] - 310, 170)
+	EndIf
 	Local $aClient = WinGetClientSize($g_hGUI)
-	$g_iWebView = _WebView2_Create($g_hGUI, 0, 76, $aClient[0], $aClient[1] - 76)
+	$g_iWebView = _WebView2_Create($g_hGUI, 305, 76, $aClient[0] - 310, $aClient[1] - 266)
 	If @error Then Return _Example_Fail("Create view")
 	If Not _WebView2_SetVirtualHostNameToFolderMapping($g_iWebView, "udf-virtual-host.example", $sFolder) Then Return _Example_Fail("Map sample folder")
 	If Not _WebView2_SetCallback($g_iWebView, $WEBVIEW2_EVENT_NAVIGATION_COMPLETED, _Example_OnNavigation) Then Return _Example_Fail("Navigation callback")
@@ -69,7 +91,9 @@ Func _Example()
 				ExitLoop
 			Case $GUI_EVENT_RESIZED
 				$aClient = WinGetClientSize($g_hGUI)
-				_WebView2_SetBounds($g_iWebView, 0, 76, $aClient[0], $aClient[1] - 76)
+				GUICtrlSetPos($g_idLog, 5, 100, 290, $aClient[1] - 110)
+				GUICtrlSetPos($g_idGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
+				_WebView2_SetBounds($g_iWebView, 305, 76, $aClient[0] - 310, $aClient[1] - 266)
 			Case $idAdd
 				$g_sExtensionId = _WebView2_NativeExtension_Add($g_iWebView, $sFolder)
 				If @error Then
@@ -164,6 +188,8 @@ EndFunc   ;==>_Example_OnNavigation
 ; ===============================================================================================================================
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
+	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
 	ConsoleWrite($sText & @CRLF)
 EndFunc   ;==>_Example_Status
 

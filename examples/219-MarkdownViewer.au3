@@ -64,7 +64,7 @@ Func _MD_Main()
 		GUIRegisterMsg($WM_COMMAND, _MD_Command)
 		GUIRegisterMsg($WM_SIZE, _MD_Size)
 		_WebView2_SetDebugLevel($WEBVIEW2_DEBUG_ERROR)
-		GUISetState(@SW_SHOWNOACTIVATE, $g_hMD)
+		GUISetState(@SW_MAXIMIZE, $g_hMD)
 		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\MarkdownViewer"
 		If $g_bMDSmoke Then $sProfile = @TempDir & "\WebView2-Markdown-Profile-" & @AutoItPID
 		If Not _WebView2_Init(Default, $sProfile) Then
@@ -147,7 +147,7 @@ Func _MD_Main()
 			$iResult = _MD_Smoke()
 			ExitLoop
 		EndIf
-		GUISetState(@SW_SHOW, $g_hMD)
+		GUISetState(@SW_MAXIMIZE, $g_hMD)
 		Local $bClose = False
 		While Not $bClose
 			Local $iMsg = GUIGetMsg()

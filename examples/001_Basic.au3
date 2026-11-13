@@ -28,8 +28,8 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - Basic", 1100, 760, -1, -1, $WS_OVERLAPPEDWINDOW)
-		GUISetState(@SW_SHOW, $hGUI)
+		Local $hGUI = GUICreate("WebView2.au3 - Basic", 1100, 760, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 
 		If Not _WebView2_Init() Then
 			MsgBox($MB_ICONERROR, "WebView2 initialization", _WebView2_Error_GetDescription() & @CRLF & "@extended=" & _WebView2_Error_GetExtended())

@@ -30,13 +30,13 @@ _Example()
 ; Example .......: No
 ; ===============================================================================================================================
 Func _Example()
-	Local $hGUI = GUICreate("WebView2 - Blazor Calendar", 1200, 800, -1, -1, $WS_OVERLAPPEDWINDOW)
+	Local $hGUI = GUICreate("WebView2 - Blazor Calendar", 1200, 800, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	Local $idYear = GUICtrlCreateButton("Year", 10, 8, 75, 28)
 	Local $idMonth = GUICtrlCreateButton("Month", 90, 8, 75, 28)
 	Local $idWeek = GUICtrlCreateButton("Week", 170, 8, 75, 28)
 	Local $idReloadData = GUICtrlCreateButton("Reload sample events", 255, 8, 150, 28)
 	$g_idCalendarStatus = GUICtrlCreateLabel("Starting WebView2...", 415, 14, 770, 22)
-	GUISetState(@SW_SHOW, $hGUI)
+	GUISetState(@SW_MAXIMIZE, $hGUI)
 
 	Local $sProfile = @TempDir & "\WebView2BlazorCalendar_" & @AutoItPID
 	If Not _WebView2_Init(Default, $sProfile) Then

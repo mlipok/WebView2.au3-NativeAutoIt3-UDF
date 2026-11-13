@@ -45,7 +45,7 @@ Func _Example()
 	$g_idLog = GUICtrlCreateEdit("", 10, 72, 280, 468, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	_Status("Starting WebView2...")
-	GUISetState(@SW_SHOW, $hGUI)
+	GUISetState(@SW_MAXIMIZE, $hGUI)
 	Local $bSetup = False
 	Do
 		Local $sProfile = @TempDir & "\WebView2FrameWorker_" & @AutoItPID

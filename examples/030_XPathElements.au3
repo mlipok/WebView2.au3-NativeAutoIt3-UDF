@@ -2,13 +2,15 @@
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
 #include <GUIConstantsEx.au3>
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <WindowsConstants.au3>
 #include "..\WebView2.au3"
 
 Opt("MustDeclareVars", 1)
 
 Global $g_iWebView = -1
-Global $g_idStatus = 0
+Global $g_idStatus = 0, $g_idLog = 0, $g_idGuide = 0
 Global $g_bSmoke = False
 
 Exit _Example()
@@ -28,10 +30,25 @@ Exit _Example()
 ; ===============================================================================================================================
 Func _Example()
 	If $CmdLine[0] > 0 Then $g_bSmoke = ($CmdLine[1] = "--smoke")
-	Local $hGUI = GUICreate("WebView2 - XPath elements", 850, 540, -1, -1, $WS_OVERLAPPEDWINDOW)
+	Local $hGUI = GUICreate("WebView2 - XPath elements", 850, 540, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	Local $idRun = GUICtrlCreateButton("Find and fill by XPath", 10, 9, 190, 28)
 	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 210, 14, 625, 24)
-	GUISetState(@SW_SHOW, $hGUI)
+	GUICtrlSetResizing($idRun, $GUI_DOCKALL)
+	GUICtrlSetResizing($g_idStatus, $GUI_DOCKALL)
+	GUICtrlCreateLabel("Operation log", 5, 49, 290, 18)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	$g_idLog = GUICtrlCreateEdit("", 5, 70, 290, 460, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Find and fill by XPath, then Show values in the page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The two fields are filled, then the page reports their values." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt locates DOM elements by XPath and changes their values through WebView2."
+	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 360, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+	GUICtrlSetBkColor(-1, 0xFFF4C2)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	GUISetState(@SW_MAXIMIZE, $hGUI)
+	Local $aPanelSize = WinGetClientSize($hGUI)
+	If IsArray($aPanelSize) Then
+		GUICtrlSetPos($g_idLog, 5, 70, 290, $aPanelSize[1] - 80)
+		GUICtrlSetPos($g_idGuide, 305, $aPanelSize[1] - 180, $aPanelSize[0] - 310, 170)
+	EndIf
 
 	Local $bReady = False
 	Do
@@ -41,7 +58,7 @@ Func _Example()
 			ExitLoop
 		EndIf
 		Local $aSize = WinGetClientSize($hGUI)
-		$g_iWebView = _WebView2_Create($hGUI, 0, 46, $aSize[0], $aSize[1] - 46)
+		$g_iWebView = _WebView2_Create($hGUI, 305, 46, $aSize[0] - 310, $aSize[1] - 236)
 		If @error Then
 			_Example_Status("Creation failed: " & _WebView2_Error_GetDescription())
 			ExitLoop
@@ -72,7 +89,11 @@ Func _Example()
 					ExitLoop
 				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 					Local $aClient = WinGetClientSize($hGUI)
-					If IsArray($aClient) Then _WebView2_SetBounds($g_iWebView, 0, 46, $aClient[0], $aClient[1] - 46)
+					If IsArray($aClient) Then
+						GUICtrlSetPos($g_idLog, 5, 70, 290, $aClient[1] - 80)
+						GUICtrlSetPos($g_idGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
+						_WebView2_SetBounds($g_iWebView, 305, 46, $aClient[0] - 310, $aClient[1] - 236)
+					EndIf
 				Case $idRun
 					_Example_FillByXPath()
 			EndSwitch
@@ -206,6 +227,8 @@ EndFunc   ;==>_Example_Html
 ; ===============================================================================================================================
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
+	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
 	ConsoleWrite($sText & @CRLF)
 	Return
 EndFunc   ;==>_Example_Status

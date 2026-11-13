@@ -26,7 +26,7 @@ _Main()
 ; ================================================================================================================================
 Func _Main()
 	Local $bSmokePassed = False
-	$g_hGUI = GUICreate("WebView2 - New windows in tabs", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
+	$g_hGUI = GUICreate("WebView2 - New windows in tabs", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	$g_idTabs = GUICtrlCreateTab(0, 0, 1000, 32)
 	GUICtrlCreateTabItem("")
 	Do
@@ -35,7 +35,7 @@ Func _Main()
 			MsgBox(16, "WebView2", _WebView2_Error_GetDescription())
 			ExitLoop
 		EndIf
-		GUISetState(@SW_SHOW, $g_hGUI)
+		GUISetState(@SW_MAXIMIZE, $g_hGUI)
 		Local $iFirst = _AddTab("about:blank")
 		If $iFirst < 0 Then
 			MsgBox(16, "WebView2", _WebView2_Error_GetDescription())

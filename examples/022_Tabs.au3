@@ -20,7 +20,7 @@ _Main()
 ; Example .......: Yes
 ; ===============================================================================================================================
 Func _Main()
-	Local $hGUI = GUICreate("WebView2.au3 - Tabs", 1000, 700, -1, -1, $WS_OVERLAPPEDWINDOW)
+	Local $hGUI = GUICreate("WebView2.au3 - Tabs", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	Local $idTabs = GUICtrlCreateTab(0, 0, 1000, 32)
 	GUICtrlCreateTabItem("AutoIt")
 	GUICtrlCreateTabItem("Example")
@@ -40,7 +40,7 @@ Func _Main()
 		Local $aCurrentTabs = _WebView2_Tab_List($hGUI)
 		Local $aInstances = _WebView2_Instance_List()
 		ConsoleWrite("Tabs=" & $aCurrentTabs[0] & "; instances=" & $aInstances[0] & @CRLF)
-		GUISetState(@SW_SHOW, $hGUI)
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 		While True
 			Switch GUIGetMsg()
 				Case $GUI_EVENT_CLOSE

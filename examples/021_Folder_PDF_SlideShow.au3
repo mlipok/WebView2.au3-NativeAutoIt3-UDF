@@ -58,9 +58,9 @@ Func _Example()
 			ExitLoop 1
 		EndIf
 
-		Local $hGUI = GUICreate("WebView2 PDF slideshow", @DesktopWidth - 100, @DesktopHeight - 100, 50, 0, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2 PDF slideshow", @DesktopWidth - 100, @DesktopHeight - 100, 50, 0, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		GUISetBkColor(0xFFFFFF, $hGUI)
-		GUISetState(@SW_SHOW, $hGUI)
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 
 		If Not _WebView2_Init() Then
 			MsgBox($MB_ICONERROR, "PDF slideshow", _WebView2_Error_GetDescription())

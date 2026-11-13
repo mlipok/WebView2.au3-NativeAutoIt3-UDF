@@ -28,7 +28,7 @@ Func _Example()
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		Local $hGUI = GUICreate("WebView2.au3 - Events + JavaScript", 1100, 760, -1, -1, $WS_OVERLAPPEDWINDOW)
+		Local $hGUI = GUICreate("WebView2.au3 - Events + JavaScript", 1100, 760, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 
 		; inicjalizacja $idButtonScript
 		Local $idButtonScript = GUICtrlCreateButton("Execute JavaScript", 10, 10, 160, 30)
@@ -39,7 +39,7 @@ Func _Example()
 		; inicjalizacja $idButtonDevTools
 		Local $idButtonDevTools = GUICtrlCreateButton("DevTools", 330, 10, 120, 30)
 
-		GUISetState(@SW_SHOW, $hGUI)
+		GUISetState(@SW_MAXIMIZE, $hGUI)
 
 		If Not _WebView2_Init() Then
 			MsgBox($MB_ICONERROR, "WebView2 initialization", _WebView2_Error_GetDescription())
