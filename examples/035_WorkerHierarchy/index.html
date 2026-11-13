@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dedicated worker hierarchy</title>
+  <style>
+    body { margin: 20px; font: 16px Arial, sans-serif; }
+    iframe { width: 100%; height: 180px; box-sizing: border-box; border: 2px solid #4381b5; }
+    .guide { margin-top: 16px; padding: 16px; background: #fff4c2; border: 2px solid #d9ad3e; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <h1>Dedicated workers from a page and an iframe</h1>
+  <p id="page-state">The main document has no worker.</p>
+  <iframe name="worker-hierarchy-frame" src="frame.html" title="Worker hierarchy iframe"></iframe>
+  <section class="guide">
+    <h2>Test procedure</h2>
+    <p>Click <b>Create page worker</b> and <b>Create frame worker</b>. The AutoIt log should report frame ID 0 for the page worker and a positive ID for the iframe worker.</p>
+    <p>Click <b>Spawn page child</b> and <b>Spawn frame child</b>. Each child worker is created by its parent worker, not by the page or iframe. <b>List hierarchy</b> shows their native UDF IDs and immediate parent IDs. <b>Send JSON</b> should produce two replies with <code>"sum":7</code>. <b>Stop roots</b> invalidates the tracked worker IDs.</p>
+    <p>A dedicated worker runs JavaScript in a separate browser context. WebView2 raises a different creation event on the main document, an iframe, and a worker. The UDF combines these events while retaining each worker's owner and lifetime.</p>
+  </section>
+  <script>
+    let pageWorker = null;
+    function startPageWorker() {
+      if (pageWorker) return false;
+      pageWorker = new Worker('root.js');
+      document.getElementById('page-state').textContent = 'The main document owns a worker.';
+      return true;
+    }
+    function stopPageWorker() {
+      if (!pageWorker) return false;
+      pageWorker.terminate();
+      pageWorker = null;
+      document.getElementById('page-state').textContent = 'The main document stopped its worker.';
+      return true;
+    }
+  </script>
+</body>
+</html>

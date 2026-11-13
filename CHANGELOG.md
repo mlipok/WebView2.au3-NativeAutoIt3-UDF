@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Applications can now track dedicated workers created by the main document or another worker, including the immediate parent worker ID. Example 035 shows the hierarchy and direct JSON replies alongside iframe-owned workers.
 - Examples 200–218 and 220–221 now maximize before they are shown, so their windows do not visibly change size during startup.
 - Fixed early examples so WebView2 fills the maximized window at startup, follows window resizing, and uses a separate profile for each example instead of the browser's default profile.
 - Example windows now open maximized within the Windows work area, with their title bars and taskbar visible. Interactive examples with useful step-by-step checks now show a scrolling AutoIt operation log and a yellow guide beside the WebView2 content.

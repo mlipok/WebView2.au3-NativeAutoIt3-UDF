@@ -214,6 +214,7 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 			For $i = 0 To $__WEBVIEW2_MAX_FRAMES - 1
 				If $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OWNER] = $iWebView Then __WebView2_Frame_SubscribeWorkerCreated($i)
 			Next
+			If __WebView2_Worker_HasCallback($iWebView) Then __WebView2_Worker_SubscribeTopLevel($iWebView)
 		EndIf
 		$bResult = True
 	Until True

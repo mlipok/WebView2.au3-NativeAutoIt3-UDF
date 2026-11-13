@@ -78,6 +78,7 @@ examples/
     032_NativeExtensions.au3
     033_AdvancedFrameAPIs.au3
     034_FrameDedicatedWorker.au3
+    035_WorkerHierarchy.au3
 docs/
     API.md
     ARCHITECTURE.md

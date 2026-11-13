@@ -14,7 +14,7 @@
 12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Tracked frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; navigation events use `ICoreWebView2Frame2`, native `FrameId` uses `ICoreWebView2Frame5`, and nested frame creation uses `ICoreWebView2Frame7` when supported by the Runtime.
 13. **Frame host objects require explicit origins.** The UDF rejects wildcard and empty origin lists, but the host must still validate frame messages and keep the COM `IDispatch` object alive. Removing an object does not revoke JavaScript references already obtained.
 14. **Frame shared buffers are sent read-only.** `_WebView2_Frame_PostSharedBuffer()` accepts binary payloads under 2 GB and posts them to a tracked frame. It does not expose a writable shared memory view or a JavaScript-to-AutoIt shared-buffer channel. The page must release the received buffer.
-15. **Worker tracking starts at subscription time.** Register a worker callback before an iframe creates a worker. The original Frame8 notification remains observational; the new worker callbacks retain up to 256 simultaneous worker interfaces and expose direct JSON messages and a destruction event. IDs become invalid when workers end, their frames are destroyed or the owning WebView2 instance is cleaned up. Existing workers are not enumerated, nested worker creation and workers started by the top-level page are not tracked, and a successful JSON send does not confirm delivery. Older Runtimes without `ICoreWebView2Frame8` raise no callback.
+15. **Worker tracking starts at subscription time.** Register a worker callback before a page, iframe or worker creates another worker. The original Frame8 notification remains observational; the worker callbacks retain up to 256 simultaneous worker interfaces and expose direct JSON messages, parent IDs and destruction. IDs become invalid when workers end, their parent workers or frames are destroyed, or the owning WebView2 instance is cleaned up. Existing workers are not enumerated, and a successful JSON send does not confirm delivery. Older Runtimes without the corresponding `ICoreWebView2_29` or `ICoreWebView2Frame8` interface cannot report workers from that source.
 
 ## Recommended validation pass on Windows
 
@@ -43,13 +43,12 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- review nested-worker creation and workers started by the top-level page as later extensions; iframe-owned [ICoreWebView2Frame8](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2frame8?view=webview2-1.0.4314.35) tracking, JSON messages and destruction callbacks are implemented;
 - deferred permission handling and script-dialog callbacks; immediate top-level and frame-level permission decisions are implemented;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;
 - asynchronous/nonblocking public variants of current synchronous helpers.
 
-The functional GitHub example copies retain an explicit WIP entry for PDF.js. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
+PDF.js rendering in example 214 was confirmed by the user in a running WebView2 session on 2026-11-13; this does not verify its omitted upstream extraction and selection/link-lock demonstrations. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
 
 ## TODO: Migration from other projects
 
