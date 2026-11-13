@@ -27,6 +27,8 @@ Global Enum _
 		$__WEBVIEW2_FRAME_PARENT_ID, _
 		$__WEBVIEW2_FRAME_OBJECT7, _
 		$__WEBVIEW2_FRAME_CHILD_TOKEN, _
+		$__WEBVIEW2_FRAME_OBJECT8, _
+		$__WEBVIEW2_FRAME_WORKER_TOKEN, _
 		$__WEBVIEW2_FRAME_FIELDS
 Global $__g_aWebView2_Frames[$__WEBVIEW2_MAX_FRAMES][$__WEBVIEW2_FRAME_FIELDS]
 Global $__g_iWebView2_NextFrameId = 1
@@ -39,6 +41,7 @@ Global $__g_aWebView2_FrameNavStartCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameNavCompleteCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FramePermissionCallback[$WEBVIEW2_MAX_INSTANCES]
 Global $__g_aWebView2_FrameCaptureCallback[$WEBVIEW2_MAX_INSTANCES]
+Global $__g_aWebView2_FrameWorkerCreatedCallback[$WEBVIEW2_MAX_INSTANCES]
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Frame_QueryInterface
@@ -159,6 +162,12 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 					ExitLoop 1
 				EndIf
 			EndIf
+			If Not __WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_DEDICATED_WORKER_CREATED) Then
+				If Not __WebView2_Callback_Create($__WEBVIEW2_CB_FRAME_DEDICATED_WORKER_CREATED, __WebView2_FrameWorkerCreated_Invoke, "ptr;ptr;ptr") Then
+					$iError = $WEBVIEW2_ERR_CALLBACK
+					ExitLoop 1
+				EndIf
+			EndIf
 			Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
 			Local $oCore4 = __WebView2_Frame_QueryInterface($pCore, $WEBVIEW2_IID_ICoreWebView2_4, $WEBVIEW2_DTAG_ICoreWebView2_4)
 			$iError = @error
@@ -189,11 +198,53 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_FramePermissionCallback[$iWebView] = $fnCallback
 			Case $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING
 				$__g_aWebView2_FrameCaptureCallback[$iWebView] = $fnCallback
+			Case $WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED
+				$__g_aWebView2_FrameWorkerCreatedCallback[$iWebView] = $fnCallback
+				For $i = 0 To $__WEBVIEW2_MAX_FRAMES - 1
+					If $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OWNER] = $iWebView Then __WebView2_Frame_SubscribeWorkerCreated($i)
+				Next
 		EndSwitch
 		$bResult = True
 	Until True
 	Return SetError($iError, $iExtended, $bResult)
 EndFunc   ;==>__WebView2_Frame_SetCallback
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Frame_SubscribeWorkerCreated
+; Description ...: Subscribes one tracked frame to native dedicated-worker creation when supported.
+; Syntax ........: __WebView2_Frame_SubscribeWorkerCreated($iSlot)
+; Parameters ....: $iSlot - Active frame registry slot.
+; Return values .: True when subscribed, False when Frame8 is unavailable or subscription fails.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Subscriptions are optional and are removed with the frame.
+; Related .......: __WebView2_FrameWorkerCreated_Invoke
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2frame8
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_Frame_SubscribeWorkerCreated($iSlot)
+	Local $bResult = False
+	Do
+		If $iSlot < 0 Or $iSlot >= $__WEBVIEW2_MAX_FRAMES Then ExitLoop 1
+		If Not $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] Then ExitLoop 1
+		If $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN] Then
+			$bResult = True
+			ExitLoop 1
+		EndIf
+		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
+		If Not IsFunc($__g_aWebView2_FrameWorkerCreatedCallback[$iView]) Then ExitLoop 1
+		Local $oFrame8 = __WebView2_Frame_QueryInterface($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_POINTER], _
+				$WEBVIEW2_IID_ICoreWebView2Frame8, $WEBVIEW2_DTAG_ICoreWebView2Frame8)
+		If @error Then ExitLoop 1
+		Local $tToken = DllStructCreate("int64")
+		Local $iHRESULT = $oFrame8.add_DedicatedWorkerCreated(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_DEDICATED_WORKER_CREATED), $tToken)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT8] = $oFrame8
+		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN] = DllStructGetData($tToken, 1)
+		$bResult = True
+	Until True
+	Return $bResult
+EndFunc   ;==>__WebView2_Frame_SubscribeWorkerCreated
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Frame_Find
@@ -281,6 +332,47 @@ Func __WebView2_FrameChildCreated_Invoke($pSelf, $pSender, $pArgs)
 	Until True
 	Return $WEBVIEW2_S_OK
 EndFunc   ;==>__WebView2_FrameChildCreated_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_FrameWorkerCreated_Invoke
+; Description ...: Reports a dedicated worker created by a tracked iframe.
+; Syntax ........: __WebView2_FrameWorkerCreated_Invoke($pSelf, $pSender, $pArgs)
+; Parameters ....: Native callback pointers.
+; Return values .: S_OK.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Passes values only; the worker COM object is not retained by the UDF.
+; Related .......: __WebView2_Frame_SubscribeWorkerCreated
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2dedicatedworkercreatedeventargs
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_FrameWorkerCreated_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf
+	Do
+		Local $iSlot = __WebView2_Frame_Find($pSender, True)
+		If $iSlot < 0 Or Not $pArgs Then ExitLoop 1
+		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
+		Local $fnCallback = $__g_aWebView2_FrameWorkerCreatedCallback[$iView]
+		If Not IsFunc($fnCallback) Then ExitLoop 1
+		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2DedicatedWorkerCreatedEventArgs, $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorkerCreatedEventArgs)
+		If Not IsObj($oArgs) Then ExitLoop 1
+		$oArgs.AddRef()
+		Local $pWorker = 0
+		Local $iHRESULT = $oArgs.get_Worker($pWorker)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Or Not $pWorker Then ExitLoop 1
+		Local $oWorker = ObjCreateInterface($pWorker, $WEBVIEW2_IID_ICoreWebView2DedicatedWorker, $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorker)
+		If Not IsObj($oWorker) Then ExitLoop 1
+		Local $pScriptURI = 0
+		$iHRESULT = $oWorker.get_ScriptUri($pScriptURI)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			If $pScriptURI Then __WebView2_CoTaskMemString_ReadAndFree($pScriptURI)
+			ExitLoop 1
+		EndIf
+		Local $sScriptURI = __WebView2_CoTaskMemString_ReadAndFree($pScriptURI)
+		Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], $sScriptURI)
+	Until True
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_FrameWorkerCreated_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Frame_Register
@@ -374,6 +466,7 @@ Func __WebView2_Frame_Register($iView, $pFrame, $iParentId)
 			$iResult = $oFrame7.add_FrameCreated(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_CHILD_CREATED), $tChildToken)
 			If Not @error And $iResult = $WEBVIEW2_S_OK Then $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN] = DllStructGetData($tChildToken, 1)
 		EndIf
+		__WebView2_Frame_SubscribeWorkerCreated($iSlot)
 		Local $fnCallback = $__g_aWebView2_FrameCreatedCallback[$iView]
 		If IsFunc($fnCallback) Then Call($fnCallback, $iView, $iFrameId)
 	Until True
@@ -413,6 +506,8 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 		If IsObj($oFrame6) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
 		Local $oFrame7 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT7]
 		If IsObj($oFrame7) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN] Then $oFrame7.remove_FrameCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN])
+		Local $oFrame8 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT8]
+		If IsObj($oFrame8) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN] Then $oFrame8.remove_DedicatedWorkerCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN])
 		For $i = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 			$__g_aWebView2_Frames[$iSlot][$i] = Null
 		Next
@@ -606,12 +701,14 @@ Func __WebView2_Frame_Cleanup($iView)
 			Local $oFrame3 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT3]
 			Local $oFrame6 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT6]
 			Local $oFrame7 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT7]
+			Local $oFrame8 = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT8]
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
 			If IsObj($oFrame2) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
 			If IsObj($oFrame3) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
 			If IsObj($oFrame6) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
 			If IsObj($oFrame7) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CHILD_TOKEN] Then $oFrame7.remove_FrameCreated($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_CHILD_TOKEN])
+			If IsObj($oFrame8) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_WORKER_TOKEN] Then $oFrame8.remove_DedicatedWorkerCreated($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_WORKER_TOKEN])
 			If IsObj($oFrame) And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
 			For $j = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
 				$__g_aWebView2_Frames[$i][$j] = Null
@@ -628,6 +725,7 @@ Func __WebView2_Frame_Cleanup($iView)
 	$__g_aWebView2_FrameNavCompleteCallback[$iView] = Null
 	$__g_aWebView2_FramePermissionCallback[$iView] = Null
 	$__g_aWebView2_FrameCaptureCallback[$iView] = Null
+	$__g_aWebView2_FrameWorkerCreatedCallback[$iView] = Null
 	Return
 EndFunc   ;==>__WebView2_Frame_Cleanup
 

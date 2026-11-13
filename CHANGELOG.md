@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Applications can now detect when an iframe starts a dedicated worker and read its frame ID and script address. Example 034 shows this using local files.
 - Added native tracking of nested iframes and a parent-frame ID lookup, so applications can list the full frame hierarchy and run scripts in a selected child frame. Updated example 028 to demonstrate both actions.
 
 ## 0.6.0 - 2026-11-08

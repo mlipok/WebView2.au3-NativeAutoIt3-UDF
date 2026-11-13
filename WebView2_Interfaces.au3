@@ -29,6 +29,9 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Frame4 = "{188782DC-92AA-4732-AB3C-FCC59
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame5 = "{99D199C4-7305-11EE-B962-0242AC120002}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame6 = "{0DE611FD-31E9-5DDC-9D71-95EDA26EFF32}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Frame7 = "{3598CFA2-D85D-5A9F-9228-4DDE1F59EC64}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Frame8 = "{9DEFF655-E3D5-5B8F-9107-52E66B3EC3FC}"
+Global Const $WEBVIEW2_IID_ICoreWebView2DedicatedWorkerCreatedEventArgs = "{910C52AF-8129-516D-AB9A-B524E377D8AC}"
+Global Const $WEBVIEW2_IID_ICoreWebView2DedicatedWorker = "{66833876-EDBA-5A60-8508-7DA64504A9D2}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventArgs = "{4D6E7B5E-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
@@ -315,6 +318,16 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame6 = $WEBVIEW2_DTAG_ICoreWebView2Fr
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame7 = $WEBVIEW2_DTAG_ICoreWebView2Frame6 & _
 		"add_FrameCreated hresult(ptr;struct*);" & _
 		"remove_FrameCreated hresult(int64);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame8 = $WEBVIEW2_DTAG_ICoreWebView2Frame7 & _
+		"add_DedicatedWorkerCreated hresult(ptr;struct*);" & _
+		"remove_DedicatedWorkerCreated hresult(int64);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorkerCreatedEventArgs = _
+		"get_OriginalSourceFrameInfo hresult(ptr*);" & _
+		"get_Worker hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorker = "get_ScriptUri hresult(ptr*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs = "get_Frame hresult(ptr*);"
 

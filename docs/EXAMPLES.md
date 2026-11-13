@@ -139,3 +139,22 @@ Examples 024, 026–028, 031–033 and 206 use `https://udf-virtual-host.example
 ## 033_AdvancedFrameAPIs.au3
 
 [Example 033](../examples/033_AdvancedFrameAPIs.au3) uses the local `033_AdvancedFrameAPIs` pages through a virtual HTTPS host. Start the script and click **Send read-only buffer to frame** to send UTF-8 bytes and JSON metadata directly to the iframe. The iframe reads them from `sharedbufferreceived` and reports the text back to AutoIt. Its **Request geolocation** button exercises an immediate frame-level deny policy without saving it to the profile. Its **Request screen capture** button exercises the frame-level cancellation callback. No external service is required; a separate temporary profile is used. Targeted `--smoke` runs passed in x86 and x64 for buffer delivery and geolocation denial. Screen-capture cancellation requires an interactive check.
+
+## 034_FrameDedicatedWorker.au3
+
+[Example 034](../examples/034_FrameDedicatedWorker.au3) demonstrates how an AutoIt host can detect a **dedicated Web Worker created inside a tracked iframe**. A worker runs JavaScript separately from the page's main script context; it is neither another iframe nor another WebView2 instance. This example observes the worker's creation. The worker itself handles a small `ping` message and replies to its owning iframe.
+
+Here, **iframe** means the `frame.html` page embedded in the main `index.html` page. The iframe's JavaScript creates the dedicated worker, owns it and exchanges messages with it through `postMessage()`. The worker has no visual rectangle or DOM of its own: "inside the iframe" describes who created and communicates with it, not another visible frame nested in the page. **Tracked** means the UDF has registered that iframe and assigned it a public frame ID, so AutoIt can associate the native worker-created notification with the correct iframe.
+
+### What happens when you run it
+
+1. AutoIt opens a resizable window, creates WebView2 with an isolated temporary profile, and maps the local `034_FrameDedicatedWorker` folder to `https://udf-virtual-host.example/`. The example needs no Internet or local HTTP server.
+2. AutoIt registers frame-created, frame-message and dedicated-worker-created callbacks, then loads `index.html`. That page contains one iframe, `frame.html`. The UDF tracks the iframe and gives it a public frame ID. When the iframe sends `ready`, AutoIt records that it can start a worker there.
+3. Click **Create worker in iframe**. AutoIt calls `_WebView2_Frame_ExecuteScript()` for that particular frame to invoke `startWorker()`. The iframe creates `new Worker('worker.js')` and sends it `ping`.
+4. The worker replies to the iframe, which displays `Worker replied to ping inside the iframe.` and terminates the worker. Independently, WebView2 raises its native `ICoreWebView2Frame8::DedicatedWorkerCreated` event. The AutoIt status label shows the tracked frame ID, worker count and fully qualified script URI, `https://udf-virtual-host.example/worker.js`. These two visible results distinguish the page's own worker exchange from the UDF's native notification.
+
+### What changed in the UDF
+
+`_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED, $fnCallback)` now accepts a callback with `($iWebView, $iFrame, $sScriptURI)`. For each tracked iframe, the UDF subscribes through `ICoreWebView2Frame8` when the Runtime supports it. It also subscribes frames that were already tracked when the callback is registered later, and removes the native subscriptions when frames or the WebView2 instance are cleaned up. This is an observational event: the UDF does not retain a worker object, exchange messages with the worker, report its termination or detect workers created directly by the top-level page. Register before creating the worker; earlier workers are not enumerated. A Runtime without Frame8 support cannot raise this callback.
+
+Use `--smoke` to create one worker automatically and check the native callback, frame ID, expected URI and cleanup. Targeted runs passed under AutoIt x86 and x64. Use `--smoke-late` to register the worker callback after the iframe is already tracked; a targeted x64 run passed. The visible button and resize behavior were not checked interactively.

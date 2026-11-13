@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Worker owner iframe</title>
+  <style>body { font: 16px Arial, sans-serif; padding: 14px; background: #f1f7fc; }</style>
+</head>
+<body>
+  <h2>This iframe owns the worker</h2>
+  <p>Use the AutoIt button above WebView2 to create a dedicated worker here.</p>
+  <p id="result">No worker created yet.</p>
+  <script>
+    function startWorker() {
+      const worker = new Worker('worker.js');
+      worker.onmessage = event => {
+        document.getElementById('result').textContent = event.data;
+        worker.terminate();
+      };
+      worker.postMessage('ping');
+    }
+    window.addEventListener('load', () => chrome.webview.postMessage('ready'));
+  </script>
+</body>
+</html>
