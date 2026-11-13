@@ -1,3 +1,10 @@
+# 2026-11-13: example operation-log layout and color
+
+- The 34 examples with read-only AutoIt operation-log EDIT controls use background color `0xE2F0E4`. Examples 034 and 035 now also set log height from the maximized GUI client height before entering the message loop. User-editable content and yellow guides were not recolored.
+- Tidy was run on one explicit existing staging file at a time for all 34 changed `.au3` examples; it made no formatting changes and left no process running. Au3Check 3.3.18.0 with warnings 1–7 reported 0 errors and 0 warnings for each of those 34 examples.
+- Project structure validation passed; the isolated branch worktree reported missing optional x86/x64 loader DLL copies.
+- These changes affect only control color and geometry. No GUI or native WebView2 runtime test was run for this branch.
+
 # 2026-11-13: page- and worker-created dedicated workers
 
 - Based on Microsoft WebView2.idl from SDK 1.0.4129.50: `ICoreWebView2_29` adds the main-document worker event after 48 methods introduced by `_9` through `_28`; `ICoreWebView2DedicatedWorker` exposes child creation. The native interfaces are queried optionally.

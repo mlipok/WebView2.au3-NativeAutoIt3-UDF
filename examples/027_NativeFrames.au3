@@ -33,6 +33,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 81, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 102, 290, 438, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Send JSON to frame and Run frame script; try the page button." & @CRLF & "EXPECTED RESULT" & @CRLF & "The iframe receives JSON, sends a response and exposes its title; the log reports native frame events." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt addresses the tracked iframe directly and may expose a COM object to an allowed origin."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 370, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

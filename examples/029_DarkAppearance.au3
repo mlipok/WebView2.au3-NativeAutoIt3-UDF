@@ -44,6 +44,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 49, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 70, 290, 550, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Prefer light, Prefer dark, Force dark and Stop forcing." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page reports its preferred color scheme and its visible colors change." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 exposes browser preferences; DevTools can override automatic darkening."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 450, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

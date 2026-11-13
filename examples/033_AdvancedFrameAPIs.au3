@@ -35,6 +35,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 51, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 72, 290, 518, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Send the read-only buffer, then request geolocation and screen capture inside the iframe." & @CRLF & "EXPECTED RESULT" & @CRLF & "The iframe reports the buffer text; permission and capture requests are denied or cancelled." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 delivers shared bytes and raises native permission and capture events for the frame."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 420, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

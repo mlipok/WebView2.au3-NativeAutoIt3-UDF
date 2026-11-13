@@ -43,6 +43,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 73, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 94, 290, 366, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Start tone in the page; click Read state, Mute and Unmute, then Stop tone." & @CRLF & "EXPECTED RESULT" & @CRLF & "The native log shows playing and mute changes; muting does not stop playback." & @CRLF & "HOW IT WORKS" & @CRLF & "An oscillator runs in page JavaScript while WebView2 raises native audio and mute events."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 290, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

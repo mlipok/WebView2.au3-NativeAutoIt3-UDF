@@ -54,6 +54,7 @@ Func _EX_Run()
 		GUICtrlSetResizing($idGo, $GUI_DOCKALL)
 		GUICtrlSetResizing($idOpen, $GUI_DOCKALL)
 		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 65, 290, 725, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idStatus, 0xE2F0E4)
 		GUICtrlSetResizing(-1, $GUI_DOCKALL)
 		Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Read JSON, Pretty JSON and Compact JSON." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log shows parsed data and both formatted forms." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt exchanges JSON text with the page and parses or serializes it."
 		$g_EX_idGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

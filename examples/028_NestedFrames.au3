@@ -44,6 +44,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 53, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 74, 290, 616, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click List all frames; click Update next frame label repeatedly, then Update FRAME_0_1_1 to v3." & @CRLF & "EXPECTED RESULT" & @CRLF & "One visible label gains _v2 per click; the named frame gains _v3. The tree has 15 frames." & @CRLF & "HOW IT WORKS" & @CRLF & "The UDF lists tracked nested iframe IDs and runs a script in the selected frame."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 520, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

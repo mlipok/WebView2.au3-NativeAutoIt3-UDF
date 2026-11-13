@@ -38,6 +38,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 49, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 70, 290, 460, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Find and fill by XPath, then Show values in the page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The two fields are filled, then the page reports their values." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt locates DOM elements by XPath and changes their values through WebView2."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 360, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
