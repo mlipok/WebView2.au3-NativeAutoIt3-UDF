@@ -55,7 +55,8 @@ Func _Example()
 		GUICtrlSetPos($g_idGuide, 305, $aPanelSize[1] - 180, $aPanelSize[0] - 310, 170)
 	EndIf
 
-	If Not _WebView2_Init() Then
+	Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\025_AudioState"
+	If Not _WebView2_Init(Default, $sProfile) Then
 		_Example_Status($g_idAudioStatus, "Initialization failed: " & _WebView2_Error_GetDescription())
 	Else
 		Local $aClient = WinGetClientSize($hGUI)

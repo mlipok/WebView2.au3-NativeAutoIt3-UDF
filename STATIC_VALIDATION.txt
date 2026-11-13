@@ -1,3 +1,11 @@
+# 2026-11-13: PR #26 profile isolation and initial/resize bounds
+
+- The 24 changed AutoIt examples remain UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file, with no extra switch or orphaned process.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for all 24 changed examples.
+- Static inspection found no remaining default `_WebView2_Init()` call in examples 001–025, no fixed numeric WebView2 creation bounds in examples 002–020, and a resize handler in each example 002–023.
+- `tools/Validate-Project.ps1` reported project structure OK. The isolated worktree has no optional x86/x64 loader DLLs; the synchronized Z project reported structure OK with its bundled loaders. `git diff --check` passed.
+- This follow-up changes profile paths and view geometry; no GUI test was run solely for size or position. Existing smoke evidence for the previous PR commit remains separate and does not confirm the corrected visual bounds.
+
 # 2026-11-13: maximized examples and three-panel test guides
 
 - Modified 57 example AutoIt files. All checked source files are UTF-8 without BOM with CRLF line endings.

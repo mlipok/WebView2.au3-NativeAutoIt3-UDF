@@ -31,7 +31,8 @@ Func _Example()
 		Local $hGUI = GUICreate("WebView2.au3 - Multi-instance", 1200, 760, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		GUISetState(@SW_MAXIMIZE, $hGUI)
 
-		If Not _WebView2_Init() Then
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\003_MultiInstance"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			MsgBox($MB_ICONERROR, "WebView2 initialization", _WebView2_Error_GetDescription())
 			$__WebView2ExitValue = 0
 			$__WebView2ExitError = @error
@@ -39,7 +40,9 @@ Func _Example()
 			ExitLoop 1
 		EndIf
 
-		Local $iLeftView = _WebView2_Create($hGUI, 0, 0, 600, 760)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iInitialHalfWidth = Int($aInitialClient[0] / 2)
+		Local $iLeftView = _WebView2_Create($hGUI, 0, 0, $iInitialHalfWidth, $aInitialClient[1])
 		If @error Then
 			MsgBox($MB_ICONERROR, "Left WebView", _WebView2_Error_GetDescription())
 			_WebView2_Cleanup()
@@ -49,7 +52,7 @@ Func _Example()
 			ExitLoop 1
 		EndIf
 
-		Local $iRightView = _WebView2_Create($hGUI, 600, 0, 600, 760)
+		Local $iRightView = _WebView2_Create($hGUI, $iInitialHalfWidth, 0, $aInitialClient[0] - $iInitialHalfWidth, $aInitialClient[1])
 		If @error Then
 			MsgBox($MB_ICONERROR, "Right WebView", _WebView2_Error_GetDescription())
 			_WebView2_Cleanup()

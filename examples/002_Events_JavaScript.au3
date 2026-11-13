@@ -41,7 +41,8 @@ Func _Example()
 
 		GUISetState(@SW_MAXIMIZE, $hGUI)
 
-		If Not _WebView2_Init() Then
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\002_Events_JavaScript"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			MsgBox($MB_ICONERROR, "WebView2 initialization", _WebView2_Error_GetDescription())
 			$__WebView2ExitValue = 0
 			$__WebView2ExitError = @error
@@ -49,7 +50,8 @@ Func _Example()
 			ExitLoop 1
 		EndIf
 
-		Local $iWebView = _WebView2_Create($hGUI, 0, 50, 1100, 710)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 50, $aInitialClient[0], $aInitialClient[1] - 50)
 		If @error Then
 			MsgBox($MB_ICONERROR, "WebView2 create", _WebView2_Error_GetDescription())
 			_WebView2_Cleanup()

@@ -27,6 +27,17 @@ This repository contains a native Microsoft Edge WebView2 UDF for AutoIt. Preser
 - Preserve public API names, protocol identifiers, paths, upstream names, third-party sources and licenses, and deliberate non-English Unicode test data. Explain such test data in English.
 - When editing a project resource, review its project-owned text for consistency with this rule. Keep test semantics unchanged; update expected text together with a user-facing label when needed.
 
+## Creating and maintaining examples
+
+- Give each runnable example a three-digit number. Preserve the existing number and filename of an established example; choose the next suitable unused number for a new one. Keep original examples below 200 separate from the attributed 200–221 adaptations.
+- Make an example a self-contained mini project: keep its AutoIt entry point, sample page and other local assets together. Include this project's public `WebView2.au3` entry point and standard AutoIt UDFs directly. Do not introduce a shared, monolithic example-support module.
+- Use deterministic public sample data. Do not include private program names, production integration paths, credentials or persistent changes to external services. Keep third-party notices, source links, author and modifier credits with adapted examples; distinguish copied behavior from later local changes.
+- Open a main interactive example window maximized inside the Windows work area, with its title bar, minimize control and taskbar visible. Preserve the purpose and appropriate size of modal dialogs. Position controls and WebView2 from the actual client size at startup and on resize, maximize and restore; do not rely only on an event that may have fired before the message loop started.
+- Where an interaction needs several steps or observable native events, show the AutoIt operation log beside WebView2 and a yellow guide below it. Append time-stamped log entries in chronological order and scroll to the newest entry. State the exact controls to use, expected results, and how the demonstrated WebView2 feature works. Keep the guide and WebView2 content visible without overlap at supported window sizes. Simpler focused examples may retain their existing layout when three panels would obscure the feature.
+- Keep example-specific WebView2 profiles separate from one another and away from the portable AutoIt executable directory. For local web assets, prefer the UDF's virtual HTTPS host mapping and the established `https://udf-virtual-host.example/` host with a separate profile for each example. State explicitly when a test requires Internet access.
+- Preserve existing `--smoke` modes and make new ones deterministic, bounded and noninteractive. Validate each changed AutoIt file with the required Tidy and Au3Check procedure, then run focused smoke or manual tests only for behavior changed by the task. Record static, x86, x64 and visible GUI results separately; do not present compilation or syntax checks as proof of WebView2 behavior.
+- Update `docs/EXAMPLES.md` when adding an example or changing its usage, assets, status or verified behavior. Update `CHANGELOG.md` for user-visible example changes, `STATIC_VALIDATION.txt` with actual check results, and `CONTRIBUTING.md` when contributor guidance changes. Keep `#WIP - Work in Progress` and an honest limitation note until the example's key behavior is confirmed in a running WebView2 session.
+
 ## Implementation rules
 
 - Keep compatibility with AutoIt 3.3.18.0 or newer.

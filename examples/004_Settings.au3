@@ -41,13 +41,15 @@ Func _Example()
 		GUICtrlSetState($idZoom, $GUI_CHECKED)
 		GUISetState(@SW_MAXIMIZE, $hGUI)
 
-		If Not _WebView2_Init() Then
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\004_Settings"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		Local $iWebView = _WebView2_Create($hGUI, 0, 45, 1100, 715)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 45, $aInitialClient[0], $aInitialClient[1] - 45)
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error

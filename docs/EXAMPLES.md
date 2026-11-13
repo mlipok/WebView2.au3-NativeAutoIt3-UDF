@@ -18,6 +18,8 @@ Each `assets/native/NNN.html` page belongs to its corresponding example; `209-Au
 
 Ordinary examples have separate profiles under `%LocalAppData%\WebView2.au3\Examples\<example-name>`. When moving a mini project, take its `.au3` file and assigned assets, and adjust the path to your own UDF and loader installation.
 
+Examples 001–022 and 025 now also select individual profiles under this directory. Their embedded views are sized from the maximized window's current client area at creation and updated on resize or restore; tab examples resize the tab bar and every live WebView2 tab. This keeps example profiles away from the portable AutoIt executable directory.
+
 ## Source → local copy
 
 | GitHub source example | Local copy/adaptation | Status and scope |

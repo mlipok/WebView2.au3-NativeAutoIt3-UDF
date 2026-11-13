@@ -36,13 +36,15 @@ Func _Example()
 		Local $idGo = GUICtrlCreateButton("Go", 1110, 10, 60, 30)
 		Local $idURL = GUICtrlCreateInput("https://www.autoitscript.com", 310, 10, 790, 30)
 		GUISetState(@SW_MAXIMIZE, $hGUI)
-		If Not _WebView2_Init() Then
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\008_Browser_Navigation"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		Local $iWebView = _WebView2_Create($hGUI, 0, 50, 1200, 750)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 50, $aInitialClient[0], $aInitialClient[1] - 50)
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error

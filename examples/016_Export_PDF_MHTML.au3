@@ -31,13 +31,15 @@ Func _Example()
 		Local $hGUI = GUICreate("WebView2.au3 - PDF / MHTML", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 		GUISetState(@SW_MAXIMIZE, $hGUI)
 
-		If Not _WebView2_Init() Then
+		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\016_Export_PDF_MHTML"
+		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		Local $iWebView = _WebView2_Create($hGUI, 0, 0, 1000, 700)
+		Local $aInitialClient = WinGetClientSize($hGUI)
+		Local $iWebView = _WebView2_Create($hGUI, 0, 0, $aInitialClient[0], $aInitialClient[1])
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error
@@ -89,7 +91,14 @@ Func _Example()
 
 		MsgBox($MB_ICONINFORMATION, "Export complete", "PDF: " & $sPdfFile & @CRLF & "MHTML: " & $sMhtmlFile)
 
-		While GUIGetMsg() <> $GUI_EVENT_CLOSE
+		While True
+			Switch GUIGetMsg()
+				Case $GUI_EVENT_CLOSE
+					ExitLoop
+				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
+					Local $aResize = WinGetClientSize($hGUI)
+					If IsArray($aResize) Then _WebView2_SetBounds($iWebView, 0, 0, $aResize[0], $aResize[1])
+			EndSwitch
 		WEnd
 
 		_WebView2_Cleanup()

@@ -36,6 +36,8 @@ Func _Main()
 			ExitLoop
 		EndIf
 		GUISetState(@SW_MAXIMIZE, $g_hGUI)
+		Local $aInitialClient = WinGetClientSize($g_hGUI)
+		If IsArray($aInitialClient) Then GUICtrlSetPos($g_idTabs, 0, 0, $aInitialClient[0], 32)
 		Local $iFirst = _AddTab("about:blank")
 		If $iFirst < 0 Then
 			MsgBox(16, "WebView2", _WebView2_Error_GetDescription())
@@ -54,6 +56,14 @@ Func _Main()
 			Switch GUIGetMsg()
 				Case $GUI_EVENT_CLOSE
 					ExitLoop
+				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
+					Local $aClient = WinGetClientSize($g_hGUI)
+					If IsArray($aClient) Then
+						GUICtrlSetPos($g_idTabs, 0, 0, $aClient[0], 32)
+						For $i = 0 To UBound($g_aTabs) - 1
+							If $g_aTabs[$i] >= 0 Then _WebView2_SetBounds($g_aTabs[$i], 0, 34, $aClient[0], $aClient[1] - 34)
+						Next
+					EndIf
 				Case $g_idTabs
 					Local $iSelected = GUICtrlRead($g_idTabs)
 					If $iSelected >= 0 And $iSelected < UBound($g_aTabs) Then _WebView2_Tab_Activate($g_aTabs[$iSelected])
