@@ -14,7 +14,7 @@
 12. **Native frame tracking starts at subscription time.** Register a frame callback before navigation. Tracked frame IDs are invalidated when the iframe is destroyed. The tracker supports 256 active frames; navigation events use `ICoreWebView2Frame2`, native `FrameId` uses `ICoreWebView2Frame5`, and nested frame creation uses `ICoreWebView2Frame7` when supported by the Runtime.
 13. **Frame host objects require explicit origins.** The UDF rejects wildcard and empty origin lists, but the host must still validate frame messages and keep the COM `IDispatch` object alive. Removing an object does not revoke JavaScript references already obtained.
 14. **Frame shared buffers are sent read-only.** `_WebView2_Frame_PostSharedBuffer()` accepts binary payloads under 2 GB and posts them to a tracked frame. It does not expose a writable shared memory view or a JavaScript-to-AutoIt shared-buffer channel. The page must release the received buffer.
-15. **Frame8 worker notifications are observational.** Register `$WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED` before an iframe starts a worker. The callback reports its tracked frame ID and script URI, but the UDF does not retain worker objects, exchange messages with them or enumerate workers that existed before registration. Older Runtimes without `ICoreWebView2Frame8` raise no such callback.
+15. **Worker tracking starts at subscription time.** Register a worker callback before an iframe creates a worker. The original Frame8 notification remains observational; the new worker callbacks retain up to 256 simultaneous worker interfaces and expose direct JSON messages and a destruction event. IDs become invalid when workers end, their frames are destroyed or the owning WebView2 instance is cleaned up. Existing workers are not enumerated, nested worker creation and workers started by the top-level page are not tracked, and a successful JSON send does not confirm delivery. Older Runtimes without `ICoreWebView2Frame8` raise no callback.
 
 ## Recommended validation pass on Windows
 
@@ -43,7 +43,7 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- consider dedicated-worker JSON messaging and worker-destroyed notifications as a separate feature with explicit worker lifetime handling; native [ICoreWebView2Frame8](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2frame8?view=webview2-1.0.4314.35) creation notifications with frame IDs and script URIs are implemented;
+- review nested-worker creation and workers started by the top-level page as later extensions; iframe-owned [ICoreWebView2Frame8](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2frame8?view=webview2-1.0.4314.35) tracking, JSON messages and destruction callbacks are implemented;
 - deferred permission handling and script-dialog callbacks; immediate top-level and frame-level permission decisions are implemented;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;

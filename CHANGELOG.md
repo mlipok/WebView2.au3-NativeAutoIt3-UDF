@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed example 034 so its controls no longer cover the WebView2 heading or leave an oversized gray area when the window is enlarged.
+- Example 034 now keeps a scrolling operation log grouped by button clicks beside WebView2 and explains the expected rejection of messages sent after a worker ends.
+- Applications can now send JSON to a dedicated worker started by an iframe, receive its JSON replies, and detect when it ends. Example 034 demonstrates the complete exchange.
 - Applications can now detect when an iframe starts a dedicated worker and read its frame ID and script address. Example 034 shows this using local files.
 - Added native tracking of nested iframes and a parent-frame ID lookup, so applications can list the full frame hierarchy and run scripts in a selected child frame. Updated example 028 to demonstrate both actions.
 

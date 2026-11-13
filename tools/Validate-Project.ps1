@@ -77,6 +77,7 @@ $RequiredFiles = @(
     "WebView2_CallbackObject.au3",
     "WebView2_Core.au3",
     "WebView2_Frame.au3",
+    "WebView2_Worker.au3",
     "WebView2_DOM.au3",
     "WebView2_IECompat.au3",
     "WebView2_Advanced.au3",
