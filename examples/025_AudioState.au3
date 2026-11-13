@@ -100,8 +100,10 @@ Func _Example()
 					EndIf
 				EndIf
 			Case $idReadState
+				_Example_LogClick("Read state")
 				_ReadState()
 			Case $idMute, $idUnmute
+				_Example_LogClick($iMessage = $idMute ? "Mute" : "Unmute")
 				If $g_iWebView >= 0 Then
 					If Not _WebView2_SetIsMuted($g_iWebView, $idMute = $iMessage) Then _Example_Status($g_idMuteStatus, "Mute change failed: " & _WebView2_Error_GetDescription())
 				EndIf
@@ -188,6 +190,25 @@ Func _ReadState()
 	EndIf
 	Return
 EndFunc   ;==>_ReadState
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sCaption)
+; Parameters ....: $sCaption - Exact caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automated smoke actions do not use this helper.
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sCaption)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _Example_Status

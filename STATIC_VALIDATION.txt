@@ -1,3 +1,10 @@
+# 2026-11-14: all-example manual button-click log audit
+
+- Audited all 60 `.au3` files under `examples/`. Thirty files with manual AutoIt buttons and a native operation log gained a blank separator and timestamped `'<button caption>' was clicked.` entry before each button action. Examples 027, 034 and 035 already provided this behavior. Example 031 has only page buttons; nine button-driven files have no native operation log, and seventeen files have no AutoIt buttons. The exceptions and their layout reasons are recorded in `docs/EXAMPLES.md`.
+- Checked the yellow guides against the relevant action captions and expected results; adjusted guides in examples 024, 032, 033, 204, 204_Loop, 206, 214, 217 and 220. Automated smoke paths do not call the new manual-click helpers.
+- All 30 edited `.au3` files remain UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file as its sole argument, made no formatting changes and left no process running. Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for each file.
+- `tools/Validate-Project.ps1` reported project structure OK; optional x86/x64 loader DLL copies are absent in this isolated worktree. `git diff --check` passed. The 30 manual GUI button sequences were not executed in this pass; static validation alone does not confirm visible behavior.
+
 # 2026-11-14: example 027 manual click log groups
 
 - All four manual action buttons now append a blank line and a timestamped `'<button caption>' was clicked.` entry before their action; the yellow guide names each button and its expected result. The existing automated smoke path does not claim a button click.
