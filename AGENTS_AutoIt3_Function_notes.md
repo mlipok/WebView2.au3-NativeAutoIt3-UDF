@@ -1,7 +1,11 @@
 # Function Notes
 
 Source: https://www.autoitscript.com/autoit3/docs/function_notes.htm
+Original authorship: Jonathan Bennett and the AutoIt Team, as identified in the AutoIt license; this Markdown conversion does not claim authorship of the source content.
+License: AutoIt End-User License Agreement — https://www.autoitscript.com/autoit3/docs/license.htm. Redistribution of covered documentation must retain copyright and trademark notices and be accompanied by a copy of that license.
 Retrieved: 2026-09-27
+
+---
 
 Functions in AutoIt are first class objects. Among other things, that means you can assign a function to a variable, pass it around as an argument or return from another function.  
 Aside from certain specific scope-regarding declaration rules (being that the names of the built-in functions are *reserved* and of UDFs' can be overwritten only locally), the names of functions do not have special status in the language.

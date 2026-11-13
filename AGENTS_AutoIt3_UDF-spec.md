@@ -1,7 +1,10 @@
 # UDF-spec
 
 Source: https://www.autoitscript.com/wiki/UDF-spec
+Original authorship: Authors and contributors of the linked AutoIt Wiki page; this Markdown conversion does not claim authorship of the source content.
 Retrieved: 2026-09-26
+
+---
 
 > The source page is marked as a work in progress. This is a local copy for checking the specification, not an additional set of repository rules.
 

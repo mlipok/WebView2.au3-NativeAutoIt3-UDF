@@ -1,7 +1,10 @@
 # AutoIt Best Coding Practices
 
 Source: https://www.autoitscript.com/wiki/Best_coding_practices
+Original authorship: Authors and contributors of the linked AutoIt Wiki page; this Markdown conversion does not claim authorship of the source content.
 Retrieved: 2026-09-26
+
+---
 
 Outlined in this section is a detailed explanation of what are to be considered the good coding practices within AutoIt. These recommendations are based on accepted coding practices common to a number of other programming languages. You do not need to follow them, but it is recommended that you do.
 
