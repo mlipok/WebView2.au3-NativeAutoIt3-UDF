@@ -126,7 +126,7 @@ Examples 024, 026–028, 031–033 and 206 use `https://udf-virtual-host.example
 
 ## 027_NativeFrames.au3
 
-[Example 027](../examples/027_NativeFrames.au3) tracks a native iframe, receives its ready message, sends JSON to it, executes a script in its context, and attaches a COM host object for one allowed origin. Keep the `027_NativeFrames` folder beside the script. Run with AutoIt and use **Send JSON to frame** and **Run frame script**. The `--smoke` option exits when the iframe reports readiness or after 10 seconds. The host-object handshake and visible controls require runtime verification.
+[Example 027](../examples/027_NativeFrames.au3) tracks a native iframe, receives its ready message, sends JSON to it, executes a script in its context, and attaches a COM host object for one allowed origin. Keep the `027_NativeFrames` folder beside the script. Run with AutoIt and use **Send JSON to frame**, **Run frame script**, **Change frame name** and **Reload frame**. The AutoIt log shows `NameChanged`, `ContentLoading` and `DOMContentLoaded`, including navigation IDs for the two loading stages. The original `--smoke` option exits when the iframe reports readiness or after 10 seconds. The new bounded `--smoke-lifecycle` mode changes `window.name`, reloads the iframe and confirms the three native callbacks; it passed under AutoIt x86 and x64. The host-object handshake and visible button sequence were not manually verified in this change.
 
 ## 028_NestedFrames.au3
 

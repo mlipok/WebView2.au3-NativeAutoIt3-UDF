@@ -34,6 +34,8 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Frame8 = "{9DEFF655-E3D5-5B8F-9107-52E66
 Global Const $WEBVIEW2_IID_ICoreWebView2DedicatedWorkerCreatedEventArgs = "{910C52AF-8129-516D-AB9A-B524E377D8AC}"
 Global Const $WEBVIEW2_IID_ICoreWebView2DedicatedWorker = "{66833876-EDBA-5A60-8508-7DA64504A9D2}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventArgs = "{4D6E7B5E-9BAA-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ContentLoadingEventArgs = "{0C8A1275-9B6B-4901-87AD-70DF25BAFA6E}"
+Global Const $WEBVIEW2_IID_ICoreWebView2DOMContentLoadedEventArgs = "{16B1E21A-C503-44F2-84C9-70ABA5031283}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469-E119-438A-9B18-7604F25F2E49}"
@@ -63,6 +65,9 @@ Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventHandler = "{D4C18
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventHandler = "{38059770-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameChildFrameCreatedEventHandler = "{569E40E7-46B7-563D-83AE-1073155664D7}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameDestroyedEventHandler = "{59DD7B4C-9BAA-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameNameChangedEventHandler = "{435C7DC8-9BAA-11EB-A8B3-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameContentLoadingEventHandler = "{0D6156F2-D332-49A7-9E03-7D8F2FEEEE54}"
+Global Const $WEBVIEW2_IID_ICoreWebView2FrameDOMContentLoadedEventHandler = "{38D9520D-340F-4D1E-A775-43FCE9753683}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationStartingEventHandler = "{E79908BF-2D5D-4968-83DB-263FEA2C1DA3}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameNavigationCompletedEventHandler = "{609302AD-0E36-4F9A-A210-6A45272842A9}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameWebMessageReceivedEventHandler = "{E371E005-6D1D-4517-934B-A8F1629C62A5}"
@@ -279,8 +284,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2_8 = $WEBVIEW2_DTAG_ICoreWebView2_4 & _
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame = _
 		"get_Name hresult(ptr*);" & _
-		"add_NameChanged hresult();" & _
-		"remove_NameChanged hresult();" & _
+		"add_NameChanged hresult(ptr;struct*);" & _
+		"remove_NameChanged hresult(int64);" & _
 		"AddHostObjectToScriptWithOrigins hresult(wstr;ptr;uint;ptr);" & _
 		"RemoveHostObjectFromScript hresult(wstr);" & _
 		"add_Destroyed hresult(ptr;struct*);" & _
@@ -290,12 +295,12 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame = _
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Frame2 = $WEBVIEW2_DTAG_ICoreWebView2Frame & _
 		"add_NavigationStarting hresult(ptr;struct*);" & _
 		"remove_NavigationStarting hresult(int64);" & _
-		"add_ContentLoading hresult();" & _
-		"remove_ContentLoading hresult();" & _
+		"add_ContentLoading hresult(ptr;struct*);" & _
+		"remove_ContentLoading hresult(int64);" & _
 		"add_NavigationCompleted hresult(ptr;struct*);" & _
 		"remove_NavigationCompleted hresult(int64);" & _
-		"add_DOMContentLoaded hresult();" & _
-		"remove_DOMContentLoaded hresult();" & _
+		"add_DOMContentLoaded hresult(ptr;struct*);" & _
+		"remove_DOMContentLoaded hresult(int64);" & _
 		"ExecuteScript hresult(wstr;ptr);" & _
 		"PostWebMessageAsJson hresult(wstr);" & _
 		"PostWebMessageAsString hresult(wstr);" & _
@@ -340,6 +345,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorker = _
 		"PostWebMessageAsString hresult(wstr);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs = "get_Frame hresult(ptr*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ContentLoadingEventArgs = "get_IsErrorPage hresult(bool*);get_NavigationId hresult(int64*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2DOMContentLoadedEventArgs = "get_NavigationId hresult(int64*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings = _
 		"get_IsScriptEnabled hresult(bool*);" & _

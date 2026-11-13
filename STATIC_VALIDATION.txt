@@ -1,3 +1,12 @@
+# 2026-11-13: native frame lifecycle callbacks
+
+- The `ICoreWebView2Frame` and `ICoreWebView2Frame2` COM method signatures for NameChanged, ContentLoading and DOMContentLoaded were completed against Microsoft WebView2.idl SDK 1.0.4129.50. The new event constants were appended, preserving existing values.
+- The six changed AutoIt source files are UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file, made no formatting changes and left no process running.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/027_NativeFrames.au3`. Inside the restricted process, the same executable failed to start with a Windows DLL relocation error; that launch failure is not a syntax result.
+- Targeted `027_NativeFrames.au3 --smoke-lifecycle` runs passed under AutoIt x64 and x86 against the synchronized local UDF: the frame name changed to `renamed-frame`, and ContentLoading and DOMContentLoaded each fired twice with matching reload navigation IDs. Both runs exited with code 0 and printed `EX_SMOKE_OK`.
+- `tools/Validate-Project.ps1` reported project structure OK. The isolated Git worktree reported missing optional x86/x64 loader DLLs; the local Z project supplies them. `git diff --check` passed.
+- The visible example 027 button sequence was not manually tested; the bounded smoke run exercised the native lifecycle path. Private dependent programs were assessed statically, not executed.
+
 # 2026-11-13: example operation-log layout and color
 
 - The 34 examples with read-only AutoIt operation-log EDIT controls use background color `0xE2F0E4`. Examples 034 and 035 now also set log height from the maximized GUI client height before entering the message loop. User-editable content and yellow guides were not recolored.
