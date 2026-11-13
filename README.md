@@ -37,6 +37,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - managed tabs and native new-window handoff that preserves `window.opener`;
 - native iframe tracking, messaging, script execution, permissions and read-only shared buffers;
 - native notification when an iframe creates a dedicated worker, including its frame ID and script URI;
+- tracked iframe workers with direct JSON messaging and a native destruction notification;
 - screenshot, PDF and MHTML export to files or AutoIt binary values;
 - native profile extension installation, listing, enable/disable and removal (opt-in);
 - DevTools window;

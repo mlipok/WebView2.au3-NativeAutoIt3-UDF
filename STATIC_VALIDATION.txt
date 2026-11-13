@@ -1,5 +1,12 @@
 # WebView2.au3 — validation record
 
+## 2026-11-13: dedicated-worker JSON messages and lifetime
+
+- The changed AutoIt files are UTF-8 without BOM and use CRLF line endings. Tidy ran on each changed or new `.au3` file with exactly one explicit existing path in an isolated staging directory. It made a small indentation change in `WebView2_Frame.au3`, which was applied. Other files needed no formatting change. No Tidy process remained.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process after the latter reported a DLL relocation error, checked the public `WebView2.au3` entry point and example 034 with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: each reported 0 errors and 0 warnings. The example was checked again after its final code change, with the same result.
+- Targeted example 034 `--smoke` passed under AutoIt x86 and x64 (exit code 0): the worker was tracked with the owning frame ID and script URI; the active-worker list contained its ID; a worker-ready JSON message reached AutoIt; AutoIt posted an add request directly to that worker; a JSON result with `sum: 5` reached AutoIt; native destruction removed the ID; and sending to the stale ID returned `$WEBVIEW2_ERR_INVALID_PARAMETER`. `--smoke-late` passed under x64 with callback registration after the iframe was tracked.
+- The visible button sequence and resize behavior were not manually checked. The tests used separate temporary WebView2 profiles and did not create `AutoIt3*.exe.WebView2` profile directories beside the portable executables.
+
 ## 2026-11-13: Frame8 dedicated-worker creation
 
 - `tools/Validate-Project.ps1`: project structure validation OK. The six changed or new AutoIt files are UTF-8 without BOM and use CRLF line endings.

@@ -113,6 +113,12 @@ EndFunc   ;==>__WebView2_Frame_QueryInterface
 Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 	Local $iError = 0, $iExtended = 0, $bResult = False
 	Do
+		If $iEvent = $WEBVIEW2_EVENT_WORKER_CREATED Or $iEvent = $WEBVIEW2_EVENT_WORKER_WEB_MESSAGE_RECEIVED Or $iEvent = $WEBVIEW2_EVENT_WORKER_DESTROYING Then
+			If Not __WebView2_Worker_PrepareCallbacks() Then
+				$iError = $WEBVIEW2_ERR_CALLBACK
+				ExitLoop 1
+			EndIf
+		EndIf
 		If Not $__g_aWebView2_FrameToken[$iWebView] Then
 			If Not __WebView2_Callback_GetPointer($__WEBVIEW2_CB_FRAME_CREATED) Then
 				If Not __WebView2_Callback_Create($__WEBVIEW2_CB_FRAME_CREATED, __WebView2_FrameCreated_Invoke, "ptr;ptr;ptr") Then
@@ -200,10 +206,15 @@ Func __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_FrameCaptureCallback[$iWebView] = $fnCallback
 			Case $WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED
 				$__g_aWebView2_FrameWorkerCreatedCallback[$iWebView] = $fnCallback
-				For $i = 0 To $__WEBVIEW2_MAX_FRAMES - 1
-					If $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OWNER] = $iWebView Then __WebView2_Frame_SubscribeWorkerCreated($i)
-				Next
+			Case $WEBVIEW2_EVENT_WORKER_CREATED, $WEBVIEW2_EVENT_WORKER_WEB_MESSAGE_RECEIVED, $WEBVIEW2_EVENT_WORKER_DESTROYING
+				__WebView2_Worker_SetCallback($iWebView, $iEvent, $fnCallback)
 		EndSwitch
+		If $iEvent = $WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED Or $iEvent = $WEBVIEW2_EVENT_WORKER_CREATED Or _
+				$iEvent = $WEBVIEW2_EVENT_WORKER_WEB_MESSAGE_RECEIVED Or $iEvent = $WEBVIEW2_EVENT_WORKER_DESTROYING Then
+			For $i = 0 To $__WEBVIEW2_MAX_FRAMES - 1
+				If $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OWNER] = $iWebView Then __WebView2_Frame_SubscribeWorkerCreated($i)
+			Next
+		EndIf
 		$bResult = True
 	Until True
 	Return SetError($iError, $iExtended, $bResult)
@@ -232,7 +243,7 @@ Func __WebView2_Frame_SubscribeWorkerCreated($iSlot)
 			ExitLoop 1
 		EndIf
 		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
-		If Not IsFunc($__g_aWebView2_FrameWorkerCreatedCallback[$iView]) Then ExitLoop 1
+		If Not IsFunc($__g_aWebView2_FrameWorkerCreatedCallback[$iView]) And Not __WebView2_Worker_HasCallback($iView) Then ExitLoop 1
 		Local $oFrame8 = __WebView2_Frame_QueryInterface($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_POINTER], _
 				$WEBVIEW2_IID_ICoreWebView2Frame8, $WEBVIEW2_DTAG_ICoreWebView2Frame8)
 		If @error Then ExitLoop 1
@@ -353,7 +364,7 @@ Func __WebView2_FrameWorkerCreated_Invoke($pSelf, $pSender, $pArgs)
 		If $iSlot < 0 Or Not $pArgs Then ExitLoop 1
 		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
 		Local $fnCallback = $__g_aWebView2_FrameWorkerCreatedCallback[$iView]
-		If Not IsFunc($fnCallback) Then ExitLoop 1
+		If Not IsFunc($fnCallback) And Not __WebView2_Worker_HasCallback($iView) Then ExitLoop 1
 		Local $oArgs = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2DedicatedWorkerCreatedEventArgs, $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorkerCreatedEventArgs)
 		If Not IsObj($oArgs) Then ExitLoop 1
 		$oArgs.AddRef()
@@ -369,7 +380,9 @@ Func __WebView2_FrameWorkerCreated_Invoke($pSelf, $pSender, $pArgs)
 			ExitLoop 1
 		EndIf
 		Local $sScriptURI = __WebView2_CoTaskMemString_ReadAndFree($pScriptURI)
-		Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], $sScriptURI)
+		Local $iFrame = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID]
+		If __WebView2_Worker_HasCallback($iView) Then __WebView2_Worker_Register($iView, $iFrame, $pWorker, $oWorker, $sScriptURI)
+		If IsFunc($fnCallback) Then Call($fnCallback, $iView, $iFrame, $sScriptURI)
 	Until True
 	Return $WEBVIEW2_S_OK
 EndFunc   ;==>__WebView2_FrameWorkerCreated_Invoke
@@ -494,6 +507,7 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 		Local $fnCallback = $__g_aWebView2_FrameDestroyedCallback[$iView]
 		If IsFunc($fnCallback) Then Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
 		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] = False
+		__WebView2_Worker_CleanupFrame($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
 		Local $oFrame = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT]
 		If IsObj($oFrame) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
 		Local $oFrame2 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT2]
@@ -694,6 +708,7 @@ EndFunc   ;==>__WebView2_FrameCapture_Invoke
 ; Example .......: No
 ; ===============================================================================================================================
 Func __WebView2_Frame_Cleanup($iView)
+	__WebView2_Worker_CleanupView($iView)
 	For $i = 0 To $__WEBVIEW2_MAX_FRAMES - 1
 		If $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OWNER] = $iView Then
 			Local $oFrame = $__g_aWebView2_Frames[$i][$__WEBVIEW2_FRAME_OBJECT]

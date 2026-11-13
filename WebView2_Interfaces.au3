@@ -327,7 +327,16 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorkerCreatedEventArgs = _
 		"get_OriginalSourceFrameInfo hresult(ptr*);" & _
 		"get_Worker hresult(ptr*);"
 
-Global Const $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorker = "get_ScriptUri hresult(ptr*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2DedicatedWorker = _
+		"get_ScriptUri hresult(ptr*);" & _
+		"add_DedicatedWorkerCreated hresult(ptr;struct*);" & _
+		"remove_DedicatedWorkerCreated hresult(int64);" & _
+		"add_Destroying hresult(ptr;struct*);" & _
+		"remove_Destroying hresult(int64);" & _
+		"add_WebMessageReceived hresult(ptr;struct*);" & _
+		"remove_WebMessageReceived hresult(int64);" & _
+		"PostWebMessageAsJson hresult(wstr);" & _
+		"PostWebMessageAsString hresult(wstr);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2FrameCreatedEventArgs = "get_Frame hresult(ptr*);"
 

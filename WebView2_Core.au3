@@ -75,6 +75,7 @@ Global $__g_aWebView2_Tabs[$WEBVIEW2_MAX_INSTANCES]
 Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;lparam lParam;dword time;long X;long Y;dword lPrivate;endstruct"
 
 #include "WebView2_Frame.au3"
+#include "WebView2_Worker.au3"
 #include "WebView2_Download.au3"
 #include "WebView2_Response.au3"
 #include "WebView2_Extensions.au3"
@@ -1483,6 +1484,9 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |                              Return ALLOW/DENY or [state, saveInProfile]; DEFAULT leaves it unhandled.
 ;                  |FRAME_SCREEN_CAPTURE_STARTING - Called with ($iWebView, $iFrame); return True to cancel capture.
 ;                  |FRAME_DEDICATED_WORKER_CREATED - Called with ($iWebView, $iFrame, $sScriptURI).
+;                  |WORKER_CREATED - Called with ($iWebView, $iFrame, $iWorker, $sScriptURI).
+;                  |WORKER_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $iWorker, $sJSON, $sSource).
+;                  |WORKER_DESTROYING - Called with ($iWebView, $iFrame, $iWorker, $sScriptURI).
 ;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
 ;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, or [state, saveInProfile].
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
@@ -1576,7 +1580,8 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 			Case $WEBVIEW2_EVENT_FRAME_CREATED, $WEBVIEW2_EVENT_FRAME_DESTROYED, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _
 					$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _
 					$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED, $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING, _
-					$WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED
+					$WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED, $WEBVIEW2_EVENT_WORKER_CREATED, _
+					$WEBVIEW2_EVENT_WORKER_WEB_MESSAGE_RECEIVED, $WEBVIEW2_EVENT_WORKER_DESTROYING
 				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended

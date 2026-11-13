@@ -10,13 +10,22 @@
   <p>Use the AutoIt button above WebView2 to create a dedicated worker here.</p>
   <p id="result">No worker created yet.</p>
   <script>
+    let worker = null;
     function startWorker() {
-      const worker = new Worker('worker.js');
+      if (worker) return false;
+      worker = new Worker('worker.js');
       worker.onmessage = event => {
         document.getElementById('result').textContent = event.data;
-        worker.terminate();
       };
       worker.postMessage('ping');
+      return true;
+    }
+    function terminateWorker() {
+      if (!worker) return false;
+      worker.terminate();
+      worker = null;
+      document.getElementById('result').textContent = 'The iframe terminated its worker.';
+      return true;
     }
     window.addEventListener('load', () => chrome.webview.postMessage('ready'));
   </script>
