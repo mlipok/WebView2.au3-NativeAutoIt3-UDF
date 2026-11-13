@@ -2,10 +2,10 @@
 
 - Modified 57 example AutoIt files. All checked source files are UTF-8 without BOM with CRLF line endings.
 - Tidy was run for each modified `.au3` through an isolated staging copy, with exactly one explicit existing file path as its only argument. Formatted copies were applied to the branch; no Tidy process remained.
-- Au3Check 3.3.18.0 (`Z:\AutoItPortable\App\Au3Check.exe`), run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for all 57 modified examples. Three files were checked again after their final edits with the same result.
+- Au3Check 3.3.18.0 (`Z:\AutoItPortable\App\Au3Check.exe`), run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for all 57 modified examples. Four files were checked again after their final edits with the same result.
 - `tools/Validate-Project.ps1`: project structure validation OK. The isolated Git worktree lacks the optional x86 and x64 runtime loader DLLs; the local Z project retains them.
 - `git diff --check` passed. GUI layout and manual button sequences have not been confirmed across all modified examples; static validation does not establish runtime behavior.
-- After synchronizing the examples to the local Z project, focused `--smoke` runs of examples 200 and 026 under AutoIt x64 exited with code 0. These checks exercised page loading and example cleanup, not the visual three-panel layout or manual button sequences. AutoIt x86 was not run for this layout update.
+- After synchronizing the examples to the local Z project, focused `--smoke` runs of examples 024, 200 and 026 under AutoIt x64 exited with code 0. These checks exercised page loading and example cleanup, not the visual three-panel layout or manual button sequences. AutoIt x86 was not run for this layout update.
 
 # WebView2.au3 — validation record
 

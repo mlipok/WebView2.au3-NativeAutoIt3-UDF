@@ -8,6 +8,8 @@ Install WebView2 Runtime and place the matching x86/x64 `WebView2Loader.dll` in 
 
 Pass `--smoke` to verify that the local WebAssembly app reports readiness and acknowledges the sample JSON data. The mode exits automatically after acknowledgment or a 20-second timeout.
 
+In interactive mode, the AutoIt window opens maximized within the Windows work area. The left native operation log records calendar messages and scrolls to the newest entry. The yellow guide below WebView2 lists the manual test steps and expected messages. Switch views, select a 15-minute range, double-click a day and click an event; the log should report the range, day or event ID.
+
 To rebuild the bundled WASM output, install .NET SDK 10 and run `dotnet publish CalendarHost/CalendarHost.csproj -c Release -o publish`. Copy the generated `publish/wwwroot` contents into `published`. `CalendarHost` references the vendored `BlazorCalendar` source. The checked-in `published` files allow running the example without the SDK. The source snapshot used here is upstream commit `9ae813d`.
 
 ## JSON bridge, version 1
@@ -16,7 +18,7 @@ Both directions use WebView2 object messages. The web app first sends `{"type":"
 
 An event is `{ "id": 101, "title": "Planning", "start": "2026-10-13T09:00:00+02:00", "end": "2026-10-13T10:30:00+02:00", "allDay": false, "color": "#3984c6" }`. `end` is **exclusive**. The calendar sends `rangeSelected` with `startInclusive` and `endExclusive`, `eventClicked` with `eventId`, and `dayDoubleClicked` with `date`. Selection uses 15-minute slots. All timestamps use ISO 8601 with seconds and an explicit offset matching `Europe/Warsaw`; offset changes for daylight saving time are validated. Ambiguous or invalid local times are reported as errors. All-day event bounds must be local midnights; the adapter converts the exclusive end to the library's inclusive display boundary.
 
-The host accepts messages only from the mapped origin, limits message length, reports them in its status line and console, and never persists them. Moving events is disabled. Text selection and page dragging are suppressed; range selection inside the calendar remains enabled. Overlapping sample events appear in the week view. Calendar day labels use Polish locale and weeks start on Monday. The year view shows January through December.
+The host accepts messages only from the mapped origin, limits message length, reports them in its status line, operation log and console, and never persists them. Moving events is disabled. Text selection and page dragging are suppressed; range selection inside the calendar remains enabled. Overlapping sample events appear in the week view. Calendar day labels use Polish locale and weeks start on Monday. The year view shows January through December.
 
 ## Verification
 

@@ -2,6 +2,8 @@
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
 #include <GUIConstantsEx.au3>
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <WindowsConstants.au3>
 #include "..\WebView2.au3"
 
@@ -11,6 +13,7 @@ Global Const $g_sCalendarHost = "udf-virtual-host.example"
 Global Const $g_sCalendarOrigin = "https://" & $g_sCalendarHost & "/"
 Global $g_iCalendarView = -1
 Global $g_idCalendarStatus = 0
+Global $g_idCalendarLog = 0, $g_idCalendarGuide = 0
 Global $g_bCalendarReady = False
 Global $g_bCalendarAck = False
 
@@ -36,14 +39,32 @@ Func _Example()
 	Local $idWeek = GUICtrlCreateButton("Week", 170, 8, 75, 28)
 	Local $idReloadData = GUICtrlCreateButton("Reload sample events", 255, 8, 150, 28)
 	$g_idCalendarStatus = GUICtrlCreateLabel("Starting WebView2...", 415, 14, 770, 22)
+	GUICtrlSetResizing($idYear, $GUI_DOCKALL)
+	GUICtrlSetResizing($idMonth, $GUI_DOCKALL)
+	GUICtrlSetResizing($idWeek, $GUI_DOCKALL)
+	GUICtrlSetResizing($idReloadData, $GUI_DOCKALL)
+	GUICtrlSetResizing($g_idCalendarStatus, $GUI_DOCKALL)
+	GUICtrlCreateLabel("Operation log", 5, 49, 290, 18)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	$g_idCalendarLog = GUICtrlCreateEdit("", 5, 70, 290, 720, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Wait for ready and sample-data acknowledgment. Switch Year, Month and Week; select a range, double-click a day and click an event." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log reports the selected range or event ID, and overlapping and all-day events stay visible." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt sends JSON to local Blazor WebAssembly in WebView2; the calendar returns JSON messages. No server or database is used."
+	$g_idCalendarGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+	GUICtrlSetBkColor(-1, 0xFFF4C2)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	GUISetState(@SW_MAXIMIZE, $hGUI)
+	Local $aPanelSize = WinGetClientSize($hGUI)
+	If IsArray($aPanelSize) Then
+		GUICtrlSetPos($g_idCalendarLog, 5, 70, 290, $aPanelSize[1] - 80)
+		GUICtrlSetPos($g_idCalendarGuide, 305, $aPanelSize[1] - 180, $aPanelSize[0] - 310, 170)
+	EndIf
 
 	Local $sProfile = @TempDir & "\WebView2BlazorCalendar_" & @AutoItPID
 	If Not _WebView2_Init(Default, $sProfile) Then
 		_Example_Status("WebView2 initialization failed: " & _WebView2_Error_GetDescription())
 	Else
 		Local $aClient = WinGetClientSize($hGUI)
-		$g_iCalendarView = _WebView2_Create($hGUI, 0, 44, $aClient[0], $aClient[1] - 44)
+		$g_iCalendarView = _WebView2_Create($hGUI, 305, 44, $aClient[0] - 310, $aClient[1] - 234)
 		If @error Then
 			_Example_Status("WebView2 creation failed: " & _WebView2_Error_GetDescription())
 		Else
@@ -83,7 +104,11 @@ Func _Example()
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				If $g_iCalendarView >= 0 Then
 					$aClient = WinGetClientSize($hGUI)
-					If IsArray($aClient) Then _WebView2_SetBounds($g_iCalendarView, 0, 44, $aClient[0], $aClient[1] - 44)
+					If IsArray($aClient) Then
+						GUICtrlSetPos($g_idCalendarLog, 5, 70, 290, $aClient[1] - 80)
+						GUICtrlSetPos($g_idCalendarGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
+						_WebView2_SetBounds($g_iCalendarView, 305, 44, $aClient[0] - 310, $aClient[1] - 234)
+					EndIf
 				EndIf
 			Case $idYear
 				_Example_SetView("year")
@@ -221,6 +246,8 @@ EndFunc   ;==>_Example_OnNavigationCompleted
 ; ===============================================================================================================================
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idCalendarStatus, StringLeft($sText, 180))
+	_GUICtrlEdit_AppendText($g_idCalendarLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idCalendarLog, $EM_SCROLLCARET, 0, 0)
 	ConsoleWrite($sText & @CRLF)
 	Return
 EndFunc   ;==>_Example_Status
