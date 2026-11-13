@@ -36,6 +36,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - native download events and control, including deferred destination decisions, pause and resume;
 - managed tabs and native new-window handoff that preserves `window.opener`;
 - native iframe tracking, messaging, script execution, permissions and read-only shared buffers;
+- native notification when an iframe creates a dedicated worker, including its frame ID and script URI;
 - screenshot, PDF and MHTML export to files or AutoIt binary values;
 - native profile extension installation, listing, enable/disable and removal (opt-in);
 - DevTools window;
@@ -75,6 +76,7 @@ examples/
     031_PermissionRequests.au3
     032_NativeExtensions.au3
     033_AdvancedFrameAPIs.au3
+    034_FrameDedicatedWorker.au3
 docs/
     API.md
     ARCHITECTURE.md

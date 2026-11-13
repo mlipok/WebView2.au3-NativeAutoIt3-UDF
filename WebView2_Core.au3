@@ -1482,6 +1482,7 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |FRAME_PERMISSION_REQUESTED - Called with ($iWebView, $iFrame, $sURI, $iKind, $bUserInitiated).
 ;                  |                              Return ALLOW/DENY or [state, saveInProfile]; DEFAULT leaves it unhandled.
 ;                  |FRAME_SCREEN_CAPTURE_STARTING - Called with ($iWebView, $iFrame); return True to cancel capture.
+;                  |FRAME_DEDICATED_WORKER_CREATED - Called with ($iWebView, $iFrame, $sScriptURI).
 ;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
 ;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, or [state, saveInProfile].
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
@@ -1574,7 +1575,8 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_MUTED] = $fnCallback
 			Case $WEBVIEW2_EVENT_FRAME_CREATED, $WEBVIEW2_EVENT_FRAME_DESTROYED, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _
 					$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _
-					$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED, $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING
+					$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED, $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING, _
+					$WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED
 				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended

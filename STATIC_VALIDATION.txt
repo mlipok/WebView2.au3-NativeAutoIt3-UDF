@@ -1,5 +1,13 @@
 # WebView2.au3 — validation record
 
+## 2026-11-13: Frame8 dedicated-worker creation
+
+- `tools/Validate-Project.ps1`: project structure validation OK. The six changed or new AutoIt files are UTF-8 without BOM and use CRLF line endings.
+- Tidy was invoked for each of those six files with a single explicit existing `.au3` path in an isolated staging location; each exited with `-1` and made no content change. No Tidy process remained. `WebView2_Frame.au3` and example 034 were rechecked with the same Tidy invocation after their final code edits.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: public project and parent `WebView2.au3` entry points and example 034 each reported 0 errors and 0 warnings.
+- Targeted example 034 `--smoke` passed in x86 and x64 AutoIt: native iframe worker-created callback reported the tracked frame ID and expected full script URI, then WebView2 cleanup completed. `--smoke-late` passed in x64 with registration after the iframe was tracked. The visible button and resize behavior were not manually tested.
+- The five changed UDF modules were synchronized byte-for-byte with the parent `UDF_AI` copies. No `AutoIt3*.exe.WebView2` profile directory was created beside the portable AutoIt executables.
+
 ## 2026-11-12: nested native frames
 
 - `tools/Validate-Project.ps1`: project structure validation OK. Changed AutoIt files are UTF-8 without BOM with CRLF line endings; `git diff --check` passed.

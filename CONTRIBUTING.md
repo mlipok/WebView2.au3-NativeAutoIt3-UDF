@@ -21,3 +21,5 @@ Contributions are welcome, especially fixes validated with both AutoIt x86 and x
 - `WebView2_Frame.au3` — native iframe lifecycle, parent tracking, messages and frame-specific scripts.
 
 New native WebView2 interface revisions should be added through a correctly ordered interface definition and `QueryInterface()` rather than modifying an older vtable layout. For nested iframe changes, confirm parent IDs and per-frame script execution with [example 028](examples/028_NestedFrames.au3).
+
+For dedicated-worker callbacks, subscribe through `ICoreWebView2Frame8` only when requested, and remove each event token when its frame is destroyed or the instance is cleaned up. [Example 034](examples/034_FrameDedicatedWorker.au3) exercises the frame ID and script URI in both AutoIt architectures. Worker message handling would require a separate object lifetime contract.
