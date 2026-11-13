@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed example 027 so its four action buttons stay together above the WebView2 content when the window opens maximized or is resized. Each click now starts a separate, labeled group in the operation log.
+- Applications can now observe iframe name changes and the stages when iframe content starts loading and its HTML is parsed. Example 027 logs these events during a frame reload.
 - Operation logs in interactive examples now use a light-green background. Examples 034 and 035 also fill the available log-panel height as soon as their windows open maximized.
 - Applications can now track dedicated workers created by the main document or another worker, including the immediate parent worker ID. Example 035 shows the hierarchy and direct JSON replies alongside iframe-owned workers.
 - Examples 200–218 and 220–221 now maximize before they are shown, so their windows do not visibly change size during startup.

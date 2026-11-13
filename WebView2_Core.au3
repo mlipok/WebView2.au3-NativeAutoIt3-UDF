@@ -1480,6 +1480,9 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |FRAME_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $sMessage, $sSource, $bJSON).
 ;                  |FRAME_NAVIGATION_STARTING - Called with ($iWebView, $iFrame, $sURI, $bUserInitiated, $bRedirected).
 ;                  |FRAME_NAVIGATION_COMPLETED - Called with ($iWebView, $iFrame, $bSuccess, $iWebError).
+;                  |FRAME_NAME_CHANGED      - Called with ($iWebView, $iFrame, $sName).
+;                  |FRAME_CONTENT_LOADING   - Called with ($iWebView, $iFrame, $bIsErrorPage, $iNavigationId).
+;                  |FRAME_DOM_CONTENT_LOADED - Called with ($iWebView, $iFrame, $iNavigationId).
 ;                  |FRAME_PERMISSION_REQUESTED - Called with ($iWebView, $iFrame, $sURI, $iKind, $bUserInitiated).
 ;                  |                              Return ALLOW/DENY or [state, saveInProfile]; DEFAULT leaves it unhandled.
 ;                  |FRAME_SCREEN_CAPTURE_STARTING - Called with ($iWebView, $iFrame); return True to cancel capture.
@@ -1581,7 +1584,8 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 					$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING, $WEBVIEW2_EVENT_FRAME_NAVIGATION_COMPLETED, _
 					$WEBVIEW2_EVENT_FRAME_PERMISSION_REQUESTED, $WEBVIEW2_EVENT_FRAME_SCREEN_CAPTURE_STARTING, _
 					$WEBVIEW2_EVENT_FRAME_DEDICATED_WORKER_CREATED, $WEBVIEW2_EVENT_WORKER_CREATED, _
-					$WEBVIEW2_EVENT_WORKER_WEB_MESSAGE_RECEIVED, $WEBVIEW2_EVENT_WORKER_DESTROYING
+					$WEBVIEW2_EVENT_WORKER_WEB_MESSAGE_RECEIVED, $WEBVIEW2_EVENT_WORKER_DESTROYING, _
+					$WEBVIEW2_EVENT_FRAME_NAME_CHANGED, $WEBVIEW2_EVENT_FRAME_CONTENT_LOADING, $WEBVIEW2_EVENT_FRAME_DOM_CONTENT_LOADED
 				$__WebView2ExitValue = __WebView2_Frame_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended

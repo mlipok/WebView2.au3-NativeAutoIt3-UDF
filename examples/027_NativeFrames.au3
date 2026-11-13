@@ -10,6 +10,7 @@
 Opt("MustDeclareVars", 1)
 
 Global $g_iView = -1, $g_iFrame = -1, $g_idStatus = 0, $g_idLog = 0, $g_idGuide = 0, $g_bReady = False, $g_oHost = ObjCreate("Scripting.Dictionary")
+Global $g_iContentEvents = 0, $g_iDOMEvents = 0, $g_iNameEvents = 0, $g_sFrameName = "", $g_iContentNavigation = 0, $g_iDOMNavigation = 0
 $g_oHost.Add("example", "value")
 _Example()
 
@@ -35,12 +36,18 @@ Func _Example()
 	$g_idLog = GUICtrlCreateEdit("", 5, 102, 290, 438, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Send JSON to frame and Run frame script; try the page button." & @CRLF & "EXPECTED RESULT" & @CRLF & "The iframe receives JSON, sends a response and exposes its title; the log reports native frame events." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt addresses the tracked iframe directly and may expose a COM object to an allowed origin."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Send JSON to frame; expect a frame message." & @CRLF & "2. Click Run frame script; expect the frame title." & @CRLF & "3. Click Change frame name; expect a name-change event." & @CRLF & "4. Click Reload frame; expect ContentLoading, then DOMContentLoaded." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt subscribes to native frame events and addresses this iframe directly. Each click starts a new group in the green operation log."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 370, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor(-1, 0xFFF4C2)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $idSend = GUICtrlCreateButton("Send JSON to frame", 12, 38, 180, 30)
 	Local $idScript = GUICtrlCreateButton("Run frame script", 205, 38, 180, 30)
+	Local $idRename = GUICtrlCreateButton("Change frame name", 398, 38, 180, 30)
+	Local $idReload = GUICtrlCreateButton("Reload frame", 591, 38, 180, 30)
+	GUICtrlSetResizing($idSend, $GUI_DOCKALL)
+	GUICtrlSetResizing($idScript, $GUI_DOCKALL)
+	GUICtrlSetResizing($idRename, $GUI_DOCKALL)
+	GUICtrlSetResizing($idReload, $GUI_DOCKALL)
 	GUISetState(@SW_MAXIMIZE, $hGUI)
 	Local $aPanelSize = WinGetClientSize($hGUI)
 	If IsArray($aPanelSize) Then
@@ -61,6 +68,12 @@ Func _Example()
 			_Example_Status("Destroyed event unavailable: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _OnFrameMessage) Then
 			_Example_Status("Message event unavailable: " & _WebView2_Error_GetDescription())
+		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_NAME_CHANGED, _OnFrameNameChanged) Then
+			_Example_Status("Name event unavailable: " & _WebView2_Error_GetDescription())
+		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_CONTENT_LOADING, _OnFrameContentLoading) Then
+			_Example_Status("Content event unavailable: " & _WebView2_Error_GetDescription())
+		ElseIf Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_DOM_CONTENT_LOADED, _OnFrameDOMLoaded) Then
+			_Example_Status("DOM event unavailable: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_SetVirtualHostNameToFolderMapping($g_iView, "udf-virtual-host.example", @ScriptDir & "\027_NativeFrames", $WEBVIEW2_HOST_RESOURCE_ACCESS_ALLOW) Then
 			_Example_Status("Mapping failed: " & _WebView2_Error_GetDescription())
 		ElseIf Not _WebView2_Navigate($g_iView, "https://udf-virtual-host.example/index.html") Then
@@ -69,9 +82,33 @@ Func _Example()
 	EndIf
 
 	Local $bSmoke = $CmdLine[0] > 0 And $CmdLine[1] = "--smoke"
+	Local $bLifecycleSmoke = $CmdLine[0] > 0 And $CmdLine[1] = "--smoke-lifecycle"
+	Local $iSmokeStage = 0, $iContentBeforeReload = 0, $iDOMBeforeReload = 0, $bSmokeFailed = False
 	Local $tSmoke = TimerInit()
 	While True
 		If $bSmoke And ($g_bReady Or TimerDiff($tSmoke) > 10000) Then ExitLoop
+		If $bLifecycleSmoke Then
+			Switch $iSmokeStage
+				Case 0
+					If $g_bReady And $g_iContentEvents > 0 And $g_iDOMEvents > 0 Then
+						_WebView2_Frame_ExecuteScript($g_iFrame, "window.name='renamed-frame'")
+						If @error Then $bSmokeFailed = True
+						$iSmokeStage = 1
+					EndIf
+				Case 1
+					If $g_iNameEvents > 0 And $g_sFrameName = "renamed-frame" Then
+						$iContentBeforeReload = $g_iContentEvents
+						$iDOMBeforeReload = $g_iDOMEvents
+						$g_bReady = False
+						_WebView2_Frame_ExecuteScript($g_iFrame, "location.reload()")
+						If @error Then $bSmokeFailed = True
+						$iSmokeStage = 2
+					EndIf
+				Case 2
+					If $g_bReady And $g_iContentEvents > $iContentBeforeReload And $g_iDOMEvents > $iDOMBeforeReload And $g_iContentNavigation = $g_iDOMNavigation Then ExitLoop
+			EndSwitch
+			If $bSmokeFailed Or TimerDiff($tSmoke) > 15000 Then ExitLoop
+		EndIf
 		Local $iMessage = GUIGetMsg()
 		Switch $iMessage
 			Case $GUI_EVENT_CLOSE
@@ -86,20 +123,30 @@ Func _Example()
 					EndIf
 				EndIf
 			Case $idSend
+				_Example_LogClick("Send JSON to frame")
 				If $g_iFrame >= 0 Then
 					If Not _WebView2_Frame_PostWebMessageAsJson($g_iFrame, '{"type":"greeting","text":"Hello from AutoIt"}') Then _Example_Status("Send failed: " & _WebView2_Error_GetDescription())
 				EndIf
 			Case $idScript
+				_Example_LogClick("Run frame script")
 				If $g_iFrame >= 0 Then
 					Local $sResult = _WebView2_Frame_ExecuteScript($g_iFrame, "document.title")
 					_Example_Status(@error ? "Script failed" : "Frame title: " & $sResult)
 				EndIf
+			Case $idRename
+				_Example_LogClick("Change frame name")
+				If $g_iFrame >= 0 Then _WebView2_Frame_ExecuteScript($g_iFrame, "window.name='renamed-frame'")
+			Case $idReload
+				_Example_LogClick("Reload frame")
+				If $g_iFrame >= 0 Then _WebView2_Frame_ExecuteScript($g_iFrame, "location.reload()")
 		EndSwitch
 	WEnd
 	ConsoleWrite('smoke ready=' & $g_bReady & ' frame=' & $g_iFrame & ' status=' & GUICtrlRead($g_idStatus) & @CRLF)
+	If $bLifecycleSmoke Then ConsoleWrite('EX_SMOKE_' & (($bSmokeFailed Or Not $g_bReady Or $g_iContentEvents <= $iContentBeforeReload Or $g_iDOMEvents <= $iDOMBeforeReload Or $g_iContentNavigation <> $g_iDOMNavigation) ? 'FAIL' : 'OK') & ' example=027 lifecycle name=' & $g_sFrameName & ' content=' & $g_iContentEvents & ' dom=' & $g_iDOMEvents & @CRLF)
 	_WebView2_Cleanup()
 	GUIDelete($hGUI)
 	If $bSmoke And Not $g_bReady Then Exit 1
+	If $bLifecycleSmoke And ($bSmokeFailed Or Not $g_bReady Or $g_iContentEvents <= $iContentBeforeReload Or $g_iDOMEvents <= $iDOMBeforeReload Or $g_iContentNavigation <> $g_iDOMNavigation) Then Exit 1
 	Return
 EndFunc   ;==>_Example
 
@@ -138,6 +185,79 @@ Func _OnFrameDestroyed($iView, $iFrame)
 EndFunc   ;==>_OnFrameDestroyed
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _OnFrameNameChanged
+; Description ...: Reports the current name after the iframe changes window.name.
+; Syntax ........: _OnFrameNameChanged($iView, $iFrame, $sName)
+; Parameters ....: $iView - WebView2 instance ID.
+;                  $iFrame - Tracked frame ID.
+;                  $sName - Current frame name.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Keep native callbacks short.
+; Related .......: _WebView2_Frame_GetName
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _OnFrameNameChanged($iView, $iFrame, $sName)
+	If $iView = $g_iView And $iFrame = $g_iFrame Then
+		$g_iNameEvents += 1
+		$g_sFrameName = $sName
+		_Example_Status("Frame name changed to " & $sName)
+	EndIf
+	Return
+EndFunc   ;==>_OnFrameNameChanged
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _OnFrameContentLoading
+; Description ...: Reports the native stage before iframe content is loaded.
+; Syntax ........: _OnFrameContentLoading($iView, $iFrame, $bErrorPage, $iNavigationId)
+; Parameters ....: $iView - WebView2 instance ID.
+;                  $iFrame - Tracked frame ID.
+;                  $bErrorPage - True when the content is a browser error page.
+;                  $iNavigationId - Navigation ID assigned by WebView2.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The navigation ID can be compared with the DOMContentLoaded event.
+; Related .......: _OnFrameDOMLoaded
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _OnFrameContentLoading($iView, $iFrame, $bErrorPage, $iNavigationId)
+	If $iView = $g_iView And $iFrame = $g_iFrame Then
+		$g_iContentEvents += 1
+		$g_iContentNavigation = $iNavigationId
+		_Example_Status("Frame ContentLoading: navigation=" & $iNavigationId & ", error page=" & $bErrorPage)
+	EndIf
+	Return
+EndFunc   ;==>_OnFrameContentLoading
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _OnFrameDOMLoaded
+; Description ...: Reports when the iframe HTML document has been parsed.
+; Syntax ........: _OnFrameDOMLoaded($iView, $iFrame, $iNavigationId)
+; Parameters ....: $iView - WebView2 instance ID.
+;                  $iFrame - Tracked frame ID.
+;                  $iNavigationId - Navigation ID assigned by WebView2.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: This stage precedes normal navigation completion.
+; Related .......: _OnFrameContentLoading
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _OnFrameDOMLoaded($iView, $iFrame, $iNavigationId)
+	If $iView = $g_iView And $iFrame = $g_iFrame Then
+		$g_iDOMEvents += 1
+		$g_iDOMNavigation = $iNavigationId
+		_Example_Status("Frame DOMContentLoaded: navigation=" & $iNavigationId)
+	EndIf
+	Return
+EndFunc   ;==>_OnFrameDOMLoaded
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _OnFrameMessage
 ; Description ...: Shows a message sent by the iframe.
 ; Syntax ........: _OnFrameMessage($iView, $iFrame, $sMessage, $sSource, $bJSON)
@@ -157,6 +277,25 @@ Func _OnFrameMessage($iView, $iFrame, $sMessage, $sSource, $bJSON)
 	EndIf
 	Return
 EndFunc   ;==>_OnFrameMessage
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Starts a separate operation-log group for a manual button click.
+; Syntax ........: _Example_LogClick($sButton)
+; Parameters ....: $sButton - Caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automatic smoke actions do not use this helper.
+; Related .......: _Example_Status
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sButton)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sButton & "' was clicked." & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	Return
+EndFunc   ;==>_Example_LogClick
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _Example_Status

@@ -35,7 +35,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - native web-resource response callbacks with request URI, method, HTTP status and reason phrase;
 - native download events and control, including deferred destination decisions, pause and resume;
 - managed tabs and native new-window handoff that preserves `window.opener`;
-- native iframe tracking, messaging, script execution, permissions and read-only shared buffers;
+- native iframe tracking, name changes, content-loading stages, messaging, script execution, permissions and read-only shared buffers;
 - native notification when an iframe creates a dedicated worker, including its frame ID and script URI;
 - tracked iframe workers with direct JSON messaging and a native destruction notification;
 - screenshot, PDF and MHTML export to files or AutoIt binary values;
