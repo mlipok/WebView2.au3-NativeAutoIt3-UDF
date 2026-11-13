@@ -54,6 +54,7 @@ Func _EX_Run()
 		GUICtrlSetResizing($idGo, $GUI_DOCKALL)
 		GUICtrlSetResizing($idOpen, $GUI_DOCKALL)
 		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 65, 290, 725, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idStatus, 0xE2F0E4)
 		GUICtrlSetResizing(-1, $GUI_DOCKALL)
 		Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Frame tree, Frame names and Frame 0 HTML." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log identifies frame hierarchy, names and selected frame content." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 exposes iframe-specific data through its frame APIs."
 		$g_EX_idGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

@@ -54,6 +54,7 @@ Func _EX_Run()
 		GUICtrlSetResizing($idGo, $GUI_DOCKALL)
 		GUICtrlSetResizing($idOpen, $GUI_DOCKALL)
 		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 65, 290, 725, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idStatus, 0xE2F0E4)
 		GUICtrlSetResizing(-1, $GUI_DOCKALL)
 		Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Load a page; click Save HTML, PDF and MHTML in turn." & @CRLF & "EXPECTED RESULT" & @CRLF & "Check the log and the resulting files for each format." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 exports page content through distinct native save and print APIs."
 		$g_EX_idGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

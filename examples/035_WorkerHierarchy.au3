@@ -40,6 +40,7 @@ Func _Example()
 	GUICtrlCreateLabel("AutoIt operation log", 10, 49, 280, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 10, 70, 290, 620, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	GUISetState(@SW_MAXIMIZE, $hGUI)
 	GUISetState(@SW_SHOWNOACTIVATE, $hGUI)
@@ -47,6 +48,7 @@ Func _Example()
 		Local $sProfile = @TempDir & "\WebView2WorkerHierarchy_" & @AutoItPID
 		If Not _WebView2_Init(Default, $sProfile) Then ExitLoop 1
 		Local $aSize = WinGetClientSize($hGUI)
+		GUICtrlSetPos($g_idLog, 10, 70, 290, $aSize[1] - 80)
 		$g_iView = _WebView2_Create($hGUI, 310, 50, $aSize[0] - 320, $aSize[1] - 60)
 		If @error Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_CREATED, _OnFrameCreated) Then ExitLoop 1

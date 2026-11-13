@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Operation logs in interactive examples now use a light-green background. Examples 034 and 035 also fill the available log-panel height as soon as their windows open maximized.
 - Applications can now track dedicated workers created by the main document or another worker, including the immediate parent worker ID. Example 035 shows the hierarchy and direct JSON replies alongside iframe-owned workers.
 - Examples 200–218 and 220–221 now maximize before they are shown, so their windows do not visibly change size during startup.
 - Fixed early examples so WebView2 fills the maximized window at startup, follows window resizing, and uses a separate profile for each example instead of the browser's default profile.

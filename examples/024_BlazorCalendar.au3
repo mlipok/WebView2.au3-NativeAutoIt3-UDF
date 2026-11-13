@@ -47,6 +47,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 49, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idCalendarLog = GUICtrlCreateEdit("", 5, 70, 290, 720, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idCalendarLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Wait for ready and sample-data acknowledgment. Switch Year, Month and Week; select a range, double-click a day and click an event." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log reports the selected range or event ID, and overlapping and all-day events stay visible." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt sends JSON to local Blazor WebAssembly in WebView2; the calendar returns JSON messages. No server or database is used."
 	$g_idCalendarGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

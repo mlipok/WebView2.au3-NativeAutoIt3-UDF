@@ -63,6 +63,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 79, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 100, 290, 260, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click List, Install sample, Reload page, Disable, Reload page, Enable and Reload page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The framed page message changes only after reload when the extension content script runs." & @CRLF & "HOW IT WORKS" & @CRLF & "A native profile extension injects JavaScript into a matching page; installation and state persist in the profile."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 190, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

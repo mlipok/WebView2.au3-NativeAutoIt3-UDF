@@ -41,6 +41,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 47, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 68, 290, 492, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Reload local page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The HTML and relative assets reload under the virtual HTTPS address." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 maps a real folder to an HTTPS host without a local server."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 390, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

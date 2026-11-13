@@ -56,6 +56,7 @@ Func _EX_Run()
 		GUICtrlSetResizing($idGo, $GUI_DOCKALL)
 		GUICtrlSetResizing($idOpen, $GUI_DOCKALL)
 		$g_EX_idStatus = GUICtrlCreateEdit("", 5, 65, 290, 725, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idStatus, 0xE2F0E4)
 		GUICtrlSetResizing(-1, $GUI_DOCKALL)
 		Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Open the bundled PDF; check Title and Zoom 100%." & @CRLF & "EXPECTED RESULT" & @CRLF & "The PDF is drawn in the page and responds to zoom." & @CRLF & "HOW IT WORKS" & @CRLF & "PDF.js renders the PDF with JavaScript and its worker inside WebView2."
 		$g_EX_idGuide = GUICtrlCreateEdit($sGuide, 305, 620, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

@@ -42,6 +42,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 5, 43, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 64, 290, 446, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Deny geolocation, then Allow geolocation." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page reports denial first; Allow may return coordinates or a location-provider error." & @CRLF & "HOW IT WORKS" & @CRLF & "A native WebView2 permission callback decides each request without saving the decision."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 340, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))

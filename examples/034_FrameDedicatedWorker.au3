@@ -43,6 +43,7 @@ Func _Example()
 	GUICtrlCreateLabel("Operation log", 10, 51, 280, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 10, 72, 280, 468, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	_Status("Starting WebView2...")
 	GUISetState(@SW_MAXIMIZE, $hGUI)
@@ -51,6 +52,7 @@ Func _Example()
 		Local $sProfile = @TempDir & "\WebView2FrameWorker_" & @AutoItPID
 		If Not _WebView2_Init(Default, $sProfile) Then ExitLoop 1
 		Local $aSize = WinGetClientSize($hGUI)
+		GUICtrlSetPos($g_idLog, 10, 72, 280, $aSize[1] - 82)
 		$g_iView = _WebView2_Create($hGUI, 300, 48, $aSize[0] - 310, $aSize[1] - 48)
 		If @error Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_CREATED, _OnFrameCreated) Then ExitLoop 1
