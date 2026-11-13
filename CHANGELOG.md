@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added native tracking of nested iframes and a parent-frame ID lookup, so applications can list the full frame hierarchy and run scripts in a selected child frame. Updated example 028 to demonstrate both actions.
+
 ## 0.6.0 - 2026-11-08
 
 - Added virtual HTTPS host mapping so local web applications can load their files through WebView2 without a separate server.
