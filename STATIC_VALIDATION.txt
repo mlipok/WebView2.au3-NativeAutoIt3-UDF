@@ -1,5 +1,23 @@
 # WebView2.au3 — validation record
 
+## 2026-11-13: example 034 manual-action log grouping
+
+- Each manual GUI button handler now appends a blank line and a timestamped `'<button>' was clicked` entry before invoking its existing action. The automatic smoke path is unchanged.
+- Tidy ran on one explicit existing staging copy and reported no updates; no Tidy process remained. Au3Check 3.3.18.0, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for example 034.
+- The resulting visual grouping has not been checked interactively; the prior x64 smoke test did not exercise GUI button clicks.
+
+## 2026-11-13: example 034 control layout on resize
+
+- The native GUI now clips child-window painting and docks its controls while resizing only the log height and WebView2 bounds explicitly. This addresses the observed native gray strip overlapping the page heading and status area after maximization.
+- Tidy ran on one explicit existing staging copy and reported no updates; its process exited. Au3Check 3.3.18.0, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for example 034.
+- The previous running window retains the old GUI styles until it is closed and the example is started again. The corrected visual layout has not yet been confirmed in a newly launched GUI session.
+
+## 2026-11-13: example 034 operation log and information panel
+
+- The updated example source is UTF-8 without BOM and uses CRLF line endings. Tidy ran on one explicit existing staging copy and reported no updates to make; the staging copy matched the source byte-for-byte, and no Tidy process remained. The staging invocation warned that its relative WebView2 include was not present there.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for example 034.
+- A targeted `--smoke` run of the synchronized example under AutoIt x64 exited with code 0. It checks that the Win32 EDIT log contains the native JSON reply with `"sum":5` and the worker-destruction message. This run did not manually verify the visual layout or scrolling position.
+
 ## 2026-11-13: dedicated-worker JSON messages and lifetime
 
 - The changed AutoIt files are UTF-8 without BOM and use CRLF line endings. Tidy ran on each changed or new `.au3` file with exactly one explicit existing path in an isolated staging directory. It made a small indentation change in `WebView2_Frame.au3`, which was applied. Other files needed no formatting change. No Tidy process remained.

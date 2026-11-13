@@ -5,12 +5,20 @@
   <title>Frame dedicated worker</title>
   <style>
     body { font: 16px Arial, sans-serif; margin: 20px; }
-    iframe { width: 100%; height: 260px; border: 2px solid #4381b5; }
+    iframe { box-sizing: border-box; width: 100%; height: 260px; border: 2px solid #4381b5; }
+    .info { margin-top: 16px; padding: 16px 20px; background: #fff4c2; border: 2px solid #e0b94d; line-height: 1.45; }
+    .info h2 { margin: 0 0 10px; font-size: 20px; }
+    .info p { margin: 8px 0; }
   </style>
 </head>
 <body>
   <h1>Dedicated worker from an iframe</h1>
-  <p>The AutoIt status above WebView2 reports the native Frame8 event and the worker script URI.</p>
+  <p>The AutoIt operation log on the left records native worker events and JSON messages.</p>
   <iframe name="worker-demo-frame" src="frame.html" title="Worker demo iframe"></iframe>
+  <section class="info" aria-label="How to interpret the worker results">
+    <h2>How to interpret the results</h2>
+    <p>After <strong>Terminate worker</strong>, the iframe reports that its worker ended. If you then click <strong>Send JSON to worker</strong>, the UDF rejects the message because that worker ID is no longer valid. This is the expected result, not a new failure.</p>
+    <p>The iframe's earlier ping reply shows that its own JavaScript exchanged a message with the worker. To verify the UDF's new direct JSON channel, look in the AutoIt operation log for the earlier worker reply containing <code>"sum":5</code> for <code>[2,3]</code>. A later rejection alone does not prove that exchange.</p>
+  </section>
 </body>
 </html>

@@ -144,6 +144,8 @@ Examples 024, 026–028, 031–033 and 206 use `https://udf-virtual-host.example
 
 [Example 034](../examples/034_FrameDedicatedWorker.au3) demonstrates how an AutoIt host can track a **dedicated Web Worker created inside an iframe**, exchange JSON directly with it, and observe when it ends. A worker runs JavaScript separately from the page's main script context; it is neither another iframe nor another WebView2 instance.
 
+The left-hand read-only Win32 EDIT control keeps a timestamped operation log and scrolls to the newest entry. A blank line and a `'<button>' was clicked` entry separate each manual action from the previous one. Beneath the blue iframe, a yellow information panel explains why sending after termination must fail and why the earlier `"sum":5` log entry is the evidence for the direct AutoIt-to-worker JSON channel.
+
 Here, **iframe** means the `frame.html` page embedded in the main `index.html` page. The iframe's JavaScript creates the dedicated worker, owns it and exchanges messages with it through `postMessage()`. The worker has no visual rectangle or DOM of its own: "inside the iframe" describes who created and communicates with it, not another visible frame nested in the page. **Tracked** means the UDF has registered that iframe and assigned it a public frame ID, so AutoIt can associate the native worker-created notification with the correct iframe.
 
 ### What happens when you run it

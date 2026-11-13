@@ -2,12 +2,14 @@
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
 #include <GUIConstantsEx.au3>
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <WindowsConstants.au3>
 #include "..\WebView2.au3"
 
 Opt("MustDeclareVars", 1)
 
-Global $g_iView = -1, $g_iFrame = 0, $g_iWorker = 0, $g_idStatus = 0
+Global $g_iView = -1, $g_iFrame = 0, $g_iWorker = 0, $g_idStatus = 0, $g_idLog = 0
 Global $g_bFrameReady = False, $g_bWorkerReady = False, $g_bReply = False, $g_bDestroyed = False
 Global $g_iWorkerCount = 0, $g_sWorkerURI = "", $g_bInvalidMessage = False
 
@@ -29,18 +31,27 @@ Exit _Example()
 Func _Example()
 	Local $iExitCode = 0
 	Local $bSmokeLate = $CmdLine[0] > 0 And $CmdLine[1] = "--smoke-late"
-	Local $hGUI = GUICreate("WebView2 - Frame dedicated worker", 1020, 550, -1, -1, $WS_OVERLAPPEDWINDOW)
+	Local $hGUI = GUICreate("WebView2 - Frame dedicated worker", 1020, 550, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
 	Local $idStart = GUICtrlCreateButton("Create worker in iframe", 12, 10, 190, 30)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $idSend = GUICtrlCreateButton("Send JSON to worker", 210, 10, 170, 30)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	Local $idTerminate = GUICtrlCreateButton("Terminate worker", 388, 10, 160, 30)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 560, 16, 445, 24)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	GUICtrlCreateLabel("Operation log", 10, 51, 280, 18)
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	$g_idLog = GUICtrlCreateEdit("", 10, 72, 280, 468, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+	GUICtrlSetResizing(-1, $GUI_DOCKALL)
+	_Status("Starting WebView2...")
 	GUISetState(@SW_SHOW, $hGUI)
 	Local $bSetup = False
 	Do
 		Local $sProfile = @TempDir & "\WebView2FrameWorker_" & @AutoItPID
 		If Not _WebView2_Init(Default, $sProfile) Then ExitLoop 1
 		Local $aSize = WinGetClientSize($hGUI)
-		$g_iView = _WebView2_Create($hGUI, 0, 48, $aSize[0], $aSize[1] - 48)
+		$g_iView = _WebView2_Create($hGUI, 300, 48, $aSize[0] - 310, $aSize[1] - 48)
 		If @error Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_CREATED, _OnFrameCreated) Then ExitLoop 1
 		If Not _WebView2_SetCallback($g_iView, $WEBVIEW2_EVENT_FRAME_WEB_MESSAGE_RECEIVED, _OnFrameMessage) Then ExitLoop 1
@@ -89,7 +100,8 @@ Func _Example()
 			Local $bStaleSend = _WebView2_Worker_PostWebMessageAsJson($g_iWorker, '{"kind":"stale"}')
 			Local $iStaleError = @error
 			If $iListError Or UBound($aWorkers) <> 0 Or $g_iWorkerCount <> 1 Or $g_sWorkerURI <> "https://udf-virtual-host.example/worker.js" Or _
-					$g_bInvalidMessage Or $bStaleSend Or $iStaleError <> $WEBVIEW2_ERR_INVALID_PARAMETER Then
+					$g_bInvalidMessage Or $bStaleSend Or $iStaleError <> $WEBVIEW2_ERR_INVALID_PARAMETER Or _
+					Not StringInStr(GUICtrlRead($g_idLog), '"sum":5') Or Not StringInStr(GUICtrlRead($g_idLog), "was destroyed") Then
 				$iExitCode = 1
 			Else
 				ConsoleWrite("EX_SMOKE_OK example=034 arch=" & (@AutoItX64 ? "x64" : "x86") & " frame=" & $g_iFrame & " worker=" & $g_iWorker & @CRLF)
@@ -105,14 +117,20 @@ Func _Example()
 			Case $GUI_EVENT_CLOSE
 				ExitLoop
 			Case $idStart
+				_LogClick("Create worker in iframe")
 				_StartWorker()
 			Case $idSend
+				_LogClick("Send JSON to worker")
 				_SendJSON()
 			Case $idTerminate
+				_LogClick("Terminate worker")
 				_TerminateWorker()
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				$aSize = WinGetClientSize($hGUI)
-				If IsArray($aSize) Then _WebView2_SetBounds($g_iView, 0, 48, $aSize[0], $aSize[1] - 48)
+				If IsArray($aSize) Then
+					GUICtrlSetPos($g_idLog, 10, 72, 280, $aSize[1] - 82)
+					_WebView2_SetBounds($g_iView, 300, 48, $aSize[0] - 310, $aSize[1] - 48)
+				EndIf
 		EndSwitch
 		Sleep(10)
 	WEnd
@@ -388,19 +406,44 @@ Func _OnWorkerDestroying($iView, $iFrame, $iWorker, $sScriptURI)
 EndFunc   ;==>_OnWorkerDestroying
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _LogClick
+; Description ...: Separates one manual button action from earlier log entries.
+; Syntax ........: _LogClick($sButton)
+; Parameters ....: $sButton - Caption of the clicked button.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Automatic smoke actions do not use this helper.
+; Related .......: _Status
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _LogClick($sButton)
+	If $g_idLog Then
+		_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sButton & "' was clicked." & @CRLF)
+		GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	EndIf
+	Return
+EndFunc   ;==>_LogClick
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _Status
-; Description ...: Updates the native status label.
+; Description ...: Updates the native status label and appends a timestamped log entry.
 ; Syntax ........: _Status($sText)
 ; Parameters ....: $sText - Status text.
 ; Return values .: None.
 ; Author ........: mLipok
 ; Modified ......:
-; Remarks .......:
-; Related .......:
+; Remarks .......: Keeps the newest entry visible in the read-only Win32 EDIT control.
+; Related .......: _Example
 ; Link ..........:
 ; Example .......: No
 ; ===============================================================================================================================
 Func _Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
+	If $g_idLog Then
+		_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+		GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	EndIf
 	Return
 EndFunc   ;==>_Status
