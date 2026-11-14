@@ -52,7 +52,7 @@ PDF.js rendering in example 214 was confirmed by the user in a running WebView2 
 
 ## TODO: Visible dialogs in examples
 
-- Visually confirm the revised browser alert sequences in examples 004 and 009: default enabled, suppressed after unchecking or locking, and restored after checking or unlocking. The source-level dialog audit and documentation are complete; this final GUI check remains open.
+- Visually confirm the revised browser alert sequence in example 004: default enabled, suppressed after unchecking, and restored after checking. The user confirmed the example 009 Lock/Unlock sequence on 2026-11-14; the architecture of that manual run was not recorded.
 
 ## TODO: Migration from other projects
 

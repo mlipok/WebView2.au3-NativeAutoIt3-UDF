@@ -3807,25 +3807,26 @@ Func __WebView2_Setting_PutBool($iWebView, $sMethod, $bEnabled)
 			ExitLoop 1
 		EndIf
 		Local $iResult
+		Local $iEnabled = $bEnabled ? 1 : 0
 		Switch $sMethod
 			Case "put_IsScriptEnabled"
-				$iResult = $oSettings.put_IsScriptEnabled($bEnabled)
+				$iResult = $oSettings.put_IsScriptEnabled($iEnabled)
 			Case "put_IsWebMessageEnabled"
-				$iResult = $oSettings.put_IsWebMessageEnabled($bEnabled)
+				$iResult = $oSettings.put_IsWebMessageEnabled($iEnabled)
 			Case "put_AreDefaultScriptDialogsEnabled"
-				$iResult = $oSettings.put_AreDefaultScriptDialogsEnabled($bEnabled)
+				$iResult = $oSettings.put_AreDefaultScriptDialogsEnabled($iEnabled)
 			Case "put_IsStatusBarEnabled"
-				$iResult = $oSettings.put_IsStatusBarEnabled($bEnabled)
+				$iResult = $oSettings.put_IsStatusBarEnabled($iEnabled)
 			Case "put_AreDevToolsEnabled"
-				$iResult = $oSettings.put_AreDevToolsEnabled($bEnabled)
+				$iResult = $oSettings.put_AreDevToolsEnabled($iEnabled)
 			Case "put_AreDefaultContextMenusEnabled"
-				$iResult = $oSettings.put_AreDefaultContextMenusEnabled($bEnabled)
+				$iResult = $oSettings.put_AreDefaultContextMenusEnabled($iEnabled)
 			Case "put_AreHostObjectsAllowed"
-				$iResult = $oSettings.put_AreHostObjectsAllowed($bEnabled)
+				$iResult = $oSettings.put_AreHostObjectsAllowed($iEnabled)
 			Case "put_IsZoomControlEnabled"
-				$iResult = $oSettings.put_IsZoomControlEnabled($bEnabled)
+				$iResult = $oSettings.put_IsZoomControlEnabled($iEnabled)
 			Case "put_IsBuiltInErrorPageEnabled"
-				$iResult = $oSettings.put_IsBuiltInErrorPageEnabled($bEnabled)
+				$iResult = $oSettings.put_IsBuiltInErrorPageEnabled($iEnabled)
 			Case Else
 				$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Unsupported WebView2 setting method.", False)
 				$__WebView2ExitError = @error

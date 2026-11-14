@@ -1,6 +1,8 @@
 #Tidy_ILC_Pos=44
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <GUIConstantsEx.au3>
 #include <MsgBoxConstants.au3>
 #include <WindowsConstants.au3>
@@ -8,6 +10,8 @@
 #include "..\WebView2.au3"
 
 Opt("MustDeclareVars", 1)
+
+Global $g_EX_idLog = 0, $g_EX_idGuide = 0
 
 _Example()
 
@@ -29,6 +33,15 @@ Func _Example()
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
 		Local $hGUI = GUICreate("WebView2.au3 - Events + JavaScript", 1100, 760, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
+		GUICtrlCreateLabel("AutoIt operation log", 5, 53, 290, 18)
+		GUICtrlSetResizing(-1, $GUI_DOCKALL)
+		$g_EX_idLog = GUICtrlCreateEdit("", 5, 74, 290, 450, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idLog, 0xE2F0E4)
+		GUICtrlSetResizing($g_EX_idLog, $GUI_DOCKALL)
+		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Execute JavaScript, Post message and DevTools; click Send message to AutoIt inside the page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log identifies native and page button clicks separately. The page message and script result appear after their clicks." & @CRLF & "HOW IT WORKS" & @CRLF & "A trusted page click sends its caption through WebMessageReceived before the page sends its message."
+		$g_EX_idGuide = GUICtrlCreateEdit($sEXGuide, 305, 520, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idGuide, 0xFFF1BF)
+		GUICtrlSetResizing($g_EX_idGuide, $GUI_DOCKALL)
 
 		; inicjalizacja $idButtonScript
 		Local $idButtonScript = GUICtrlCreateButton("Execute JavaScript", 10, 10, 160, 30)
@@ -40,6 +53,7 @@ Func _Example()
 		Local $idButtonDevTools = GUICtrlCreateButton("DevTools", 330, 10, 120, 30)
 
 		GUISetState(@SW_MAXIMIZE, $hGUI)
+		_EX_Log("Starting WebView2...")
 
 		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\002_Events_JavaScript"
 		If Not _WebView2_Init(Default, $sProfile) Then
@@ -51,7 +65,8 @@ Func _Example()
 		EndIf
 
 		Local $aInitialClient = WinGetClientSize($hGUI)
-		Local $iWebView = _WebView2_Create($hGUI, 0, 50, $aInitialClient[0], $aInitialClient[1] - 50)
+		If IsArray($aInitialClient) Then _EX_Layout($aInitialClient, 50)
+		Local $iWebView = _WebView2_Create($hGUI, 305, 50, $aInitialClient[0] - 310, $aInitialClient[1] - 240)
 		If @error Then
 			MsgBox($MB_ICONERROR, "WebView2 create", _WebView2_Error_GetDescription())
 			_WebView2_Cleanup()
@@ -71,8 +86,8 @@ Func _Example()
 				'<body style="font-family:Segoe UI;padding:28px">' & _
 				'<h1>WebView2.au3</h1>' & _
 				'<p id="status">HTML loaded by NavigateToString().</p>' & _
-				'<button onclick="window.chrome.webview.postMessage(''Message from JavaScript'')">Send message to AutoIt</button>' & _
-				'<script>window.chrome.webview.addEventListener(''message'',e=>{document.getElementById(''status'').textContent=''AutoIt says: ''+e.data;});</script>' & _
+				'<button id="send-message">Send message to AutoIt</button>' & _
+				'<script>document.getElementById(''send-message'').addEventListener(''click'',e=>{if(e.isTrusted)window.chrome.webview.postMessage(''EX_CLICK_TRUSTED:Send message to AutoIt'');window.chrome.webview.postMessage(''Message from JavaScript'');});window.chrome.webview.addEventListener(''message'',e=>{document.getElementById(''status'').textContent=''AutoIt says: ''+e.data;});</script>' & _
 				'</body></html>'
 
 		_WebView2_NavigateToString($iWebView, $sHTML)
@@ -80,22 +95,31 @@ Func _Example()
 		While True
 			Switch GUIGetMsg()
 				Case $idButtonScript
+					_EX_Click("Execute JavaScript")
 					Local $sResult = _WebView2_ExecuteScript($iWebView, "document.title")
 					If @error Then
+						_EX_Log("ExecuteScript failed: " & _WebView2_Error_GetDescription())
 						MsgBox($MB_ICONERROR, "ExecuteScript", _WebView2_Error_GetDescription())
 					Else
+						_EX_Log("ExecuteScript returned JSON: " & $sResult)
 						MsgBox($MB_ICONINFORMATION, "ExecuteScript result (JSON)", $sResult)
 					EndIf
 
 				Case $idButtonMessage
+					_EX_Click("Post message")
 					_WebView2_PostWebMessageAsString($iWebView, "Hello from AutoIt at " & @HOUR & ":" & @MIN & ":" & @SEC)
+					_EX_Log("Sent a string message to the page.")
 
 				Case $idButtonDevTools
+					_EX_Click("DevTools")
 					_WebView2_OpenDevToolsWindow($iWebView)
 
 				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 					Local $aClient = WinGetClientSize($hGUI)
-					If IsArray($aClient) Then _WebView2_SetBounds($iWebView, 0, 50, $aClient[0], $aClient[1] - 50)
+					If IsArray($aClient) Then
+						_EX_Layout($aClient, 50)
+						_WebView2_SetBounds($iWebView, 305, 50, $aClient[0] - 310, $aClient[1] - 240)
+					EndIf
 
 				Case $GUI_EVENT_CLOSE
 					ExitLoop
@@ -126,6 +150,7 @@ EndFunc   ;==>_Example
 ; ===============================================================================================================================
 Func _Example_NavigationStarting($iWebView, $sURI, $bUserInitiated, $bRedirected)
 	ConsoleWrite("NAV START id=" & $iWebView & " uri=" & $sURI & " user=" & $bUserInitiated & " redirect=" & $bRedirected & @CRLF)
+	_EX_Log("NAV START id=" & $iWebView & " uri=" & $sURI & " user=" & $bUserInitiated & " redirect=" & $bRedirected)
 	Return False
 EndFunc   ;==>_Example_NavigationStarting
 
@@ -147,6 +172,7 @@ EndFunc   ;==>_Example_NavigationStarting
 ; ===============================================================================================================================
 Func _Example_NavigationCompleted($iWebView, $bSuccess, $iWebErrorStatus, $iNavigationId)
 	ConsoleWrite("NAV END id=" & $iWebView & " success=" & $bSuccess & " webError=" & $iWebErrorStatus & " navigationId=" & $iNavigationId & @CRLF)
+	_EX_Log("NAV END id=" & $iWebView & " success=" & $bSuccess & " webError=" & $iWebErrorStatus & " navigationId=" & $iNavigationId)
 	Return
 EndFunc   ;==>_Example_NavigationCompleted
 
@@ -166,6 +192,7 @@ EndFunc   ;==>_Example_NavigationCompleted
 ; ===============================================================================================================================
 Func _Example_TitleChanged($iWebView, $sTitle)
 	ConsoleWrite("TITLE id=" & $iWebView & " title=" & $sTitle & @CRLF)
+	_EX_Log("TITLE id=" & $iWebView & " title=" & $sTitle)
 	Return
 EndFunc   ;==>_Example_TitleChanged
 
@@ -186,6 +213,11 @@ EndFunc   ;==>_Example_TitleChanged
 ; Example .......: No
 ; ===============================================================================================================================
 Func _Example_WebMessageReceived($iWebView, $sMessage, $sSource, $bJSON)
+	If Not $bJSON And $sMessage = "EX_CLICK_TRUSTED:Send message to AutoIt" Then
+		_EX_Click("Send message to AutoIt", "WebView2")
+		Return
+	EndIf
+	_EX_Log("Page message from " & $sSource & ": " & $sMessage)
 	MsgBox($MB_ICONINFORMATION, "WebMessageReceived", _
 			"WebView=" & $iWebView & @CRLF & _
 			"Source=" & $sSource & @CRLF & _
@@ -193,3 +225,59 @@ Func _Example_WebMessageReceived($iWebView, $sMessage, $sSource, $bJSON)
 			$sMessage)
 	Return
 EndFunc   ;==>_Example_WebMessageReceived
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _EX_Layout
+; Description ...: Sizes the operation log and test guide.
+; Syntax ........: _EX_Layout($aClient, $iTop)
+; Parameters ....: $aClient - GUI client size; $iTop - height of the control strip.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _EX_Layout($aClient, $iTop)
+	GUICtrlSetPos($g_EX_idLog, 5, $iTop + 24, 290, $aClient[1] - $iTop - 34)
+	GUICtrlSetPos($g_EX_idGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
+	Return
+EndFunc   ;==>_EX_Layout
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _EX_Log
+; Description ...: Appends a time-stamped operation-log entry.
+; Syntax ........: _EX_Log($sText)
+; Parameters ....: $sText - Message to append.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _EX_Log($sText)
+	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	Return
+EndFunc   ;==>_EX_Log
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _EX_Click
+; Description ...: Logs a native or trusted page click in a separate group.
+; Syntax ........: _EX_Click($sCaption[, $sSource = "AutoIt"])
+; Parameters ....: $sCaption - Visible button caption.
+;                  $sSource - AutoIt or trusted WebView2 click source.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _EX_Click($sCaption, $sSource = "AutoIt")
+	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [" & $sSource & "]: " & $sCaption & " was clicked." & @CRLF)
+	Return
+EndFunc   ;==>_EX_Click
