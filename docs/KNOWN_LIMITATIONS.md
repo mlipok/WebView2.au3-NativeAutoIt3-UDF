@@ -54,6 +54,10 @@ PDF.js rendering in example 214 was confirmed by the user in a running WebView2 
 
 - Example 031 alone uses `[date and time] [AutoIt|WebView2]: button caption was clicked.` for its two sources of button actions. Its current behavior belongs in `docs/EXAMPLES.md`. Before applying the format to other examples, audit their page-to-AutoIt message paths and revise the general rule in `AGENTS.md` together with the example documentation. Keep that future change separate from the migration ideas below.
 
+## TODO: Visible dialogs in examples
+
+- Review every example that describes a user-facing "dialog". Where the example promises a dialog, show an interactive pop-up or message box and verify its behavior. Distinguish such windows from native callback events that are observable only in a log; align the control labels and documentation with what the user actually sees.
+
 ## TODO: Migration from other projects
 
 Review external ideas against the current native UDF before implementing them. These entries are proposals, not claims of API compatibility or commitments to copy third-party code. Preserve this section as the single project TODO for findings from the three monitored sources. Last reviewed: 2026-11-11.

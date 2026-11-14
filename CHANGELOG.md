@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Example 036 now opens an AutoIt pop-up for JavaScript alerts, confirmations and prompts, so the page's message and available choices are visible while the script waits for a response.
 - Applications can handle JavaScript alerts, confirmations and prompts from AutoIt, including answering them later from the event loop. Example 036 shows the returned page values and automatic dismissal of unanswered requests.
 
 - Example 031 now identifies whether a logged button click came from AutoIt or the WebView2 page and separates each click from the preceding activity.

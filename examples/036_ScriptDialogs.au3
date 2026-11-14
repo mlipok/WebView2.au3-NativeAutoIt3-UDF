@@ -12,10 +12,15 @@ Opt("MustDeclareVars", 1)
 Global Const $g_sHost = "udf-virtual-host.example"
 Global Const $g_sOrigin = "https://" & $g_sHost & "/"
 Global $g_iView = -1, $g_idLog = 0, $g_idGuide = 0, $g_idStatus = 0
+Global $g_hDialog = 0, $g_idDialogOrigin = 0, $g_idDialogMessage = 0
 Global $g_idAccept = 0, $g_idDismiss = 0, $g_idPromptText = 0
+Global $g_sAcceptCaption = "OK", $g_sDismissCaption = "Cancel"
 Global $g_iPending = 0, $g_iPendingKind = -1, $g_iPageKind = -1
-Global $g_sPageResult = "", $g_bReady = False, $g_bSmoke = False
-If $CmdLine[0] > 0 Then $g_bSmoke = ($CmdLine[1] = "--smoke")
+Global $g_sPageResult = "", $g_bReady = False, $g_bSmoke = False, $g_bSmokePopup = False
+If $CmdLine[0] > 0 Then
+	$g_bSmokePopup = ($CmdLine[1] = "--smoke-popup")
+	$g_bSmoke = ($CmdLine[1] = "--smoke" Or $g_bSmokePopup)
+EndIf
 
 Exit _Example()
 
@@ -35,25 +40,24 @@ Exit _Example()
 Func _Example()
 	Local $iExitCode = 1
 	Local $hGUI = GUICreate("WebView2 - Script dialogs", 1000, 650, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
-	$g_idAccept = GUICtrlCreateButton("Accept dialog", 305, 5, 130, 30)
-	$g_idDismiss = GUICtrlCreateButton("Dismiss dialog", 445, 5, 130, 30)
-	$g_idPromptText = GUICtrlCreateInput("AutoIt reply", 585, 6, 160, 27)
-	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 755, 10, 230, 25)
-	GUICtrlSetState($g_idAccept, $GUI_DISABLE)
-	GUICtrlSetState($g_idDismiss, $GUI_DISABLE)
-	GUICtrlSetResizing($g_idAccept, $GUI_DOCKALL)
-	GUICtrlSetResizing($g_idDismiss, $GUI_DOCKALL)
-	GUICtrlSetResizing($g_idPromptText, $GUI_DOCKALL)
+	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 305, 10, 680, 25)
 	GUICtrlSetResizing($g_idStatus, $GUI_DOCKALL)
 	GUICtrlCreateLabel("AutoIt operation log", 5, 43, 290, 18)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
 	$g_idLog = GUICtrlCreateEdit("", 5, 64, 290, 530, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing($g_idLog, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Open alert, Open confirm or Open prompt in the page." & @CRLF & "2. Read its native request in this log; click Accept dialog or Dismiss dialog above WebView2." & @CRLF & "3. Before accepting a prompt, edit the prompt answer above the page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page resumes and displays the returned value. Dismissed confirm returns false; dismissed prompt returns null." & @CRLF & "HOW IT WORKS" & @CRLF & "The ScriptDialogOpening callback takes a native deferral. AutoIt responds later from its event loop. Unanswered dialogs close after 15 seconds."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Open alert, Open confirm or Open prompt in the page." & @CRLF & "2. An AutoIt pop-up opens with the page's message. Choose OK, Yes/No or OK/Cancel according to its dialog type." & @CRLF & "3. For a prompt, edit the answer in the pop-up before clicking OK." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page resumes and displays the returned value. No returns false; Cancel returns null." & @CRLF & "HOW IT WORKS" & @CRLF & "The ScriptDialogOpening callback takes a native deferral. The AutoIt event loop opens this host-owned pop-up and answers the request. WebView2's default JavaScript dialog is disabled. Unanswered requests close after 15 seconds."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 400, 680, 190, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idGuide, 0xFFF4C2)
 	GUICtrlSetResizing($g_idGuide, $GUI_DOCKALL)
+	$g_hDialog = GUICreate("JavaScript dialog", 500, 245, -1, -1, BitOR($WS_CAPTION, $WS_SYSMENU), $WS_EX_DLGMODALFRAME, $hGUI)
+	GUICtrlCreateLabel("Page:", 15, 12, 45, 18)
+	$g_idDialogOrigin = GUICtrlCreateLabel("", 60, 12, 420, 35)
+	$g_idDialogMessage = GUICtrlCreateEdit("", 15, 53, 470, 80, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+	$g_idPromptText = GUICtrlCreateInput("", 15, 144, 470, 24)
+	$g_idAccept = GUICtrlCreateButton("OK", 290, 185, 90, 30)
+	$g_idDismiss = GUICtrlCreateButton("Cancel", 390, 185, 90, 30)
 	GUISetState(@SW_MAXIMIZE, $hGUI)
 	Local $aClient = WinGetClientSize($hGUI)
 	If IsArray($aClient) Then
@@ -78,27 +82,33 @@ Func _Example()
 		Local $iCurrent = ($aPending[0] > 0) ? $aPending[1] : 0
 		If $iCurrent <> $g_iPending Then
 			$g_iPending = $iCurrent
-			GUICtrlSetState($g_idAccept, $g_iPending ? $GUI_ENABLE : $GUI_DISABLE)
-			GUICtrlSetState($g_idDismiss, $g_iPending ? $GUI_ENABLE : $GUI_DISABLE)
 			If $g_iPending Then
 				Local $aInfo = _WebView2_ScriptDialog_Request_GetInfo($g_iPending)
 				If IsArray($aInfo) And UBound($aInfo) = 5 Then
 					$g_iPendingKind = $aInfo[2]
-					If $g_iPendingKind = $WEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT Then GUICtrlSetData($g_idPromptText, $aInfo[4])
 					_Example_Status("Dialog " & $g_iPending & " kind=" & $g_iPendingKind & " from " & $aInfo[1] & ": " & $aInfo[3])
+					If Not $g_bSmoke Or $g_bSmokePopup Then _Example_Dialog_Show($aInfo)
 				EndIf
 			EndIf
 		EndIf
 		Local $iExpired = _WebView2_ScriptDialog_Request_Expire(15000)
-		If $iExpired Then _Example_Status($iExpired & " unanswered dialog(s) expired and were dismissed.")
+		If $iExpired Then
+			GUISetState(@SW_HIDE, $g_hDialog)
+			$g_iPending = 0
+			_Example_Status($iExpired & " unanswered dialog(s) expired and were dismissed.")
+		EndIf
 		If $g_bSmoke Then
 			If $g_bReady And $iSmokeStage = 0 Then
 				If Not _Example_Trigger("alert") Then $iExitCode = 1
 				$iSmokeStage = 1
 			EndIf
 			If $iSmokeStage = 1 And $g_iPending > 0 Then
-				If Not _WebView2_ScriptDialog_Request_Respond($g_iPending, $WEBVIEW2_SCRIPT_DIALOG_ACCEPT) Then $iExitCode = 1
-				$g_iPending = 0
+				If $g_bSmokePopup Then
+					If Not _Example_SmokeClick($g_idAccept) Then $iExitCode = 1
+				Else
+					If Not _WebView2_ScriptDialog_Request_Respond($g_iPending, $WEBVIEW2_SCRIPT_DIALOG_ACCEPT) Then $iExitCode = 1
+					$g_iPending = 0
+				EndIf
 				$iSmokeStage = 2
 			EndIf
 			If $iSmokeStage = 2 And $g_iPageKind = $WEBVIEW2_SCRIPT_DIALOG_KIND_ALERT Then
@@ -107,8 +117,12 @@ Func _Example()
 				$iSmokeStage = 3
 			EndIf
 			If $iSmokeStage = 3 And $g_iPending > 0 Then
-				If Not _WebView2_ScriptDialog_Request_Cancel($g_iPending) Then $iExitCode = 1
-				$g_iPending = 0
+				If $g_bSmokePopup Then
+					If Not _Example_SmokeClick($g_idDismiss) Then $iExitCode = 1
+				Else
+					If Not _WebView2_ScriptDialog_Request_Cancel($g_iPending) Then $iExitCode = 1
+					$g_iPending = 0
+				EndIf
 				$iSmokeStage = 4
 			EndIf
 			If $iSmokeStage = 4 And $g_iPageKind = $WEBVIEW2_SCRIPT_DIALOG_KIND_CONFIRM And StringInStr($g_sPageResult, '"value":false') Then
@@ -117,12 +131,17 @@ Func _Example()
 				$iSmokeStage = 5
 			EndIf
 			If $iSmokeStage = 5 And $g_iPending > 0 Then
-				If Not _WebView2_ScriptDialog_Request_Respond($g_iPending, $WEBVIEW2_SCRIPT_DIALOG_ACCEPT, "AutoIt reply") Then $iExitCode = 1
-				$g_iPending = 0
+				If $g_bSmokePopup Then
+					GUICtrlSetData($g_idPromptText, "AutoIt reply")
+					If Not _Example_SmokeClick($g_idAccept) Then $iExitCode = 1
+				Else
+					If Not _WebView2_ScriptDialog_Request_Respond($g_iPending, $WEBVIEW2_SCRIPT_DIALOG_ACCEPT, "AutoIt reply") Then $iExitCode = 1
+					$g_iPending = 0
+				EndIf
 				$iSmokeStage = 6
 			EndIf
 			If $iSmokeStage = 6 And $g_iPageKind = $WEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT And StringInStr($g_sPageResult, '"value":"AutoIt reply"') Then
-				ConsoleWrite("EX_SMOKE_OK example=036 arch=" & (@AutoItX64 ? "x64" : "x86") & @CRLF)
+				ConsoleWrite("EX_SMOKE_OK example=036 arch=" & (@AutoItX64 ? "x64" : "x86") & " popup=" & $g_bSmokePopup & @CRLF)
 				ExitLoop
 			EndIf
 			If $iExitCode Or TimerDiff($hTimer) > 20000 Then
@@ -131,21 +150,17 @@ Func _Example()
 				ExitLoop
 			EndIf
 		EndIf
-		Local $iMessage = GUIGetMsg()
+		Local $aEvent = GUIGetMsg(1)
+		Local $iMessage = $aEvent[0]
 		Switch $iMessage
 			Case $GUI_EVENT_CLOSE
-				ExitLoop
-			Case $g_idAccept, $g_idDismiss
-				Local $bAccept = ($iMessage = $g_idAccept)
-				_GUICtrlEdit_AppendText($g_idLog, @CRLF)
-				_Example_Status("'" & ($bAccept ? "Accept dialog" : "Dismiss dialog") & "' was clicked.")
-				Local $bAnswered = _WebView2_ScriptDialog_Request_Respond($g_iPending, $bAccept ? $WEBVIEW2_SCRIPT_DIALOG_ACCEPT : $WEBVIEW2_SCRIPT_DIALOG_CANCEL, GUICtrlRead($g_idPromptText))
-				Local $iAnswerError = @error, $iAnswerExtended = @extended
-				If $bAnswered Then
-					_Example_Status("Answered dialog " & $g_iPending & ".")
+				If $aEvent[1] = $g_hDialog Then
+					_Example_Dialog_Answer(False, "Close")
 				Else
-					_Example_Status("Could not answer dialog: error=" & $iAnswerError & ", HRESULT=" & $iAnswerExtended)
+					ExitLoop
 				EndIf
+			Case $g_idAccept, $g_idDismiss
+				_Example_Dialog_Answer($iMessage = $g_idAccept, $iMessage = $g_idAccept ? $g_sAcceptCaption : $g_sDismissCaption)
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				$aClient = WinGetClientSize($hGUI)
 				If IsArray($aClient) And $g_iView >= 0 Then
@@ -157,9 +172,122 @@ Func _Example()
 		Sleep(10)
 	WEnd
 	_WebView2_Cleanup()
+	GUIDelete($g_hDialog)
 	GUIDelete($hGUI)
 	Return $iExitCode
 EndFunc   ;==>_Example
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_Dialog_Show
+; Description ...: Displays a host-owned pop-up for one deferred JavaScript dialog.
+; Syntax ........: _Example_Dialog_Show($aInfo)
+; Parameters ....: $aInfo - Pending request information returned by the UDF.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Called from the AutoIt event loop, never inside the native WebView2 callback.
+; Related .......: _WebView2_ScriptDialog_Request_GetInfo
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_Dialog_Show($aInfo)
+	Local $sTitle = "JavaScript dialog"
+	$g_sAcceptCaption = "OK"
+	$g_sDismissCaption = "Cancel"
+	Switch $aInfo[2]
+		Case $WEBVIEW2_SCRIPT_DIALOG_KIND_ALERT
+			$sTitle = "JavaScript alert"
+			GUICtrlSetState($g_idDismiss, $GUI_HIDE)
+			GUICtrlSetState($g_idPromptText, $GUI_HIDE)
+		Case $WEBVIEW2_SCRIPT_DIALOG_KIND_CONFIRM
+			$sTitle = "JavaScript confirmation"
+			$g_sAcceptCaption = "Yes"
+			$g_sDismissCaption = "No"
+			GUICtrlSetState($g_idDismiss, $GUI_SHOW)
+			GUICtrlSetState($g_idPromptText, $GUI_HIDE)
+		Case $WEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT
+			$sTitle = "JavaScript prompt"
+			GUICtrlSetData($g_idPromptText, $aInfo[4])
+			GUICtrlSetState($g_idPromptText, $GUI_SHOW)
+			GUICtrlSetState($g_idDismiss, $GUI_SHOW)
+		Case $WEBVIEW2_SCRIPT_DIALOG_KIND_BEFOREUNLOAD
+			$sTitle = "Leave this page?"
+			$g_sAcceptCaption = "Leave"
+			$g_sDismissCaption = "Stay"
+			GUICtrlSetState($g_idDismiss, $GUI_SHOW)
+			GUICtrlSetState($g_idPromptText, $GUI_HIDE)
+	EndSwitch
+	WinSetTitle($g_hDialog, "", $sTitle)
+	GUICtrlSetData($g_idDialogOrigin, $aInfo[1])
+	GUICtrlSetData($g_idDialogMessage, $aInfo[3])
+	GUICtrlSetData($g_idAccept, $g_sAcceptCaption)
+	GUICtrlSetData($g_idDismiss, $g_sDismissCaption)
+	GUISetState(@SW_SHOW, $g_hDialog)
+	WinActivate($g_hDialog)
+	Return
+EndFunc   ;==>_Example_Dialog_Show
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_Dialog_Answer
+; Description ...: Answers the pending request from the visible AutoIt pop-up.
+; Syntax ........: _Example_Dialog_Answer($bAccept, $sCaption)
+; Parameters ....: $bAccept - True to accept; False to dismiss.
+;                  $sCaption - Action caption for the operation log.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Closing the pop-up with its title-bar button dismisses the dialog.
+; Related .......: _WebView2_ScriptDialog_Request_Respond
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_Dialog_Answer($bAccept, $sCaption)
+	If $g_iPending > 0 Then
+		_GUICtrlEdit_AppendText($g_idLog, @CRLF)
+		If $sCaption = "Close" Then
+			_Example_Status("The JavaScript dialog pop-up was closed.")
+		Else
+			_Example_Status("'" & $sCaption & "' was clicked.")
+		EndIf
+		Local $sResultText = Default
+		If $bAccept And $g_iPendingKind = $WEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT Then $sResultText = GUICtrlRead($g_idPromptText)
+		Local $bAnswered = _WebView2_ScriptDialog_Request_Respond($g_iPending, $bAccept ? $WEBVIEW2_SCRIPT_DIALOG_ACCEPT : $WEBVIEW2_SCRIPT_DIALOG_CANCEL, $sResultText)
+		Local $iAnswerError = @error, $iAnswerExtended = @extended
+		If $bAnswered Then
+			_Example_Status("Answered dialog " & $g_iPending & ".")
+		Else
+			_Example_Status("Could not answer dialog: error=" & $iAnswerError & ", HRESULT=" & $iAnswerExtended)
+		EndIf
+	EndIf
+	$g_iPending = 0
+	$g_iPendingKind = -1
+	GUISetState(@SW_HIDE, $g_hDialog)
+	Return
+EndFunc   ;==>_Example_Dialog_Answer
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_SmokeClick
+; Description ...: Checks that the native pop-up is visible and clicks one of its buttons.
+; Syntax ........: _Example_SmokeClick($idButton)
+; Parameters ....: $idButton - Native AutoIt button control ID.
+; Return values .: True after a successful click; False when the pop-up or message is missing.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The GUI event loop handles the button response on the next iteration.
+; Related .......: _Example_Dialog_Show
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_SmokeClick($idButton)
+	Local $bResult = False
+	Do
+		If Not BitAND(WinGetState($g_hDialog), 2) Then ExitLoop 1
+		If GUICtrlRead($g_idDialogMessage) = "" Then ExitLoop 1
+		If Not ControlClick($g_hDialog, "", $idButton) Then ExitLoop 1
+		$bResult = True
+	Until True
+	Return $bResult
+EndFunc   ;==>_Example_SmokeClick
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Example_Trigger
