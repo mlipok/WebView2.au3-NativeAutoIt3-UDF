@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed WebView2 setting switches so enabling JavaScript alerts, context menus, DevTools and other Boolean settings actually reaches the native control. Example 009 can now restore its native browser alert after unlocking.
+- Examples 002 and 009 now identify clicks on their WebView2 page buttons in the AutoIt operation log. Example 009 reloads the page after locking or unlocking so its JavaScript alert setting applies to the loaded document. Example 010 logs clicks and focus changes in its page input field without recording typed content.
 - Step-by-step examples 002, 004–007 and 009–010 now show the results of each action in a scrolling AutoIt log beside WebView2, with a yellow guide explaining how to test the feature.
 - Examples 004 and 009 now clearly show how to open a JavaScript alert and when the browser displays or suppresses it. Their initial settings explicitly enable the alert so the first click demonstrates a visible browser dialog.
 - Interactive examples with operation logs now show the date, time and `AutoIt` source beside native button clicks. Example 031 identifies browser-trusted page clicks as `WebView2` actions while keeping automated smoke actions distinct.

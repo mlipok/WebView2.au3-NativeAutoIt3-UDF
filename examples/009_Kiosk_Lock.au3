@@ -38,7 +38,7 @@ Func _Example()
 		$g_EX_idLog = GUICtrlCreateEdit("", 5, 74, 290, 450, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 		GUICtrlSetBkColor($g_EX_idLog, 0xE2F0E4)
 		GUICtrlSetResizing($g_EX_idLog, $GUI_DOCKALL)
-		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Show alert pop-up; click Lock WebView and retry; click Unlock WebView and retry." & @CRLF & "EXPECTED RESULT" & @CRLF & "The browser alert is suppressed while locked and restored after unlocking." & @CRLF & "HOW IT WORKS" & @CRLF & "The lock helper changes the WebView2 script-dialog and interaction settings."
+		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Show alert pop-up before locking, after Lock WebView, and after Unlock WebView." & @CRLF & "EXPECTED RESULT" & @CRLF & "WebView2 shows its JavaScript alert before locking and after unlocking, but suppresses it while locked. Each page click appears in the AutoIt log." & @CRLF & "HOW IT WORKS" & @CRLF & "Lock changes WebView2 settings. The mapped HTTPS page reloads after each change because dialog settings apply when a document loads."
 		$g_EX_idGuide = GUICtrlCreateEdit($sEXGuide, 305, 520, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 		GUICtrlSetBkColor($g_EX_idGuide, 0xFFF1BF)
 		GUICtrlSetResizing($g_EX_idGuide, $GUI_DOCKALL)
@@ -69,20 +69,37 @@ Func _Example()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		_WebView2_NavigateToString($iWebView, '<html><body style="font-family:Segoe UI;padding:30px"><h1>Kiosk settings</h1><p>Use right-click, Ctrl+mouse-wheel and the DevTools button to compare locked/unlocked states.</p><p>Click Show alert pop-up before locking to see the browser dialog. Lock WebView suppresses it; Unlock WebView restores it.</p><button onclick="alert(''JavaScript alert from the page'')">Show alert pop-up</button></body></html>')
+		_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED, _Example_WebMessageReceived)
+		Local $sFolder = @ScriptDir & "\assets\native"
+		If Not _WebView2_SetVirtualHostNameToFolderMapping($iWebView, "udf-virtual-host.example", $sFolder) Then
+			Local $iMapError = @error, $iMapExtended = @extended
+			$__WebView2ExitValue = _Error("Map local page")
+			$__WebView2ExitError = $iMapError
+			$__WebView2ExitExtended = $iMapExtended
+			ExitLoop 1
+		EndIf
+		_WebView2_Navigate($iWebView, "https://udf-virtual-host.example/009.html")
 		While True
 			Switch GUIGetMsg()
 				Case $idLock
 					_EX_Click("Lock WebView")
 					If _WebView2_LockWebView($iWebView) Then
-						_EX_Log("WebView locked; default JavaScript alerts are suppressed.")
+						If _WebView2_Reload($iWebView) Then
+							_EX_Log("WebView locked; page reloaded with default JavaScript alerts suppressed.")
+						Else
+							_EX_Log("Page reload failed: " & _WebView2_Error_GetDescription())
+						EndIf
 					Else
 						_EX_Log("Lock failed: " & _WebView2_Error_GetDescription())
 					EndIf
 				Case $idUnlock
 					_EX_Click("Unlock WebView")
 					If _WebView2_UnlockWebView($iWebView) Then
-						_EX_Log("WebView unlocked; default JavaScript alerts are enabled.")
+						If _WebView2_Reload($iWebView) Then
+							_EX_Log("WebView unlocked; page reloaded with default JavaScript alerts enabled.")
+						Else
+							_EX_Log("Page reload failed: " & _WebView2_Error_GetDescription())
+						EndIf
 					Else
 						_EX_Log("Unlock failed: " & _WebView2_Error_GetDescription())
 					EndIf
@@ -123,6 +140,28 @@ Func _Error($sStage)
 	Return
 EndFunc   ;==>_Error
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_WebMessageReceived
+; Description ...: Logs trusted clicks from the local example page.
+; Syntax ........: _Example_WebMessageReceived($iWebView, $sMessage, $sSource, $bJSON)
+; Parameters ....: $iWebView - WebView instance ID.
+;                  $sMessage - Page message.
+;                  $sSource - Source URI.
+;                  $bJSON - True when only a JSON representation was available.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The page sends this marker only for an isTrusted click event.
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _Example_WebMessageReceived($iWebView, $sMessage, $sSource, $bJSON)
+	#forceref $iWebView
+	If Not $bJSON And $sSource = "https://udf-virtual-host.example/009.html" And $sMessage = "EX_CLICK_TRUSTED:Show alert pop-up" Then _EX_Click("Show alert pop-up", "WebView2")
+	Return
+EndFunc   ;==>_Example_WebMessageReceived
+
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _EX_Layout
 ; Description ...: Sizes the operation log and test guide.
@@ -162,9 +201,10 @@ EndFunc   ;==>_EX_Log
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _EX_Click
-; Description ...: Logs a native button click in a separate group.
-; Syntax ........: _EX_Click($sCaption)
+; Description ...: Logs a native or trusted page click in a separate group.
+; Syntax ........: _EX_Click($sCaption[, $sSource = "AutoIt"])
 ; Parameters ....: $sCaption - Visible button caption.
+;                  $sSource - AutoIt or trusted WebView2 click source.
 ; Return values .: None.
 ; Author ........: mLipok
 ; Modified ......:
@@ -173,7 +213,7 @@ EndFunc   ;==>_EX_Log
 ; Link ..........:
 ; Example .......: Yes
 ; ===============================================================================================================================
-Func _EX_Click($sCaption)
-	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked." & @CRLF)
+Func _EX_Click($sCaption, $sSource = "AutoIt")
+	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [" & $sSource & "]: " & $sCaption & " was clicked." & @CRLF)
 	Return
 EndFunc   ;==>_EX_Click

@@ -351,24 +351,24 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2ContentLoadingEventArgs = "get_IsErrorP
 Global Const $WEBVIEW2_DTAG_ICoreWebView2DOMContentLoadedEventArgs = "get_NavigationId hresult(int64*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings = _
-		"get_IsScriptEnabled hresult(bool*);" & _
-		"put_IsScriptEnabled hresult(bool);" & _
-		"get_IsWebMessageEnabled hresult(bool*);" & _
-		"put_IsWebMessageEnabled hresult(bool);" & _
-		"get_AreDefaultScriptDialogsEnabled hresult(bool*);" & _
-		"put_AreDefaultScriptDialogsEnabled hresult(bool);" & _
-		"get_IsStatusBarEnabled hresult(bool*);" & _
-		"put_IsStatusBarEnabled hresult(bool);" & _
-		"get_AreDevToolsEnabled hresult(bool*);" & _
-		"put_AreDevToolsEnabled hresult(bool);" & _
-		"get_AreDefaultContextMenusEnabled hresult(bool*);" & _
-		"put_AreDefaultContextMenusEnabled hresult(bool);" & _
-		"get_AreHostObjectsAllowed hresult(bool*);" & _
-		"put_AreHostObjectsAllowed hresult(bool);" & _
-		"get_IsZoomControlEnabled hresult(bool*);" & _
-		"put_IsZoomControlEnabled hresult(bool);" & _
-		"get_IsBuiltInErrorPageEnabled hresult(bool*);" & _
-		"put_IsBuiltInErrorPageEnabled hresult(bool);"
+		"get_IsScriptEnabled hresult(int*);" & _
+		"put_IsScriptEnabled hresult(int);" & _
+		"get_IsWebMessageEnabled hresult(int*);" & _
+		"put_IsWebMessageEnabled hresult(int);" & _
+		"get_AreDefaultScriptDialogsEnabled hresult(int*);" & _
+		"put_AreDefaultScriptDialogsEnabled hresult(int);" & _
+		"get_IsStatusBarEnabled hresult(int*);" & _
+		"put_IsStatusBarEnabled hresult(int);" & _
+		"get_AreDevToolsEnabled hresult(int*);" & _
+		"put_AreDevToolsEnabled hresult(int);" & _
+		"get_AreDefaultContextMenusEnabled hresult(int*);" & _
+		"put_AreDefaultContextMenusEnabled hresult(int);" & _
+		"get_AreHostObjectsAllowed hresult(int*);" & _
+		"put_AreHostObjectsAllowed hresult(int);" & _
+		"get_IsZoomControlEnabled hresult(int*);" & _
+		"put_IsZoomControlEnabled hresult(int);" & _
+		"get_IsBuiltInErrorPageEnabled hresult(int*);" & _
+		"put_IsBuiltInErrorPageEnabled hresult(int);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2NavigationStartingEventArgs = _
 		"get_Uri hresult(ptr*);" & _

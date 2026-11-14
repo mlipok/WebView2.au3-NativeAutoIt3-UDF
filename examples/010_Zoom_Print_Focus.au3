@@ -38,7 +38,7 @@ Func _Example()
 		$g_EX_idLog = GUICtrlCreateEdit("", 5, 74, 290, 450, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 		GUICtrlSetBkColor($g_EX_idLog, 0xE2F0E4)
 		GUICtrlSetResizing($g_EX_idLog, $GUI_DOCKALL)
-		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Zoom 125%, Reset zoom, Focus and Print." & @CRLF & "EXPECTED RESULT" & @CRLF & "Zoom changes and resets; focus moves to WebView2; Print opens its native print UI." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt controls WebView2 zoom, focus and printing."
+		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Zoom 125%, Reset zoom, Focus and Print; then click the page's input field and move focus into and out of it." & @CRLF & "EXPECTED RESULT" & @CRLF & "Zoom changes and resets; Print opens its native UI. The log distinguishes a native Focus request from the input's click and focus events." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt controls WebView2 zoom, focus and printing. The page reports input events through WebMessageReceived."
 		$g_EX_idGuide = GUICtrlCreateEdit($sEXGuide, 305, 520, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 		GUICtrlSetBkColor($g_EX_idGuide, 0xFFF1BF)
 		GUICtrlSetResizing($g_EX_idGuide, $GUI_DOCKALL)
@@ -64,7 +64,8 @@ Func _Example()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		_WebView2_NavigateToString($iWebView, '<html><body style="font-family:Segoe UI;padding:30px"><h1>Zoom / print / focus</h1><input value="Click Focus, then type here" style="width:320px;padding:8px"></body></html>')
+		_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED, _Example_WebMessageReceived)
+		_WebView2_NavigateToString($iWebView, '<!doctype html><html><body style="font-family:Segoe UI;padding:30px"><h1>Zoom / print / focus</h1><label for="demo-input">Input field</label><br><input id="demo-input" value="Click Focus, then type here" style="width:320px;padding:8px"><script>const input=document.getElementById(''demo-input'');input.addEventListener(''focus'',()=>chrome.webview.postMessage(''EX_INPUT_FOCUS''));input.addEventListener(''blur'',()=>chrome.webview.postMessage(''EX_INPUT_BLUR''));input.addEventListener(''click'',e=>{if(e.isTrusted)chrome.webview.postMessage(''EX_INPUT_CLICK_TRUSTED'');});</script></body></html>')
 		While True
 			Switch GUIGetMsg()
 				Case $idZoom125
@@ -117,6 +118,36 @@ Func _Error($sStage)
 	Return
 EndFunc   ;==>_Error
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_WebMessageReceived
+; Description ...: Logs the editable field's focus and trusted click events.
+; Syntax ........: _Example_WebMessageReceived($iWebView, $sMessage, $sSource, $bJSON)
+; Parameters ....: $iWebView - WebView instance ID.
+;                  $sMessage - Page event marker.
+;                  $sSource - Source URI.
+;                  $bJSON - True when only a JSON representation was available.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Input content is deliberately not sent to AutoIt.
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _Example_WebMessageReceived($iWebView, $sMessage, $sSource, $bJSON)
+	#forceref $iWebView, $sSource
+	If $bJSON Then Return
+	Switch $sMessage
+		Case "EX_INPUT_FOCUS"
+			_EX_Log("[WebView2]: Input field received focus.")
+		Case "EX_INPUT_BLUR"
+			_EX_Log("[WebView2]: Input field lost focus.")
+		Case "EX_INPUT_CLICK_TRUSTED"
+			_EX_Click("Input field", "WebView2")
+	EndSwitch
+	Return
+EndFunc   ;==>_Example_WebMessageReceived
+
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _EX_Layout
 ; Description ...: Sizes the operation log and test guide.
@@ -156,9 +187,10 @@ EndFunc   ;==>_EX_Log
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _EX_Click
-; Description ...: Logs a native button click in a separate group.
-; Syntax ........: _EX_Click($sCaption)
-; Parameters ....: $sCaption - Visible button caption.
+; Description ...: Logs a native or trusted page click in a separate group.
+; Syntax ........: _EX_Click($sCaption[, $sSource = "AutoIt"])
+; Parameters ....: $sCaption - Visible control caption.
+;                  $sSource - AutoIt or trusted WebView2 click source.
 ; Return values .: None.
 ; Author ........: mLipok
 ; Modified ......:
@@ -167,7 +199,7 @@ EndFunc   ;==>_EX_Log
 ; Link ..........:
 ; Example .......: Yes
 ; ===============================================================================================================================
-Func _EX_Click($sCaption)
-	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked." & @CRLF)
+Func _EX_Click($sCaption, $sSource = "AutoIt")
+	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [" & $sSource & "]: " & $sCaption & " was clicked." & @CRLF)
 	Return
 EndFunc   ;==>_EX_Click

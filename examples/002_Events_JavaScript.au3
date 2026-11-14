@@ -38,7 +38,7 @@ Func _Example()
 		$g_EX_idLog = GUICtrlCreateEdit("", 5, 74, 290, 450, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 		GUICtrlSetBkColor($g_EX_idLog, 0xE2F0E4)
 		GUICtrlSetResizing($g_EX_idLog, $GUI_DOCKALL)
-		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Execute JavaScript, Post message and Dev Tools; use Send message to AutoIt inside the page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The script result opens in a message box; messages and navigation events appear in the log." & @CRLF & "HOW IT WORKS" & @CRLF & "WebView2 executes page JavaScript and exchanges messages with the AutoIt host."
+		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Execute JavaScript, Post message and DevTools; click Send message to AutoIt inside the page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The log identifies native and page button clicks separately. The page message and script result appear after their clicks." & @CRLF & "HOW IT WORKS" & @CRLF & "A trusted page click sends its caption through WebMessageReceived before the page sends its message."
 		$g_EX_idGuide = GUICtrlCreateEdit($sEXGuide, 305, 520, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 		GUICtrlSetBkColor($g_EX_idGuide, 0xFFF1BF)
 		GUICtrlSetResizing($g_EX_idGuide, $GUI_DOCKALL)
@@ -86,8 +86,8 @@ Func _Example()
 				'<body style="font-family:Segoe UI;padding:28px">' & _
 				'<h1>WebView2.au3</h1>' & _
 				'<p id="status">HTML loaded by NavigateToString().</p>' & _
-				'<button onclick="window.chrome.webview.postMessage(''Message from JavaScript'')">Send message to AutoIt</button>' & _
-				'<script>window.chrome.webview.addEventListener(''message'',e=>{document.getElementById(''status'').textContent=''AutoIt says: ''+e.data;});</script>' & _
+				'<button id="send-message">Send message to AutoIt</button>' & _
+				'<script>document.getElementById(''send-message'').addEventListener(''click'',e=>{if(e.isTrusted)window.chrome.webview.postMessage(''EX_CLICK_TRUSTED:Send message to AutoIt'');window.chrome.webview.postMessage(''Message from JavaScript'');});window.chrome.webview.addEventListener(''message'',e=>{document.getElementById(''status'').textContent=''AutoIt says: ''+e.data;});</script>' & _
 				'</body></html>'
 
 		_WebView2_NavigateToString($iWebView, $sHTML)
@@ -213,6 +213,10 @@ EndFunc   ;==>_Example_TitleChanged
 ; Example .......: No
 ; ===============================================================================================================================
 Func _Example_WebMessageReceived($iWebView, $sMessage, $sSource, $bJSON)
+	If Not $bJSON And $sMessage = "EX_CLICK_TRUSTED:Send message to AutoIt" Then
+		_EX_Click("Send message to AutoIt", "WebView2")
+		Return
+	EndIf
 	_EX_Log("Page message from " & $sSource & ": " & $sMessage)
 	MsgBox($MB_ICONINFORMATION, "WebMessageReceived", _
 			"WebView=" & $iWebView & @CRLF & _
@@ -261,9 +265,10 @@ EndFunc   ;==>_EX_Log
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _EX_Click
-; Description ...: Logs a native button click in a separate group.
-; Syntax ........: _EX_Click($sCaption)
+; Description ...: Logs a native or trusted page click in a separate group.
+; Syntax ........: _EX_Click($sCaption[, $sSource = "AutoIt"])
 ; Parameters ....: $sCaption - Visible button caption.
+;                  $sSource - AutoIt or trusted WebView2 click source.
 ; Return values .: None.
 ; Author ........: mLipok
 ; Modified ......:
@@ -272,7 +277,7 @@ EndFunc   ;==>_EX_Log
 ; Link ..........:
 ; Example .......: Yes
 ; ===============================================================================================================================
-Func _EX_Click($sCaption)
-	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked." & @CRLF)
+Func _EX_Click($sCaption, $sSource = "AutoIt")
+	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [" & $sSource & "]: " & $sCaption & " was clicked." & @CRLF)
 	Return
 EndFunc   ;==>_EX_Click

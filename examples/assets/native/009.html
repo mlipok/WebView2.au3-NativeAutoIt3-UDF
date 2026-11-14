@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>WebView2 kiosk settings</title>
+  <style>
+    body { font-family: Segoe UI, sans-serif; padding: 30px; }
+    button { padding: 8px 14px; }
+  </style>
+</head>
+<body>
+  <h1>Kiosk settings</h1>
+  <p>Use right-click, Ctrl+mouse-wheel and the DevTools button to compare locked and unlocked states.</p>
+  <p>Click <strong>Show alert pop-up</strong> before locking, while locked and after unlocking.</p>
+  <button id="show-alert">Show alert pop-up</button>
+  <p id="alert-status" role="status">Waiting for a click.</p>
+  <script>
+    document.getElementById('show-alert').addEventListener('click', event => {
+      const status = document.getElementById('alert-status');
+      status.textContent = 'Click received; requesting the browser alert.';
+      try {
+        if (event.isTrusted && window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage('EX_CLICK_TRUSTED:Show alert pop-up');
+        }
+      } catch (error) {
+        status.textContent = 'Web message failed: ' + error.message + '. Requesting the browser alert anyway.';
+      }
+      window.alert('JavaScript alert from the page');
+      status.textContent = 'The alert() call returned.';
+    });
+  </script>
+</body>
+</html>
