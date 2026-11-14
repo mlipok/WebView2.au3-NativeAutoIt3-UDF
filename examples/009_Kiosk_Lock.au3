@@ -48,7 +48,13 @@ Func _Example()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		_WebView2_NavigateToString($iWebView, '<html><body style="font-family:Segoe UI;padding:30px"><h1>Kiosk settings</h1><p>Use right-click, Ctrl+mouse-wheel and the DevTools button to compare locked/unlocked states.</p><button onclick="alert(''dialog'')">alert()</button></body></html>')
+		If Not _WebView2_SetDefaultScriptDialogsEnabled($iWebView, True) Then
+			$__WebView2ExitValue = _Error("Enable JavaScript alert pop-ups")
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		_WebView2_NavigateToString($iWebView, '<html><body style="font-family:Segoe UI;padding:30px"><h1>Kiosk settings</h1><p>Use right-click, Ctrl+mouse-wheel and the DevTools button to compare locked/unlocked states.</p><p>Click Show alert pop-up before locking to see the browser dialog. Lock WebView suppresses it; Unlock WebView restores it.</p><button onclick="alert(''JavaScript alert from the page'')">Show alert pop-up</button></body></html>')
 		While True
 			Switch GUIGetMsg()
 				Case $idLock

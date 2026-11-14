@@ -16,6 +16,8 @@ For a new interactive example, keep its test controls visible beside WebView2. W
 
 When logging a button action, separate it from the preceding activity and use `[YYYY-MM-DD HH:MM:SS] [AutoIt|WebView2]: <visible button caption> was clicked.` Use `AutoIt` for native controls. Use `WebView2` only for an explicit browser-trusted click notification from the expected local page; a result message or native callback does not prove which button was clicked. Distinguish programmatic smoke actions from browser-trusted clicks.
 
+If an example promises a visible dialog or pop-up, show an interactive window and identify the button that opens it. Explain whether it is WebView2's browser dialog or an AutoIt-owned replacement. A native callback recorded only in the log is a request or event, not a visible dialog. Confirm the window in a focused runtime check before reporting it as verified.
+
 ## Source layout
 
 - `WebView2_Core.au3` — lifecycle, navigation, events and base settings.
