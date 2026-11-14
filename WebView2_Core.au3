@@ -74,6 +74,7 @@ Global $__g_aWebView2_Tabs[$WEBVIEW2_MAX_INSTANCES]
 ; Defined locally because AutoIt 3.3.18.0 does not expose $tagMSG through the includes used by this UDF.
 Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;lparam lParam;dword time;long X;long Y;dword lPrivate;endstruct"
 
+#include "WebView2_Permission.au3"
 #include "WebView2_Frame.au3"
 #include "WebView2_Worker.au3"
 #include "WebView2_Download.au3"
@@ -1484,14 +1485,14 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |FRAME_CONTENT_LOADING   - Called with ($iWebView, $iFrame, $bIsErrorPage, $iNavigationId).
 ;                  |FRAME_DOM_CONTENT_LOADED - Called with ($iWebView, $iFrame, $iNavigationId).
 ;                  |FRAME_PERMISSION_REQUESTED - Called with ($iWebView, $iFrame, $sURI, $iKind, $bUserInitiated).
-;                  |                              Return ALLOW/DENY or [state, saveInProfile]; DEFAULT leaves it unhandled.
+;                  |                              Return ALLOW/DENY, [state, saveInProfile] or DEFER; DEFAULT leaves it unhandled.
 ;                  |FRAME_SCREEN_CAPTURE_STARTING - Called with ($iWebView, $iFrame); return True to cancel capture.
 ;                  |FRAME_DEDICATED_WORKER_CREATED - Called with ($iWebView, $iFrame, $sScriptURI).
 ;                  |WORKER_CREATED - Called with ($iWebView, $iFrame, $iWorker, $sScriptURI).
 ;                  |WORKER_WEB_MESSAGE_RECEIVED - Called with ($iWebView, $iFrame, $iWorker, $sJSON, $sSource).
 ;                  |WORKER_DESTROYING - Called with ($iWebView, $iFrame, $iWorker, $sScriptURI).
 ;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
-;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, or [state, saveInProfile].
+;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, [state, saveInProfile] or DEFER.
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
 ;                  |                                 Observe responses only; do not call blocking WebView2 helpers here.
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
@@ -2688,6 +2689,11 @@ Func __WebView2_PermissionRequested_Invoke($pSelf, $pSender, $pArgs)
 		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop
 		Local $vDecision = Call($fnCallback, $iSlot, $sURI, $iKind, $bUserInitiated)
 		If @error Then ExitLoop
+		If __WebView2_Instance_FindByCorePointer($pSender) <> $iSlot Then ExitLoop
+		If IsInt($vDecision) And $vDecision = $WEBVIEW2_PERMISSION_DEFER Then
+			If Not __WebView2_Permission_Defer($iSlot, 0, $oArgs, $pArgs, $sURI, $iKind, $bUserInitiated) Then $oArgs.put_State($WEBVIEW2_PERMISSION_STATE_DENY)
+			ExitLoop
+		EndIf
 		Local $iState = $vDecision
 		If IsArray($vDecision) Then
 			If UBound($vDecision) <> 2 Then ExitLoop
@@ -3176,6 +3182,7 @@ EndFunc   ;==>__WebView2_Events_Unsubscribe
 Func __WebView2_Instance_Dispose($iSlot)
 	If $iSlot < 0 Or $iSlot >= $WEBVIEW2_MAX_INSTANCES Then Return
 	__WebView2_NewWindow_CancelForSource($iSlot)
+	__WebView2_Permission_CancelForView($iSlot)
 
 	__WebView2_Trace("DISPOSE 01 START slot=" & $iSlot)
 

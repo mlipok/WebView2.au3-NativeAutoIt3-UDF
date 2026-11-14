@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can postpone a page or iframe permission request, inspect its origin and kind, then allow or deny it from their event loop. Pending requests can also be cancelled or timed out; example 031 demonstrates both immediate and deferred geolocation decisions.
+
 - Fixed iframe destruction so a callback that closes a view cannot clear a frame created afterward in a reused tracking slot.
 - Interactive examples with an AutoIt operation log now separate manual button actions with a blank line and a timestamped button-caption entry, making each action and its results easier to follow.
 - Fixed example 027 so its four action buttons stay together above the WebView2 content when the window opens maximized or is resized. Each click now starts a separate, labeled group in the operation log.

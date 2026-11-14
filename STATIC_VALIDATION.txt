@@ -137,3 +137,11 @@ Date: 2026-10-07 Europe/Warsaw
 ## Runtime validation boundary
 
 The current icon-removal change was not tested through an interactive GUI run. Earlier isolated x86/x64 tests exercised empty instance and tab lists, user sleep callback cancellation, loader architecture selection, invalid-tab errors, and hidden-window tab creation, activation, listing, closing, and cleanup. Those earlier tests were not repeated for this documentation update. Visible example behavior still requires interactive testing.
+# 2026-11-14: deferred permission decisions
+
+- Added a bounded pending permission registry for main-document and tracked-frame callbacks. Existing immediate decisions retain their signatures and return values. Pending requests can be inspected, answered, cancelled, timed out, or cancelled during frame/view cleanup.
+- Tidy AutoIt3 v25.205.1420.10 ran with the explicit path of each changed `.au3` file as its sole argument. It made no changes except formatting the new `WebView2_Permission.au3` module; each process exited. Tidy reported include-resolution warnings while inspecting example 031, but Au3Check resolved those includes successfully.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` failed to launch in the restricted Codex process due to a Windows DLL relocation error. The same command outside that process reported 0 errors and 0 warnings for example 031 and its public UDF include chain.
+- `tools/Validate-Project.ps1` reported project structure OK. It noted that optional loader DLLs are absent in the isolated Git worktree; both architecture-specific DLLs are present in the synchronized local project.
+- Targeted `examples/031_PermissionRequests.au3 --smoke` runs under x64 and x86 AutoIt exited with code 0 and `EX_SMOKE_OK ... deferred=deny`. They covered immediate DENY and ALLOW, then deferred DENY and the browser's resulting page message. Deferred ALLOW, frame-origin deferral, timeout, and manual GUI clicks were not exercised in this pass.
+- A source search in `KK_EPU`, `Skaner`, `MICHAELO_Faktury` and `UDF_ML\BROWSER.au3`, excluding generated stripped files, found no direct use of the new APIs or permission callbacks. Private program workflows were not run; this impact assessment is static only.
