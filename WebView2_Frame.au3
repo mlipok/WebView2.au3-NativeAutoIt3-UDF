@@ -555,6 +555,7 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 		; The host callback may destroy the view and reuse this registry slot.
 		If $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID] = $iFrameId Then
 			$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] = False
+			__WebView2_Permission_CancelForFrame($iFrameId)
 			__WebView2_Worker_CleanupFrame($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
 			Local $oFrame = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT]
 			If IsObj($oFrame) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
@@ -794,8 +795,19 @@ Func __WebView2_FramePermission_Invoke($pSelf, $pSender, $pArgs)
 		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
 		$iHRESULT = $oArgs.get_IsUserInitiated($bUserInitiated)
 		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then ExitLoop 1
-		Local $vDecision = Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], $sURI, $iKind, $bUserInitiated)
+		Local $iFrameId = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID]
+		Local $vDecision = Call($fnCallback, $iView, $iFrameId, $sURI, $iKind, $bUserInitiated)
 		If @error Then ExitLoop 1
+		If Not $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] Or $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID] <> $iFrameId Then ExitLoop 1
+		If IsInt($vDecision) And $vDecision = $WEBVIEW2_PERMISSION_DEFER Then
+			Local $oDeferredArgs2 = ObjCreateInterface($pArgs, $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs2, $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs2)
+			If Not IsObj($oDeferredArgs2) Then ExitLoop 1
+			$oDeferredArgs2.AddRef()
+			Local $iHandledResult = $oDeferredArgs2.put_Handled(True)
+			If @error Or $iHandledResult <> $WEBVIEW2_S_OK Then ExitLoop 1
+			If Not __WebView2_Permission_Defer($iView, $iFrameId, $oArgs, $pArgs, $sURI, $iKind, $bUserInitiated) Then $oArgs.put_State($WEBVIEW2_PERMISSION_STATE_DENY)
+			ExitLoop 1
+		EndIf
 		Local $iState = $vDecision
 		If IsArray($vDecision) Then
 			If UBound($vDecision) <> 2 Then ExitLoop 1

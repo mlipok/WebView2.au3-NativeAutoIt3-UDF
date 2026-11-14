@@ -12,11 +12,13 @@
     <p>Choose how the AutoIt host should answer this location request. When allowed, the coordinates and reported accuracy appear below.</p>
     <button id="deny" type="button">Deny geolocation</button>
     <button id="allow" type="button">Allow geolocation</button>
+    <button id="later" type="button">Ask AutoIt later</button>
     <p id="result">Waiting for a request.</p>
   </main>
   <script>
     document.getElementById('deny').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'deny'}));
     document.getElementById('allow').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'allow'}));
+    document.getElementById('later').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'later'}));
     function requestLocation(mode) {
       document.getElementById('result').textContent = 'Waiting for location permission...';
       navigator.geolocation.getCurrentPosition(
@@ -26,7 +28,7 @@
           chrome.webview.postMessage({type: 'allowed'});
         },
         error => {
-          const denied = mode === 'deny' && error.code === 1;
+          const denied = error.code === 1;
           document.getElementById('result').textContent = (denied ? 'Location denied' : 'Location unavailable after ALLOW') + ' (code ' + error.code + ').';
           chrome.webview.postMessage({type: denied ? 'denied' : 'error', code: error.code});
         },

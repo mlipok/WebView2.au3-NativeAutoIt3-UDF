@@ -16,6 +16,7 @@ Global $g_bReady = False, $g_bRequestPending = False, $g_bPageDone = False
 Global $g_iDecision = $WEBVIEW2_PERMISSION_STATE_DENY, $g_iDecisionCount = 0
 Global $g_sMode = "deny", $g_sPageResult = ""
 Global $g_bSmoke = False
+Global $g_idAllowPending = 0, $g_idDenyPending = 0, $g_iPendingRequest = 0
 If $CmdLine[0] > 0 Then $g_bSmoke = ($CmdLine[1] = "--smoke")
 
 Exit _Example()
@@ -36,7 +37,13 @@ Exit _Example()
 Func _Example()
 	Local $iExitCode = 1
 	Local $hGUI = GUICreate("WebView2 - Permission requests", 800, 520, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
-	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 10, 10, 780, 25)
+	$g_idStatus = GUICtrlCreateLabel("Starting WebView2...", 565, 10, 230, 25)
+	$g_idAllowPending = GUICtrlCreateButton("Allow pending", 305, 5, 120, 30)
+	$g_idDenyPending = GUICtrlCreateButton("Deny pending", 435, 5, 120, 30)
+	GUICtrlSetResizing($g_idAllowPending, $GUI_DOCKALL)
+	GUICtrlSetResizing($g_idDenyPending, $GUI_DOCKALL)
+	GUICtrlSetState($g_idAllowPending, $GUI_DISABLE)
+	GUICtrlSetState($g_idDenyPending, $GUI_DISABLE)
 
 	GUICtrlSetResizing($g_idStatus, $GUI_DOCKALL)
 	GUICtrlCreateLabel("Operation log", 5, 43, 290, 18)
@@ -44,7 +51,7 @@ Func _Example()
 	$g_idLog = GUICtrlCreateEdit("", 5, 64, 290, 446, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Deny geolocation, then Allow geolocation." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page reports denial first; Allow may return coordinates or a location-provider error." & @CRLF & "HOW IT WORKS" & @CRLF & "A native WebView2 permission callback decides each request without saving the decision."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Deny geolocation, then Allow geolocation in the page." & @CRLF & "2. Click Ask AutoIt later, then Allow pending or Deny pending above the page." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page waits until AutoIt answers. Deny reports refusal; Allow may return coordinates or a location-provider error." & @CRLF & "HOW IT WORKS" & @CRLF & "The callback returns DEFER. AutoIt lists pending requests and completes the native deferral after a button click. Unanswered requests expire after 15 seconds."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 340, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor(-1, 0xFFF4C2)
 	GUICtrlSetResizing(-1, $GUI_DOCKALL)
@@ -69,6 +76,19 @@ Func _Example()
 	If $iExitCode Then _Example_Status("Setup failed: " & _WebView2_Error_GetDescription())
 	Local $hTimer = TimerInit(), $iSmokeStage = 0
 	While $iExitCode = 0
+		Local $aPending = _WebView2_Permission_Request_List($g_iWebView)
+		Local $iCurrentPending = ($aPending[0] > 0) ? $aPending[1] : 0
+		If $iCurrentPending <> $g_iPendingRequest Then
+			$g_iPendingRequest = $iCurrentPending
+			GUICtrlSetState($g_idAllowPending, $g_iPendingRequest ? $GUI_ENABLE : $GUI_DISABLE)
+			GUICtrlSetState($g_idDenyPending, $g_iPendingRequest ? $GUI_ENABLE : $GUI_DISABLE)
+			If $g_iPendingRequest Then
+				Local $aInfo = _WebView2_Permission_Request_GetInfo($g_iPendingRequest)
+				If IsArray($aInfo) And UBound($aInfo) = 5 Then _Example_Status("Pending request " & $g_iPendingRequest & " from " & $aInfo[2] & "; choose Allow pending or Deny pending.")
+			EndIf
+		EndIf
+		Local $iExpired = _WebView2_Permission_Request_Expire(15000)
+		If $iExpired Then _Example_Status($iExpired & " pending permission request(s) expired and were denied.")
 		If $g_bRequestPending Then
 			$g_bRequestPending = False
 			_WebView2_ExecuteScript($g_iWebView, "requestLocation(" & _WebView2_JavaScriptStringLiteral($g_sMode) & "); true")
@@ -99,18 +119,45 @@ Func _Example()
 				EndIf
 			EndIf
 			If $iSmokeStage = 2 And $g_iDecisionCount = 2 And $g_bPageDone Then
-				ConsoleWrite("EX_SMOKE_OK example=031 arch=" & (@AutoItX64 ? "x64" : "x86") & @CRLF)
+				$g_bPageDone = False
+				$iSmokeStage = 3
+				_WebView2_ExecuteScript($g_iWebView, "document.getElementById('later').click(); true")
+				If @error Then
+					_Example_Status("Could not click Ask AutoIt later.")
+					$iExitCode = 1
+					ExitLoop
+				EndIf
+			EndIf
+			If $iSmokeStage = 3 And $g_iPendingRequest > 0 Then
+				If Not _WebView2_Permission_Request_Respond($g_iPendingRequest, $WEBVIEW2_PERMISSION_STATE_DENY) Then
+					_Example_Status("Could not complete the deferred DENY request.")
+					$iExitCode = 1
+					ExitLoop
+				EndIf
+				$iSmokeStage = 4
+			EndIf
+			If $iSmokeStage = 4 And $g_iDecisionCount = 3 And $g_bPageDone And $g_sPageResult = "denied" Then
+				ConsoleWrite("EX_SMOKE_OK example=031 arch=" & (@AutoItX64 ? "x64" : "x86") & " deferred=deny" & @CRLF)
 				ExitLoop
 			EndIf
 			If TimerDiff($hTimer) > 20000 Then
-				_Example_Status("Smoke timed out waiting for DENY and ALLOW decisions.")
+				_Example_Status("Smoke timed out waiting for immediate and deferred decisions.")
 				$iExitCode = 1
 				ExitLoop
 			EndIf
 		EndIf
-		Switch GUIGetMsg()
+		Local $iGUIMessage = GUIGetMsg()
+		Switch $iGUIMessage
 			Case $GUI_EVENT_CLOSE
 				ExitLoop
+			Case $g_idAllowPending, $g_idDenyPending
+				Local $bAllowPending = ($iGUIMessage = $g_idAllowPending)
+				_Example_LogClick("AutoIt", $bAllowPending ? "Allow pending" : "Deny pending")
+				If Not _WebView2_Permission_Request_Respond($g_iPendingRequest, $bAllowPending ? $WEBVIEW2_PERMISSION_STATE_ALLOW : $WEBVIEW2_PERMISSION_STATE_DENY) Then
+					_Example_Status("Could not complete pending request: error=" & @error & ", HRESULT=" & @extended)
+				Else
+					_Example_Status("Completed pending request " & $g_iPendingRequest & ".")
+				EndIf
 			Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 				Local $aClient = WinGetClientSize($hGUI)
 				If IsArray($aClient) And $g_iWebView >= 0 Then
@@ -146,6 +193,7 @@ Func _Example_OnPermission($iWebView, $sURI, $iKind, $bUserInitiated)
 	#forceref $bUserInitiated
 	If $iWebView = $g_iWebView And $sURI = $g_sOrigin And $iKind = $WEBVIEW2_PERMISSION_KIND_GEOLOCATION Then
 		$g_iDecisionCount += 1
+		If $g_sMode = "later" Then Return $WEBVIEW2_PERMISSION_DEFER
 		_Example_Status("AutoIt " & ($g_iDecision = $WEBVIEW2_PERMISSION_STATE_ALLOW ? "allowed" : "denied") & " geolocation for " & $sURI)
 		Local $aDecision[2] = [$g_iDecision, False]
 		Return $aDecision
@@ -175,7 +223,20 @@ Func _Example_OnMessage($iWebView, $sMessage, $sSource, $bJSON)
 		$g_bReady = True
 		_Example_Status("Ready. Choose DENY or ALLOW in the page.")
 	ElseIf StringInStr($sMessage, '"type":"request"') Then
-		$g_sMode = StringInStr($sMessage, '"mode":"allow"') ? "allow" : "deny"
+		Local $sButtonName = ""
+		If StringInStr($sMessage, '"mode":"later"') Then
+			$g_sMode = "later"
+			$sButtonName = "Ask AutoIt later"
+		ElseIf StringInStr($sMessage, '"mode":"allow"') Then
+			$g_sMode = "allow"
+			$sButtonName = "Allow geolocation"
+		ElseIf StringInStr($sMessage, '"mode":"deny"') Then
+			$g_sMode = "deny"
+			$sButtonName = "Deny geolocation"
+		Else
+			Return
+		EndIf
+		_Example_LogClick("WebView2", $sButtonName)
 		$g_iDecision = ($g_sMode = "allow") ? $WEBVIEW2_PERMISSION_STATE_ALLOW : $WEBVIEW2_PERMISSION_STATE_DENY
 		$g_bPageDone = False
 		$g_bRequestPending = True
@@ -210,8 +271,48 @@ EndFunc   ;==>_Example_OnMessage
 ; ===============================================================================================================================
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
-	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
-	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
-	ConsoleWrite($sText & @CRLF)
+	_Example_Log($sText)
 	Return
 EndFunc   ;==>_Example_Status
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Logs a button click with its AutoIt or WebView2 source.
+; Syntax ........: _Example_LogClick($sType, $sName)
+; Parameters ....: $sType - AutoIt or WebView2.
+;                  $sName - Visible button caption.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Separates each click from the preceding operation.
+; Related .......: _Example_Log
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sType, $sName)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF)
+	ConsoleWrite(@CRLF)
+	_Example_Log("[" & $sType & "]: " & $sName & " was clicked.")
+	Return
+EndFunc   ;==>_Example_LogClick
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_Log
+; Description ...: Appends one dated operation-log entry and scrolls to it.
+; Syntax ........: _Example_Log($sText)
+; Parameters ....: $sText - Message to append.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: All example entries use the same date and time format.
+; Related .......: _Example_Status, _Example_LogClick
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_Log($sText)
+	Local $sTimestamp = "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "]"
+	_GUICtrlEdit_AppendText($g_idLog, $sTimestamp & " " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	ConsoleWrite($sTimestamp & " " & $sText & @CRLF)
+	Return
+EndFunc   ;==>_Example_Log

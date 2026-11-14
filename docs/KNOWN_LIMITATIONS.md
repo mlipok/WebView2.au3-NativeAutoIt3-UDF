@@ -43,12 +43,16 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- deferred permission handling and script-dialog callbacks; immediate top-level and frame-level permission decisions are implemented;
+- JavaScript dialog callbacks; top-level and frame-level permission decisions support both immediate and deferred responses;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;
 - asynchronous/nonblocking public variants of current synchronous helpers.
 
 PDF.js rendering in example 214 was confirmed by the user in a running WebView2 session on 2026-11-13; this does not verify its omitted upstream extraction and selection/link-lock demonstrations. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
+
+## TODO: Example click log convention
+
+- After the deferred-permission PR is merged, review examples that log both AutoIt and WebView2 button actions. Use example 031's `[date and time] [AutoIt|WebView2]: button caption was clicked.` format as the starting point. Decide which conventions belong in `AGENTS.md`, `docs/EXAMPLES.md`, or both before applying the format beyond example 031. Keep this task separate from the migration ideas below.
 
 ## TODO: Migration from other projects
 
@@ -57,7 +61,7 @@ Review external ideas against the current native UDF before implementing them. T
 | Source | Candidate | Current UDF state | Next review step |
 | --- | --- | --- | --- |
 | [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Native mute getter/setter and changed callback | Implemented through `ICoreWebView2_8`; x86/x64 getter/setter, event and cleanup smoke tests passed. | Keep this migration item for provenance; monitor upstream behavior and regression reports. |
-| [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Permission request policy, event and response | Immediate top-level and frame `PermissionRequested` callbacks read origin, kind and user-initiated flag and return Default/Allow/Deny. A two-element return can disable profile persistence through `PermissionRequestedEventArgs3`. No deferral or per-kind policy table is exposed. | Design a bounded deferred-decision lifecycle separately; retain the immediate callbacks for fast policy decisions. |
+| [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Permission request policy, event and response | Immediate top-level and frame `PermissionRequested` callbacks read origin, kind and user-initiated flag. A bounded native deferral registry now supports later Allow/Deny, cancellation, timeout and owner cleanup. A two-element immediate return or nonpersistent deferred response uses `PermissionRequestedEventArgs3`. No per-kind policy table is exposed. | Keep the host responsible for origin/kind checks and polling the timeout; consider a separate optional policy table later. |
 | [AutoIt Forum WebView2 topic](https://www.autoitscript.com/forum/topic/213932-udf-webview2-%E2%80%94-a-modern-chromium-browser-inside-your-autoit-gui-pure-autoit-no-dll-to-ship/) | Native fullscreen-change event | `_WebView2_IsFullScreen()` provides a state read; no native change callback is exposed. | Compare native event behavior with the existing state helper. |
 | [Ralle1976/Autoit-WebView2-UDF](https://github.com/Ralle1976/Autoit-WebView2-UDF) | Runtime installation prompt helper | Runtime detection and version queries exist; the UDF does not install the Runtime. | Decide whether a separate host-level opt-in helper or documentation is appropriate. |
 | [Ralle1976/Autoit-WebView2-UDF](https://github.com/Ralle1976/Autoit-WebView2-UDF) | Asynchronous script execution | The public script helper is synchronous. | Compare callback and error contracts before considering an asynchronous variant. |
