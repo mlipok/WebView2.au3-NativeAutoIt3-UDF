@@ -1,6 +1,8 @@
 #Tidy_ILC_Pos=44
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
+#include <EditConstants.au3>
+#include <GuiEdit.au3>
 #include <GUIConstantsEx.au3>
 #include <MsgBoxConstants.au3>
 #include <WindowsConstants.au3>
@@ -8,6 +10,8 @@
 #include "..\WebView2.au3"
 
 Opt("MustDeclareVars", 1)
+
+Global $g_EX_idLog = 0, $g_EX_idGuide = 0
 
 _Example()
 
@@ -29,11 +33,21 @@ Func _Example()
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
 		Local $hGUI = GUICreate("WebView2.au3 - Zoom + Print + Focus", 1000, 700, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
+		GUICtrlCreateLabel("AutoIt operation log", 5, 53, 290, 18)
+		GUICtrlSetResizing(-1, $GUI_DOCKALL)
+		$g_EX_idLog = GUICtrlCreateEdit("", 5, 74, 290, 450, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idLog, 0xE2F0E4)
+		GUICtrlSetResizing($g_EX_idLog, $GUI_DOCKALL)
+		Local $sEXGuide = "TEST PROCEDURE" & @CRLF & "Click Zoom 125%, Reset zoom, Focus and Print." & @CRLF & "EXPECTED RESULT" & @CRLF & "Zoom changes and resets; focus moves to WebView2; Print opens its native print UI." & @CRLF & "HOW IT WORKS" & @CRLF & "AutoIt controls WebView2 zoom, focus and printing."
+		$g_EX_idGuide = GUICtrlCreateEdit($sEXGuide, 305, 520, 790, 170, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
+		GUICtrlSetBkColor($g_EX_idGuide, 0xFFF1BF)
+		GUICtrlSetResizing($g_EX_idGuide, $GUI_DOCKALL)
 		Local $idZoom125 = GUICtrlCreateButton("Zoom 125%", 10, 10, 100, 30)
 		Local $idReset = GUICtrlCreateButton("Reset zoom", 120, 10, 100, 30)
 		Local $idFocus = GUICtrlCreateButton("Focus", 230, 10, 80, 30)
 		Local $idPrint = GUICtrlCreateButton("Print", 320, 10, 80, 30)
 		GUISetState(@SW_MAXIMIZE, $hGUI)
+		_EX_Log("Starting WebView2...")
 		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\010_Zoom_Print_Focus"
 		If Not _WebView2_Init(Default, $sProfile) Then
 			$__WebView2ExitValue = _Error("Init")
@@ -42,7 +56,8 @@ Func _Example()
 			ExitLoop 1
 		EndIf
 		Local $aInitialClient = WinGetClientSize($hGUI)
-		Local $iWebView = _WebView2_Create($hGUI, 0, 50, $aInitialClient[0], $aInitialClient[1] - 50)
+		If IsArray($aInitialClient) Then _EX_Layout($aInitialClient, 50)
+		Local $iWebView = _WebView2_Create($hGUI, 305, 50, $aInitialClient[0] - 310, $aInitialClient[1] - 240)
 		If @error Then
 			$__WebView2ExitValue = _Error("Create")
 			$__WebView2ExitError = @error
@@ -53,16 +68,27 @@ Func _Example()
 		While True
 			Switch GUIGetMsg()
 				Case $idZoom125
+					_EX_Click("Zoom 125%")
 					_WebView2_SetZoomFactor($iWebView, 1.25)
+					_EX_Log("Requested 125% zoom.")
 				Case $idReset
+					_EX_Click("Reset zoom")
 					_WebView2_ResetZoom($iWebView)
+					_EX_Log("Requested default zoom.")
 				Case $idFocus
+					_EX_Click("Focus")
 					_WebView2_SetFocus($iWebView)
+					_EX_Log("Requested WebView2 keyboard focus.")
 				Case $idPrint
+					_EX_Click("Print")
 					_WebView2_Print($iWebView)
+					_EX_Log("Requested the print dialog.")
 				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
 					Local $aResize = WinGetClientSize($hGUI)
-					If IsArray($aResize) Then _WebView2_SetBounds($iWebView, 0, 50, $aResize[0], $aResize[1] - 50)
+					If IsArray($aResize) Then
+						_EX_Layout($aResize, 50)
+						_WebView2_SetBounds($iWebView, 305, 50, $aResize[0] - 310, $aResize[1] - 240)
+					EndIf
 				Case $GUI_EVENT_CLOSE
 					ExitLoop
 			EndSwitch
@@ -90,3 +116,58 @@ Func _Error($sStage)
 	_WebView2_Cleanup()
 	Return
 EndFunc   ;==>_Error
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _EX_Layout
+; Description ...: Sizes the operation log and test guide.
+; Syntax ........: _EX_Layout($aClient, $iTop)
+; Parameters ....: $aClient - GUI client size; $iTop - height of the control strip.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _EX_Layout($aClient, $iTop)
+	GUICtrlSetPos($g_EX_idLog, 5, $iTop + 24, 290, $aClient[1] - $iTop - 34)
+	GUICtrlSetPos($g_EX_idGuide, 305, $aClient[1] - 180, $aClient[0] - 310, 170)
+	Return
+EndFunc   ;==>_EX_Layout
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _EX_Log
+; Description ...: Appends a time-stamped operation-log entry.
+; Syntax ........: _EX_Log($sText)
+; Parameters ....: $sText - Message to append.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _EX_Log($sText)
+	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
+	Return
+EndFunc   ;==>_EX_Log
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _EX_Click
+; Description ...: Logs a native button click in a separate group.
+; Syntax ........: _EX_Click($sCaption)
+; Parameters ....: $sCaption - Visible button caption.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _EX_Click($sCaption)
+	If $g_EX_idLog Then _GUICtrlEdit_AppendText($g_EX_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked." & @CRLF)
+	Return
+EndFunc   ;==>_EX_Click

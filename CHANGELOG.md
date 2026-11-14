@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Step-by-step examples 002, 004–007 and 009–010 now show the results of each action in a scrolling AutoIt log beside WebView2, with a yellow guide explaining how to test the feature.
 - Examples 004 and 009 now clearly show how to open a JavaScript alert and when the browser displays or suppresses it. Their initial settings explicitly enable the alert so the first click demonstrates a visible browser dialog.
 - Interactive examples with operation logs now show the date, time and `AutoIt` source beside native button clicks. Example 031 identifies browser-trusted page clicks as `WebView2` actions while keeping automated smoke actions distinct.
 - Example 036 now opens an AutoIt pop-up for JavaScript alerts, confirmations and prompts, so the page's message and available choices are visible while the script waits for a response.
