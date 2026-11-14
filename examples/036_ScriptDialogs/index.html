@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebView2 script dialogs</title>
+  <style>
+    body { font: 16px Segoe UI, sans-serif; margin: 2rem; line-height: 1.5; }
+    main { max-width: 780px; }
+    button { margin-right: .6rem; padding: .65rem 1rem; }
+    #result { padding: 1rem; background: #eaf2fa; min-height: 3rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>JavaScript dialogs handled by AutoIt</h1>
+    <p>The page requests a JavaScript dialog. WebView2 pauses its script until the AutoIt host answers the native event.</p>
+    <button id="alert" type="button">Open alert</button>
+    <button id="confirm" type="button">Open confirm</button>
+    <button id="prompt" type="button">Open prompt</button>
+    <p id="result">Choose one of the three dialogs.</p>
+  </main>
+  <script>
+    function show(kind) {
+      // Schedule the dialog after the button handler returns to the browser.
+      setTimeout(() => {
+        let value;
+        if (kind === 'alert') {
+          alert('This alert is handled by AutoIt.');
+          value = 'acknowledged';
+        } else if (kind === 'confirm') {
+          value = confirm('Allow this sample action?');
+        } else {
+          value = prompt('Enter a sample value:', 'Default answer');
+        }
+        document.getElementById('result').textContent = kind + ' returned: ' + String(value);
+        chrome.webview.postMessage({type: 'result', kind, value});
+      }, 0);
+    }
+    for (const kind of ['alert', 'confirm', 'prompt']) {
+      document.getElementById(kind).addEventListener('click', () => show(kind));
+    }
+    chrome.webview.postMessage({type: 'ready'});
+  </script>
+</body>
+</html>
