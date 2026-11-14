@@ -39,6 +39,15 @@ In the change report, state the results of both checks, including all errors and
 
 Changes limited solely to the color, size, or position of interface elements do not require GUI tests. Do not run a GUI test only to confirm such changes. Still run `Tidy.exe` and `Au3Check.exe` for modified `*.au3` files. If program behavior also changes, verify that behavior to the extent needed.
 
+## Compilation through AutoIt3Wrapper
+
+- Perform automated compilation through AutoIt3Wrapper, starting from the program's main source file and using the local installation and configuration used for manual compilation by the developer.
+- Honor all applicable AutoIt3Wrapper directives, including validation, preprocessing, resources, compiler settings, and commands executed before and after compilation. Preserve their execution order and error-handling settings.
+- Do not replace this workflow with direct Aut2Exe invocation or a custom sequence that bypasses directives. Do not disable or override directives merely to make an automated build succeed.
+- Execute signing and deployment commands through the configured Run_After directives. When signing precedes copying, require #AutoIt3Wrapper_Run_Stop_OnError=Y so that a nonzero exit code from the signing command stops processing before copying.
+- If the configured workflow cannot complete, report the failed stage and its result. Do not silently skip required stages or copy an unsigned executable after a signing failure.
+- Report compilation as successful only after the complete AutoIt3Wrapper workflow, including required post-compilation commands, has completed successfully. Creation of an EXE alone is not sufficient.
+
 ## AutoIt function headers, UDF development, and best coding practices
 
 - Before creating or reviewing a UDF, also check `AGENTS_AutoIt3_Best_coding_practices.md` for guidance on function use, variable names and scope, initialization, constants, Au3Check directives, magic numbers, and `#include-once`. Treat its guidance as recommendations; follow the specific repository rules in this file where they differ.
