@@ -145,3 +145,9 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - `tools/Validate-Project.ps1` reported project structure OK. It noted that optional loader DLLs are absent in the isolated Git worktree; both architecture-specific DLLs are present in the synchronized local project.
 - Targeted `examples/031_PermissionRequests.au3 --smoke` runs under x64 and x86 AutoIt exited with code 0 and `EX_SMOKE_OK ... deferred=deny`. They covered immediate DENY and ALLOW, then deferred DENY and the browser's resulting page message. Deferred ALLOW, frame-origin deferral, timeout, and manual GUI clicks were not exercised in this pass.
 - A source search in `KK_EPU`, `Skaner`, `MICHAELO_Faktury` and `UDF_ML\BROWSER.au3`, excluding generated stripped files, found no direct use of the new APIs or permission callbacks. Private program workflows were not run; this impact assessment is static only.
+
+# 2026-11-14: example 031 click-log source labels
+
+- Only example 031 was changed. Page button requests and native AutoIt button events now call the same click-log helper, which inserts a blank line and writes `[date and time] [WebView2]: caption was clicked.` or `[date and time] [AutoIt]: caption was clicked.` before the action result.
+- Tidy AutoIt3 v25.205.1420.10 ran with the explicit existing path of `examples/031_PermissionRequests.au3` as its sole argument and exited without formatting changes. It emitted include-resolution warnings for the isolated worktree. Au3Check 3.3.18.0 resolved the include chain and reported 0 errors and 0 warnings.
+- A targeted x86 `--smoke` run exited with code 0 and logged all three WebView2 page captions in the new format, followed by `EX_SMOKE_OK`. The native AutoIt button handler shares the helper but was not manually clicked in this run. No other example's logging was changed or tested.

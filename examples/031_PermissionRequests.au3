@@ -152,8 +152,7 @@ Func _Example()
 				ExitLoop
 			Case $g_idAllowPending, $g_idDenyPending
 				Local $bAllowPending = ($iGUIMessage = $g_idAllowPending)
-				_GUICtrlEdit_AppendText($g_idLog, @CRLF)
-				_Example_Status("'" & ($bAllowPending ? "Allow pending" : "Deny pending") & "' was clicked.")
+				_Example_LogClick("AutoIt", $bAllowPending ? "Allow pending" : "Deny pending")
 				If Not _WebView2_Permission_Request_Respond($g_iPendingRequest, $bAllowPending ? $WEBVIEW2_PERMISSION_STATE_ALLOW : $WEBVIEW2_PERMISSION_STATE_DENY) Then
 					_Example_Status("Could not complete pending request: error=" & @error & ", HRESULT=" & @extended)
 				Else
@@ -224,7 +223,20 @@ Func _Example_OnMessage($iWebView, $sMessage, $sSource, $bJSON)
 		$g_bReady = True
 		_Example_Status("Ready. Choose DENY or ALLOW in the page.")
 	ElseIf StringInStr($sMessage, '"type":"request"') Then
-		$g_sMode = StringInStr($sMessage, '"mode":"later"') ? "later" : (StringInStr($sMessage, '"mode":"allow"') ? "allow" : "deny")
+		Local $sButtonName = ""
+		If StringInStr($sMessage, '"mode":"later"') Then
+			$g_sMode = "later"
+			$sButtonName = "Ask AutoIt later"
+		ElseIf StringInStr($sMessage, '"mode":"allow"') Then
+			$g_sMode = "allow"
+			$sButtonName = "Allow geolocation"
+		ElseIf StringInStr($sMessage, '"mode":"deny"') Then
+			$g_sMode = "deny"
+			$sButtonName = "Deny geolocation"
+		Else
+			Return
+		EndIf
+		_Example_LogClick("WebView2", $sButtonName)
 		$g_iDecision = ($g_sMode = "allow") ? $WEBVIEW2_PERMISSION_STATE_ALLOW : $WEBVIEW2_PERMISSION_STATE_DENY
 		$g_bPageDone = False
 		$g_bRequestPending = True
@@ -259,8 +271,48 @@ EndFunc   ;==>_Example_OnMessage
 ; ===============================================================================================================================
 Func _Example_Status($sText)
 	GUICtrlSetData($g_idStatus, $sText)
-	_GUICtrlEdit_AppendText($g_idLog, "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] " & $sText & @CRLF)
-	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
-	ConsoleWrite($sText & @CRLF)
+	_Example_Log($sText)
 	Return
 EndFunc   ;==>_Example_Status
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_LogClick
+; Description ...: Logs a button click with its AutoIt or WebView2 source.
+; Syntax ........: _Example_LogClick($sType, $sName)
+; Parameters ....: $sType - AutoIt or WebView2.
+;                  $sName - Visible button caption.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Separates each click from the preceding operation.
+; Related .......: _Example_Log
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_LogClick($sType, $sName)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF)
+	ConsoleWrite(@CRLF)
+	_Example_Log("[" & $sType & "]: " & $sName & " was clicked.")
+	Return
+EndFunc   ;==>_Example_LogClick
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _Example_Log
+; Description ...: Appends one dated operation-log entry and scrolls to it.
+; Syntax ........: _Example_Log($sText)
+; Parameters ....: $sText - Message to append.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: All example entries use the same date and time format.
+; Related .......: _Example_Status, _Example_LogClick
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func _Example_Log($sText)
+	Local $sTimestamp = "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "]"
+	_GUICtrlEdit_AppendText($g_idLog, $sTimestamp & " " & $sText & @CRLF)
+	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+	ConsoleWrite($sTimestamp & " " & $sText & @CRLF)
+	Return
+EndFunc   ;==>_Example_Log
