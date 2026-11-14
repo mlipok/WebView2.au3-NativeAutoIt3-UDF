@@ -52,7 +52,7 @@ PDF.js rendering in example 214 was confirmed by the user in a running WebView2 
 
 ## TODO: Visible dialogs in examples
 
-- Review every example that describes a user-facing "dialog". Where the example promises a dialog, show an interactive pop-up or message box and verify its behavior. Distinguish such windows from native callback events that are observable only in a log; align the control labels and documentation with what the user actually sees.
+- Visually confirm the revised browser alert sequences in examples 004 and 009: default enabled, suppressed after unchecking or locking, and restored after checking or unlocking. The source-level dialog audit and documentation are complete; this final GUI check remains open.
 
 ## TODO: Migration from other projects
 

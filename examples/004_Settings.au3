@@ -32,8 +32,8 @@ Func _Example()
 		Local $idContext = GUICtrlCreateCheckbox("Context menu", 10, 10, 110, 25)
 		Local $idDevTools = GUICtrlCreateCheckbox("DevTools", 130, 10, 90, 25)
 		Local $idStatus = GUICtrlCreateCheckbox("Status bar", 230, 10, 90, 25)
-		Local $idDialogs = GUICtrlCreateCheckbox("JS dialogs", 330, 10, 90, 25)
-		Local $idZoom = GUICtrlCreateCheckbox("Zoom control", 430, 10, 100, 25)
+		Local $idDialogs = GUICtrlCreateCheckbox("JavaScript alert pop-ups", 330, 10, 170, 25)
+		Local $idZoom = GUICtrlCreateCheckbox("Zoom control", 510, 10, 100, 25)
 		GUICtrlSetState($idContext, $GUI_CHECKED)
 		GUICtrlSetState($idDevTools, $GUI_CHECKED)
 		GUICtrlSetState($idStatus, $GUI_CHECKED)
@@ -56,7 +56,13 @@ Func _Example()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
-		_WebView2_NavigateToString($iWebView, '<html><body style="font-family:Segoe UI;padding:30px"><h1>Settings demo</h1><p>Right-click, use F12 and hover links to test settings.</p><a href="https://www.autoitscript.com">AutoIt</a><br><br><button onclick="alert(''JavaScript dialog'')">alert()</button></body></html>')
+		If Not _WebView2_SetDefaultScriptDialogsEnabled($iWebView, True) Then
+			$__WebView2ExitValue = _Error("Enable JavaScript alert pop-ups")
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		_WebView2_NavigateToString($iWebView, '<html><body style="font-family:Segoe UI;padding:30px"><h1>Settings demo</h1><p>Right-click, use F12 and hover links to test settings.</p><p>Click the button below: a browser alert pop-up appears while JavaScript alert pop-ups is checked. Clear that checkbox to suppress the pop-up, then check it again to restore it.</p><a href="https://www.autoitscript.com">AutoIt</a><br><br><button onclick="alert(''JavaScript alert from the page'')">Show alert pop-up</button></body></html>')
 
 		While True
 			Switch GUIGetMsg()
