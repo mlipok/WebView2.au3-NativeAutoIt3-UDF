@@ -549,30 +549,34 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 	Local $iSlot = __WebView2_Frame_Find($pSender, True)
 	If $iSlot >= 0 Then
 		Local $iView = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OWNER]
+		Local $iFrameId = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID]
 		Local $fnCallback = $__g_aWebView2_FrameDestroyedCallback[$iView]
-		If IsFunc($fnCallback) Then Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
-		$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] = False
-		__WebView2_Worker_CleanupFrame($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
-		Local $oFrame = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT]
-		If IsObj($oFrame) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
-		If IsObj($oFrame) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAME_TOKEN] Then $oFrame.remove_NameChanged($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAME_TOKEN])
-		Local $oFrame2 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT2]
-		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
-		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
-		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
-		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CONTENT_TOKEN] Then $oFrame2.remove_ContentLoading($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CONTENT_TOKEN])
-		If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DOM_TOKEN] Then $oFrame2.remove_DOMContentLoaded($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DOM_TOKEN])
-		Local $oFrame3 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT3]
-		If IsObj($oFrame3) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
-		Local $oFrame6 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT6]
-		If IsObj($oFrame6) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
-		Local $oFrame7 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT7]
-		If IsObj($oFrame7) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN] Then $oFrame7.remove_FrameCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN])
-		Local $oFrame8 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT8]
-		If IsObj($oFrame8) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN] Then $oFrame8.remove_DedicatedWorkerCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN])
-		For $i = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
-			$__g_aWebView2_Frames[$iSlot][$i] = Null
-		Next
+		If IsFunc($fnCallback) Then Call($fnCallback, $iView, $iFrameId)
+		; The host callback may destroy the view and reuse this registry slot.
+		If $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID] = $iFrameId Then
+			$__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ACTIVE] = False
+			__WebView2_Worker_CleanupFrame($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID])
+			Local $oFrame = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT]
+			If IsObj($oFrame) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN] Then $oFrame.remove_Destroyed($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DESTROY_TOKEN])
+			If IsObj($oFrame) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAME_TOKEN] Then $oFrame.remove_NameChanged($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAME_TOKEN])
+			Local $oFrame2 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT2]
+			If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN] Then $oFrame2.remove_WebMessageReceived($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_MESSAGE_TOKEN])
+			If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN] Then $oFrame2.remove_NavigationStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_START_TOKEN])
+			If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN] Then $oFrame2.remove_NavigationCompleted($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_NAV_COMPLETE_TOKEN])
+			If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CONTENT_TOKEN] Then $oFrame2.remove_ContentLoading($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CONTENT_TOKEN])
+			If IsObj($oFrame2) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DOM_TOKEN] Then $oFrame2.remove_DOMContentLoaded($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_DOM_TOKEN])
+			Local $oFrame3 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT3]
+			If IsObj($oFrame3) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
+			Local $oFrame6 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT6]
+			If IsObj($oFrame6) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
+			Local $oFrame7 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT7]
+			If IsObj($oFrame7) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN] Then $oFrame7.remove_FrameCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN])
+			Local $oFrame8 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT8]
+			If IsObj($oFrame8) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN] Then $oFrame8.remove_DedicatedWorkerCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN])
+			For $i = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
+				$__g_aWebView2_Frames[$iSlot][$i] = Null
+			Next
+		EndIf
 	EndIf
 	Return $WEBVIEW2_S_OK
 EndFunc   ;==>__WebView2_FrameDestroyed_Invoke

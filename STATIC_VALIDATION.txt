@@ -1,3 +1,9 @@
+# 2026-11-14: frame-destroy callback slot reuse
+
+- The frame-destroy callback now retains the original frame ID and checks that the registry slot still holds that active frame before native-subscription and worker cleanup. A callback may destroy the owning view or cause its frame slot to be reused; the old callback path then leaves the new frame untouched.
+- `WebView2_Frame.au3` remains UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 ran with this explicit existing file path as its only argument and exited; no Tidy process remained. Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` initially failed to launch in the restricted Codex process with a DLL relocation error. Repeating the same command outside that environment on the public `WebView2.au3` entry point reported 0 errors and 0 warnings.
+- A temporary, non-GUI AutoIt regression probe passed under x86 and x64 for ordinary frame destruction, clearing the slot inside the callback, and reusing the slot for a different frame before callback return. The probe was removed afterward. This does not confirm the full native WebView2 callback sequence in a visible GUI. `git diff --check` passed.
+
 # 2026-11-14: all-example manual button-click log audit
 
 - Audited all 60 `.au3` files under `examples/`. Thirty files with manual AutoIt buttons and a native operation log gained a blank separator and timestamped `'<button caption>' was clicked.` entry before each button action. Examples 027, 034 and 035 already provided this behavior. Example 031 has only page buttons; nine button-driven files have no native operation log, and seventeen files have no AutoIt buttons. The exceptions and their layout reasons are recorded in `docs/EXAMPLES.md`.
