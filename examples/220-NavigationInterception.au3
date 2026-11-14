@@ -281,7 +281,7 @@ EndFunc   ;==>_EX_Navigate
 ; Example .......: No
 ; ===============================================================================================================================
 Func _EX_LogClick($sCaption)
-	_GUICtrlEdit_AppendText($g_EX_idStatus, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	_GUICtrlEdit_AppendText($g_EX_idStatus, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked." & @CRLF)
 	GUICtrlSendMsg($g_EX_idStatus, $EM_SCROLLCARET, 0, 0)
 	Return
 EndFunc   ;==>_EX_LogClick

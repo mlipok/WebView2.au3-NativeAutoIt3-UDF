@@ -236,7 +236,11 @@ Func _Example_OnMessage($iWebView, $sMessage, $sSource, $bJSON)
 		Else
 			Return
 		EndIf
-		_Example_LogClick("WebView2", $sButtonName)
+		If StringInStr($sMessage, '"trusted":true') Then
+			_Example_LogClick("WebView2", $sButtonName)
+		Else
+			_Example_Log("Automated page action started: " & $sButtonName & ".")
+		EndIf
 		$g_iDecision = ($g_sMode = "allow") ? $WEBVIEW2_PERMISSION_STATE_ALLOW : $WEBVIEW2_PERMISSION_STATE_DENY
 		$g_bPageDone = False
 		$g_bRequestPending = True

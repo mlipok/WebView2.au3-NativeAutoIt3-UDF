@@ -263,7 +263,7 @@ EndFunc   ;==>_Example_OnNavigationCompleted
 ; Example .......: No
 ; ===============================================================================================================================
 Func _Example_LogClick($sCaption)
-	_GUICtrlEdit_AppendText($g_idCalendarLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	_GUICtrlEdit_AppendText($g_idCalendarLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked." & @CRLF)
 	GUICtrlSendMsg($g_idCalendarLog, $EM_SCROLLCARET, 0, 0)
 	Return
 EndFunc   ;==>_Example_LogClick

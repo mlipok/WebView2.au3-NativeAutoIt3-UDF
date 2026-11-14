@@ -14,6 +14,8 @@ Contributions are welcome, especially fixes validated with both AutoIt x86 and x
 
 For a new interactive example, keep its test controls visible beside WebView2. When a sequence of actions needs explanation, provide a native operation log that appends and scrolls to the newest event, plus a yellow guide with the test steps, expected results and the mechanism being demonstrated. Use `0xE2F0E4` for a read-only log EDIT, size it from the actual client height immediately after maximizing, and update it on window resize. Do not apply the log color to user-editable content or the yellow guide. Open the main example window maximized within the Windows work area, retaining its title bar, minimize control and the taskbar. Keep modal dialogs at the size appropriate to their purpose and preserve automated smoke behavior.
 
+When logging a button action, separate it from the preceding activity and use `[YYYY-MM-DD HH:MM:SS] [AutoIt|WebView2]: <visible button caption> was clicked.` Use `AutoIt` for native controls. Use `WebView2` only for an explicit browser-trusted click notification from the expected local page; a result message or native callback does not prove which button was clicked. Distinguish programmatic smoke actions from browser-trusted clicks.
+
 ## Source layout
 
 - `WebView2_Core.au3` — lifecycle, navigation, events and base settings.

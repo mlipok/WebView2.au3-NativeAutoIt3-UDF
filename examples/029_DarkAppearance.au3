@@ -247,7 +247,7 @@ EndFunc   ;==>_Example_Html
 ; Example .......: No
 ; ===============================================================================================================================
 Func _Example_LogClick($sCaption)
-	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @HOUR & ":" & @MIN & ":" & @SEC & "] '" & $sCaption & "' was clicked." & @CRLF)
+	_GUICtrlEdit_AppendText($g_idLog, @CRLF & "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked." & @CRLF)
 	GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
 	Return
 EndFunc   ;==>_Example_LogClick

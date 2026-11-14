@@ -247,7 +247,10 @@ Func _Example_Dialog_Answer($bAccept, $sCaption)
 		If $sCaption = "Close" Then
 			_Example_Status("The JavaScript dialog pop-up was closed.")
 		Else
-			_Example_Status("'" & $sCaption & "' was clicked.")
+			Local $sClick = "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [AutoIt]: " & $sCaption & " was clicked."
+			_GUICtrlEdit_AppendText($g_idLog, $sClick & @CRLF)
+			GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+			ConsoleWrite($sClick & @CRLF)
 		EndIf
 		Local $sResultText = Default
 		If $bAccept And $g_iPendingKind = $WEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT Then $sResultText = GUICtrlRead($g_idPromptText)
