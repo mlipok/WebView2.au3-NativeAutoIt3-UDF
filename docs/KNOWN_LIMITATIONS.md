@@ -50,10 +50,6 @@ Useful candidates for later releases include:
 
 PDF.js rendering in example 214 was confirmed by the user in a running WebView2 session on 2026-11-13; this does not verify its omitted upstream extraction and selection/link-lock demonstrations. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
 
-## TODO: Example click log convention
-
-- Example 031 alone uses `[date and time] [AutoIt|WebView2]: button caption was clicked.` for its two sources of button actions. Its current behavior belongs in `docs/EXAMPLES.md`. Before applying the format to other examples, audit their page-to-AutoIt message paths and revise the general rule in `AGENTS.md` together with the example documentation. Keep that future change separate from the migration ideas below.
-
 ## TODO: Visible dialogs in examples
 
 - Review every example that describes a user-facing "dialog". Where the example promises a dialog, show an interactive pop-up or message box and verify its behavior. Distinguish such windows from native callback events that are observable only in a log; align the control labels and documentation with what the user actually sees.

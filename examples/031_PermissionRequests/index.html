@@ -16,9 +16,9 @@
     <p id="result">Waiting for a request.</p>
   </main>
   <script>
-    document.getElementById('deny').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'deny'}));
-    document.getElementById('allow').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'allow'}));
-    document.getElementById('later').addEventListener('click', () => chrome.webview.postMessage({type: 'request', mode: 'later'}));
+    document.getElementById('deny').addEventListener('click', event => chrome.webview.postMessage({type: 'request', mode: 'deny', trusted: event.isTrusted}));
+    document.getElementById('allow').addEventListener('click', event => chrome.webview.postMessage({type: 'request', mode: 'allow', trusted: event.isTrusted}));
+    document.getElementById('later').addEventListener('click', event => chrome.webview.postMessage({type: 'request', mode: 'later', trusted: event.isTrusted}));
     function requestLocation(mode) {
       document.getElementById('result').textContent = 'Waiting for location permission...';
       navigator.geolocation.getCurrentPosition(
