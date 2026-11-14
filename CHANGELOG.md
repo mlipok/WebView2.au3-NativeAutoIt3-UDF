@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed iframe destruction so a callback that closes a view cannot clear a frame created afterward in a reused tracking slot.
 - Interactive examples with an AutoIt operation log now separate manual button actions with a blank line and a timestamped button-caption entry, making each action and its results easier to follow.
 - Fixed example 027 so its four action buttons stay together above the WebView2 content when the window opens maximized or is resized. Each click now starts a separate, labeled group in the operation log.
 - Applications can now observe iframe name changes and the stages when iframe content starts loading and its HTML is parsed. Example 027 logs these events during a frame reload.
