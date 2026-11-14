@@ -50,10 +50,6 @@ Useful candidates for later releases include:
 
 PDF.js rendering in example 214 was confirmed by the user in a running WebView2 session on 2026-11-13; this does not verify its omitted upstream extraction and selection/link-lock demonstrations. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
 
-## TODO: Visible dialogs in examples
-
-- Visually confirm the revised browser alert sequence in example 004: default enabled, suppressed after unchecking, and restored after checking. The user confirmed the example 009 Lock/Unlock sequence on 2026-11-14; the architecture of that manual run was not recorded.
-
 ## TODO: Migration from other projects
 
 Review external ideas against the current native UDF before implementing them. These entries are proposals, not claims of API compatibility or commitments to copy third-party code. Preserve this section as the single project TODO for findings from the three monitored sources. Last reviewed: 2026-11-11.
