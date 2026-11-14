@@ -44,6 +44,8 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_CB_PERMISSION, _
 		$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION, _
 		$__WEBVIEW2_INSTANCE_NEW_WINDOW_FRESH, _
+		$__WEBVIEW2_INSTANCE_CB_SCRIPT_DIALOG, _
+		$__WEBVIEW2_INSTANCE_TOKEN_SCRIPT_DIALOG, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -75,6 +77,7 @@ Global $__g_aWebView2_Tabs[$WEBVIEW2_MAX_INSTANCES]
 Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;lparam lParam;dword time;long X;long Y;dword lPrivate;endstruct"
 
 #include "WebView2_Permission.au3"
+#include "WebView2_ScriptDialog.au3"
 #include "WebView2_Frame.au3"
 #include "WebView2_Worker.au3"
 #include "WebView2_Download.au3"
@@ -1493,6 +1496,8 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |WORKER_DESTROYING - Called with ($iWebView, $iFrame, $iWorker, $sScriptURI).
 ;                  |PERMISSION_REQUESTED - Called with ($iWebView, $sURI, $iKind, $bUserInitiated).
 ;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, [state, saveInProfile] or DEFER.
+;                  |SCRIPT_DIALOG_OPENING - Called with ($iWebView, $sURI, $iKind, $sMessage, $sDefaultText).
+;                  |                        Return ACCEPT, CANCEL, DEFER or [ACCEPT, promptResultText].
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
 ;                  |                                 Observe responses only; do not call blocking WebView2 helpers here.
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
@@ -1541,6 +1546,14 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_NEW_WINDOW] = $fnCallback
 			Case $WEBVIEW2_EVENT_PERMISSION_REQUESTED
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_PERMISSION] = $fnCallback
+			Case $WEBVIEW2_EVENT_SCRIPT_DIALOG_OPENING
+				Local $bDialogsDisabled = _WebView2_SetDefaultScriptDialogsEnabled($iWebView, False)
+				If Not $bDialogsDisabled Then
+					$__WebView2ExitError = @error
+					$__WebView2ExitExtended = @extended
+					ExitLoop 1
+				EndIf
+				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_SCRIPT_DIALOG] = $fnCallback
 			Case $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED
 				If Not $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] Then
 					Local $oCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
@@ -2337,6 +2350,12 @@ Func __WebView2_Callbacks_Create()
 			$__WebView2ExitError = $WEBVIEW2_ERR_CALLBACK
 			ExitLoop 1
 		EndIf
+		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_SCRIPT_DIALOG_OPENING, __WebView2_ScriptDialog_Invoke, "ptr;ptr;ptr") Then
+			$__WebView2ExitValue = False
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
 		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_DOCUMENT_PLAYING_AUDIO_CHANGED, __WebView2_DocumentPlayingAudioChanged_Invoke, "ptr;ptr;ptr") Then
 			$__WebView2ExitValue = False
 			$__WebView2ExitError = @error
@@ -3069,6 +3088,17 @@ Func __WebView2_Events_Subscribe($iSlot)
 		EndIf
 		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION] = DllStructGetData($tToken, 1)
 
+		$tToken = DllStructCreate("int64")
+		$iResult = $oCore.add_ScriptDialogOpening(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_SCRIPT_DIALOG_OPENING), $tToken)
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			__WebView2_Events_Unsubscribe($iSlot)
+			$__WebView2ExitValue = SetError($WEBVIEW2_ERR_HRESULT, $iResult, False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_SCRIPT_DIALOG] = DllStructGetData($tToken, 1)
+
 		$__WebView2ExitValue = True
 		$__WebView2ExitError = @error
 		$__WebView2ExitExtended = @extended
@@ -3147,6 +3177,11 @@ Func __WebView2_Events_Unsubscribe($iSlot)
 			$oCore.remove_PermissionRequested($iToken)
 			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_PERMISSION] = 0
 		EndIf
+		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_SCRIPT_DIALOG]
+		If $iToken Then
+			$oCore.remove_ScriptDialogOpening($iToken)
+			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_SCRIPT_DIALOG] = 0
+		EndIf
 
 		Local $oCore8 = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE8]
 		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO]
@@ -3183,6 +3218,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 	If $iSlot < 0 Or $iSlot >= $WEBVIEW2_MAX_INSTANCES Then Return
 	__WebView2_NewWindow_CancelForSource($iSlot)
 	__WebView2_Permission_CancelForView($iSlot)
+	__WebView2_ScriptDialog_CancelForView($iSlot)
 
 	__WebView2_Trace("DISPOSE 01 START slot=" & $iSlot)
 

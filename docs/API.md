@@ -166,6 +166,12 @@ For deferred policy, return `$WEBVIEW2_DOWNLOAD_DEFER`, then inspect `_WebView2_
 
 `_WebView2_Download_List($iWebView)` returns tracked IDs. `_WebView2_Download_GetInfo($iDownload)` returns `[URI, file path, MIME type, received bytes, total bytes, state, interrupt reason]`. `_WebView2_Download_Pause($iDownload)` pauses an active transfer; WebView2 reports the pause as interrupted with reason `USER_PAUSED`. `_WebView2_Download_CanResume($iDownload)` reports whether the operation can resume, and `_WebView2_Download_Resume($iDownload)` resumes it. `_WebView2_Download_Cancel($iDownload)` cancels an active or deferred operation. The registry retains at most 64 active/recent operations across all views; completed entries are replaced by new downloads when full, and all entries are released when their view is destroyed. See [example 206](../examples/206-DownloadDemo.au3).
 
+### JavaScript dialogs
+
+Register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_SCRIPT_DIALOG_OPENING, $fn)` before navigation. Registration disables WebView2's default JavaScript dialogs for that instance. The callback receives `($iWebView, $sURI, $iKind, $sMessage, $sDefaultText)` for `alert`, `confirm`, `prompt`, or `beforeunload`. Validate the page URI before granting a request. Return `$WEBVIEW2_SCRIPT_DIALOG_CANCEL`, `$WEBVIEW2_SCRIPT_DIALOG_ACCEPT`, or `$WEBVIEW2_SCRIPT_DIALOG_DEFER`. A prompt callback may return `[$WEBVIEW2_SCRIPT_DIALOG_ACCEPT, $sResultText]`. The callback must return promptly; do not show a modal dialog or call synchronous WebView2 helpers inside it.
+
+For deferred decisions, poll `_WebView2_ScriptDialog_Request_List([$iWebView])` from the AutoIt event loop. `_WebView2_ScriptDialog_Request_GetInfo($iRequest)` returns `[view ID, URI, kind, message, default text]`. Answer with `_WebView2_ScriptDialog_Request_Respond($iRequest, $WEBVIEW2_SCRIPT_DIALOG_ACCEPT[, $sResultText])` or `_WebView2_ScriptDialog_Request_Cancel($iRequest)`. `_WebView2_ScriptDialog_Request_Expire([$iTimeoutMs = 15000])` cancels old requests when the host calls it. The UDF completes outstanding deferrals when their view is destroyed. At most 32 requests may be pending; if that limit is reached, a new dialog is dismissed. `alert` simply closes on completion. The Runtime's `beforeunload` behavior can vary and has not been verified by this example. See [example 036](../examples/036_ScriptDialogs.au3).
+
 ## Diagnostics
 
 - `_WebView2_Error_GetDescription()`

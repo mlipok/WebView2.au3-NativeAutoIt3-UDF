@@ -46,6 +46,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Deferral = "{C10E7F7B-B585-46F0-A623-8BE
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs = "{973AE2EF-FF18-4894-8FB2-3C758F046810}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs2 = "{74D7127F-9DE6-4200-8734-42D6FB4FF741}"
 Global Const $WEBVIEW2_IID_ICoreWebView2PermissionRequestedEventArgs3 = "{E61670BC-3DCE-4177-86D2-C629AE3CB6AC}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ScriptDialogOpeningEventArgs = "{7390BB70-ABE0-4843-9529-F143B31B03D6}"
 Global Const $WEBVIEW2_IID_ICoreWebView2ScreenCaptureStartingEventArgs = "{892C03FD-AEE3-5EBA-A1FA-6FD2F6484B2B}"
 Global Const $WEBVIEW2_IID_ICoreWebView2DownloadStartingEventArgs = "{E99BBE21-43E9-4544-A732-282764EAFA60}"
 Global Const $WEBVIEW2_IID_ICoreWebView2DownloadOperation = "{3D6B6CF2-AFE1-44C7-A995-C65117714336}"
@@ -62,6 +63,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2IsDocumentPlayingAudioChangedEventHandle
 Global Const $WEBVIEW2_IID_ICoreWebView2IsMutedChangedEventHandler = "{57D90347-CD0E-4952-A4A2-7483A2756F08}"
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventHandler = "{57213F19-00E6-49FA-8E07-898EA01ECBD2}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NewWindowRequestedEventHandler = "{D4C185FE-C81C-4989-97AF-2D3FA7AB5651}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ScriptDialogOpeningEventHandler = "{EF381BF9-AFA8-4E37-91C4-8AC48524BDFB}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameCreatedEventHandler = "{38059770-9BAA-11EB-A8B3-0242AC130003}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameChildFrameCreatedEventHandler = "{569E40E7-46B7-563D-83AE-1073155664D7}"
 Global Const $WEBVIEW2_IID_ICoreWebView2FrameDestroyedEventHandler = "{59DD7B4C-9BAA-11EB-A8B3-0242AC130003}"
@@ -154,8 +156,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"remove_FrameNavigationStarting hresult();" & _
 		"add_FrameNavigationCompleted hresult();" & _
 		"remove_FrameNavigationCompleted hresult();" & _
-		"add_ScriptDialogOpening hresult();" & _
-		"remove_ScriptDialogOpening hresult();" & _
+		"add_ScriptDialogOpening hresult(ptr;struct*);" & _
+		"remove_ScriptDialogOpening hresult(int64);" & _
 		"add_PermissionRequested hresult(ptr;struct*);" & _
 		"remove_PermissionRequested hresult(int64);" & _
 		"add_ProcessFailed hresult();" & _
@@ -393,6 +395,16 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2NewWindowRequestedEventArgs = _
 		"get_WindowFeatures hresult(ptr*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2Deferral = "Complete hresult();"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ScriptDialogOpeningEventArgs = _
+		"get_Uri hresult(ptr*);" & _
+		"get_Kind hresult(int*);" & _
+		"get_Message hresult(ptr*);" & _
+		"Accept hresult();" & _
+		"get_DefaultText hresult(ptr*);" & _
+		"get_ResultText hresult(ptr*);" & _
+		"put_ResultText hresult(wstr);" & _
+		"GetDeferral hresult(ptr*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2PermissionRequestedEventArgs = _
 		"get_Uri hresult(ptr*);" & _

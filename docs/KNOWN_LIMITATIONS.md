@@ -43,7 +43,7 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- JavaScript dialog callbacks; top-level and frame-level permission decisions support both immediate and deferred responses;
+- Native JavaScript dialog callbacks now support immediate and deferred decisions for `alert`, `confirm`, and `prompt`. The `beforeunload` path is exposed but its Runtime behavior has not been verified. The host must poll or answer deferred dialogs so page scripts do not remain blocked;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;
 - asynchronous/nonblocking public variants of current synchronous helpers.
@@ -52,7 +52,11 @@ PDF.js rendering in example 214 was confirmed by the user in a running WebView2 
 
 ## TODO: Example click log convention
 
-- After the deferred-permission PR is merged, review examples that log both AutoIt and WebView2 button actions. Use example 031's `[date and time] [AutoIt|WebView2]: button caption was clicked.` format as the starting point. Decide which conventions belong in `AGENTS.md`, `docs/EXAMPLES.md`, or both before applying the format beyond example 031. Keep this task separate from the migration ideas below.
+- Example 031 alone uses `[date and time] [AutoIt|WebView2]: button caption was clicked.` for its two sources of button actions. Its current behavior belongs in `docs/EXAMPLES.md`. Before applying the format to other examples, audit their page-to-AutoIt message paths and revise the general rule in `AGENTS.md` together with the example documentation. Keep that future change separate from the migration ideas below.
+
+## TODO: Visible dialogs in examples
+
+- Review every example that describes a user-facing "dialog". Where the example promises a dialog, show an interactive pop-up or message box and verify its behavior. Distinguish such windows from native callback events that are observable only in a log; align the control labels and documentation with what the user actually sees.
 
 ## TODO: Migration from other projects
 
