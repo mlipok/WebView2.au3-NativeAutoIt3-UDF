@@ -47,7 +47,7 @@ Func _Example()
 	$g_idLog = GUICtrlCreateEdit("", 5, 64, 290, 530, BitOR($ES_MULTILINE, $ES_READONLY, $ES_AUTOVSCROLL, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idLog, 0xE2F0E4)
 	GUICtrlSetResizing($g_idLog, $GUI_DOCKALL)
-	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Click Open alert, Open confirm or Open prompt in the page." & @CRLF & "2. An AutoIt pop-up opens with the page's message. Choose OK, Yes/No or OK/Cancel according to its dialog type." & @CRLF & "3. For a prompt, edit the answer in the pop-up before clicking OK." & @CRLF & "EXPECTED RESULT" & @CRLF & "The page resumes and displays the returned value. No returns false; Cancel returns null." & @CRLF & "HOW IT WORKS" & @CRLF & "The ScriptDialogOpening callback takes a native deferral. The AutoIt event loop opens this host-owned pop-up and answers the request. WebView2's default JavaScript dialog is disabled. Unanswered requests close after 15 seconds."
+	Local $sGuide = "TEST PROCEDURE" & @CRLF & "1. Test Open alert, Open confirm and Open prompt with their AutoIt pop-ups." & @CRLF & "2. Click Mark unsaved changes, then Leave this page. Choose Stay in the AutoIt pop-up; the page remains." & @CRLF & "3. Click Leave this page again and choose Leave; the local destination page appears." & @CRLF & "EXPECTED RESULT" & @CRLF & "The operation log shows a beforeunload request. Stay cancels navigation; Leave completes it. No returns false for confirm; Cancel returns null for prompt." & @CRLF & "HOW IT WORKS" & @CRLF & "The page requests confirmation before leaving. ScriptDialogOpening defers the native decision while the AutoIt event loop opens a host-owned pop-up. Unanswered requests close after 15 seconds."
 	$g_idGuide = GUICtrlCreateEdit($sGuide, 305, 400, 680, 190, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
 	GUICtrlSetBkColor($g_idGuide, 0xFFF4C2)
 	GUICtrlSetResizing($g_idGuide, $GUI_DOCKALL)
@@ -86,7 +86,11 @@ Func _Example()
 				Local $aInfo = _WebView2_ScriptDialog_Request_GetInfo($g_iPending)
 				If IsArray($aInfo) And UBound($aInfo) = 5 Then
 					$g_iPendingKind = $aInfo[2]
-					_Example_Status("Dialog " & $g_iPending & " kind=" & $g_iPendingKind & " from " & $aInfo[1] & ": " & $aInfo[3])
+					If $g_iPendingKind = $WEBVIEW2_SCRIPT_DIALOG_KIND_BEFOREUNLOAD Then
+						_Example_Status("Beforeunload request " & $g_iPending & " from " & $aInfo[1] & "; choose Leave or Stay.")
+					Else
+						_Example_Status("Dialog " & $g_iPending & " kind=" & $g_iPendingKind & " from " & $aInfo[1] & ": " & $aInfo[3])
+					EndIf
 					If Not $g_bSmoke Or $g_bSmokePopup Then _Example_Dialog_Show($aInfo)
 				EndIf
 			EndIf
@@ -219,7 +223,9 @@ Func _Example_Dialog_Show($aInfo)
 	EndSwitch
 	WinSetTitle($g_hDialog, "", $sTitle)
 	GUICtrlSetData($g_idDialogOrigin, $aInfo[1])
-	GUICtrlSetData($g_idDialogMessage, $aInfo[3])
+	Local $sDialogMessage = $aInfo[3]
+	If $aInfo[2] = $WEBVIEW2_SCRIPT_DIALOG_KIND_BEFOREUNLOAD And $sDialogMessage = "" Then $sDialogMessage = "This page has unsaved changes. Leave this page or stay here?"
+	GUICtrlSetData($g_idDialogMessage, $sDialogMessage)
 	GUICtrlSetData($g_idAccept, $g_sAcceptCaption)
 	GUICtrlSetData($g_idDismiss, $g_sDismissCaption)
 	GUISetState(@SW_SHOW, $g_hDialog)
@@ -345,7 +351,20 @@ EndFunc   ;==>_Example_OnDialog
 ; Example .......: No
 ; ===============================================================================================================================
 Func _Example_OnMessage($iView, $sMessage, $sSource, $bJSON)
-	If $iView <> $g_iView Or Not $bJSON Or StringLeft($sSource, StringLen($g_sOrigin)) <> $g_sOrigin Then Return
+	If $iView <> $g_iView Or StringLeft($sSource, StringLen($g_sOrigin)) <> $g_sOrigin Then Return
+	If Not $bJSON Then
+		If $sSource = $g_sOrigin & "index.html" Then
+			Switch $sMessage
+				Case "EX_CLICK_TRUSTED:Open alert", "EX_CLICK_TRUSTED:Open confirm", "EX_CLICK_TRUSTED:Open prompt", "EX_CLICK_TRUSTED:Mark unsaved changes", "EX_CLICK_TRUSTED:Leave this page"
+					Local $sCaption = StringTrimLeft($sMessage, StringLen("EX_CLICK_TRUSTED:"))
+					Local $sClick = "[" & @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "] [WebView2]: " & $sCaption & " was clicked."
+					_GUICtrlEdit_AppendText($g_idLog, @CRLF & $sClick & @CRLF)
+					GUICtrlSendMsg($g_idLog, $EM_SCROLLCARET, 0, 0)
+					ConsoleWrite($sClick & @CRLF)
+			EndSwitch
+		EndIf
+		Return
+	EndIf
 	If StringInStr($sMessage, '"type":"ready"') Then
 		$g_bReady = True
 		_Example_Status("Ready. Open a dialog in the page.")
