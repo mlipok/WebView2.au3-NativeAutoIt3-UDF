@@ -4,7 +4,7 @@
 - Changed `.au3` files are UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 received each existing absolute path as its sole argument, made no formatting changes and left no Tidy process. Its recursive scan of example 041 reported four relative include warnings; those files exist in the checkout.
 - Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/041_FullScreenElement.au3`. The restricted-process launch first failed with a Windows DLL relocation error; it did not produce a syntax result.
 - The bounded `--smoke` process exited 0 under AutoIt x86 and x64 after initialization and the initial native False readback. The smoke path does not trigger the Fullscreen API or verify event delivery.
-- `tools/Validate-Project.ps1` reported project structure OK and `git diff --check` passed. A visible real-click True/False event sequence remains unverified; example 041 stays WIP.
+- `tools/Validate-Project.ps1` reported project structure OK and `git diff --check` passed. The user supplied a visible WebView2 screenshot and operation log on 2026-11-15: the dark-blue full-screen element filled the WebView, and repeated real button clicks produced native `True`/`False` events. The native getter also reported `False` after exit. The run's AutoIt architecture was not recorded. This confirms the example's key interactive behavior, so its WIP marker was removed.
 
 # 2026-11-15: example 040 overlay layout and example guidance
 

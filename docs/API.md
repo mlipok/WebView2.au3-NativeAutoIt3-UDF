@@ -132,7 +132,7 @@ Opens Chromium DevTools for the selected view.
 
 `_WebView2_GetContainsFullScreenElement($iWebView)` reads the native `ICoreWebView2` property. It returns `True` when a page element fills the WebView, `False` when none does, or `False` with `@error` on failure (`@extended` carries the native HRESULT when available). This state does not mean that the AutoIt window is borderless or fills the monitor. It differs from `_WebView2_IsFullScreen()`, which evaluates `document.fullscreenElement` in the top-level page.
 
-Register `$WEBVIEW2_EVENT_CONTAINS_FULLSCREEN_ELEMENT_CHANGED` with `_WebView2_SetCallback()` to receive `($iWebView, $bContainsFullScreenElement)` when the native state changes. The callback is observational; return promptly and handle GUI layout in the normal message loop. [Example 041](../examples/041_FullScreenElement.au3) provides an interactive test; its full-screen transition still needs confirmation in a visible WebView2 session.
+Register `$WEBVIEW2_EVENT_CONTAINS_FULLSCREEN_ELEMENT_CHANGED` with `_WebView2_SetCallback()` to receive `($iWebView, $bContainsFullScreenElement)` when the native state changes. The callback is observational; return promptly and handle GUI layout in the normal message loop. [Example 041](../examples/041_FullScreenElement.au3) demonstrates the native `True`/`False` transition in a visible WebView2 session.
 
 ### Browser accelerator keys
 
