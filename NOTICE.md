@@ -48,3 +48,7 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 ## Blazor-Calendar example
 
 Example 024 vendors the MIT-licensed [Blazor-Calendar](https://github.com/tossnet/Blazor-Calendar) library and publishes a separate Blazor WebAssembly host. See [its license](examples/024_BlazorCalendar/LICENSE.BlazorCalendar.txt) and [example guide](examples/024_BlazorCalendar/README.md).
+
+## EPUB reader example
+
+Example 038 includes published browser assets from [intity/epubreader-js](https://github.com/intity/epubreader-js), an MIT-licensed fork of epubjs-reader. Its local `index.html` is adapted for WebView2. The direct JavaScript libraries retain their own licenses: epub.js (BSD-style), JSZip (MIT or GPLv3; this example uses MIT), and js-md5 (MIT). See the [example guide and license copies](examples/038_EpubReader/README.md). The Wolne Lektury sample EPUB is downloaded only at runtime and is not distributed here.
