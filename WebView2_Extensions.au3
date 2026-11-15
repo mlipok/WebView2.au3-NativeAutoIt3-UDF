@@ -1,10 +1,14 @@
 #include-once
 #Tidy_ILC_Pos=44
 
-; Native extension management. The existing CDP helpers remain available separately.
+; Environment creation options and native extension management. The existing CDP helpers remain available separately.
 ; Interface identifiers and vtable slots are taken from Microsoft's WebView2.idl (SDK 1.0.2210.55).
 
 Global $__g_bWebView2_NativeExtensionsRequested = False
+Global $__g_bWebView2_EnvironmentOptionsRequested = False
+Global $__g_sWebView2_EnvironmentLanguage = ""
+Global $__g_sWebView2_EnvironmentArguments = ""
+Global $__g_bWebView2_EnvironmentSSO = False
 Global $__g_aWebView2_ExtOptionsCallbacks[13]
 Global $__g_tWebView2_ExtOptionsBaseVTable = Null
 Global $__g_tWebView2_ExtOptions6VTable = Null
@@ -14,6 +18,111 @@ Global $__g_iWebView2_ExtPending = 0       ; 0 idle, 1 waiting, 2 timed out
 Global $__g_bWebView2_ExtDone = False
 Global $__g_iWebView2_ExtHRESULT = 0
 Global $__g_pWebView2_ExtResult = 0
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Environment_SetLanguage
+; Description ...: Sets the BCP 47 language used by the next WebView2 environment.
+; Syntax ........: _WebView2_Environment_SetLanguage($sLanguage)
+; Parameters ....: $sLanguage - BCP 47 language tag, or an empty string for the Runtime default.
+; Return values .: True on success; False with @error when invalid or already initialized.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Call before _WebView2_Init(). Affects browser UI and the Accept-Language request header.
+; Related .......: _WebView2_Init, _WebView2_Environment_SetAdditionalBrowserArguments
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2environmentoptions
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Environment_SetLanguage($sLanguage)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If $__g_bWebView2_Initialized Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_BUSY, 0, "Set environment language before initialization.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		If Not IsString($sLanguage) Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Language must be a BCP 47 string or empty.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__g_sWebView2_EnvironmentLanguage = $sLanguage
+		$__g_bWebView2_EnvironmentOptionsRequested = True
+		$bResult = True
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Environment_SetLanguage
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Environment_SetAdditionalBrowserArguments
+; Description ...: Sets Chromium switches for the next WebView2 environment.
+; Syntax ........: _WebView2_Environment_SetAdditionalBrowserArguments($sArguments)
+; Parameters ....: $sArguments - Space-separated browser switches, or empty to clear the override.
+; Return values .: True on success; False with @error when invalid or already initialized.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Call before _WebView2_Init(). Do not include secrets in browser command-line arguments.
+; Related .......: _WebView2_Init, _WebView2_Environment_SetLanguage
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2environmentoptions
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Environment_SetAdditionalBrowserArguments($sArguments)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If $__g_bWebView2_Initialized Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_BUSY, 0, "Set browser arguments before initialization.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		If Not IsString($sArguments) Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Browser arguments must be a string.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__g_sWebView2_EnvironmentArguments = $sArguments
+		$__g_bWebView2_EnvironmentOptionsRequested = True
+		$bResult = True
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Environment_SetAdditionalBrowserArguments
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Environment_SetOSPrimaryAccountSSO
+; Description ...: Opts the next environment into Windows-account SSO for eligible Entra ID and Microsoft resources.
+; Syntax ........: _WebView2_Environment_SetOSPrimaryAccountSSO($bEnable)
+; Parameters ....: $bEnable - True to permit SSO; False to keep the Runtime default.
+; Return values .: True on success; False with @error when invalid or already initialized.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Disabled by default. This does not authenticate arbitrary websites.
+; Related .......: _WebView2_Init
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2environmentoptions
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Environment_SetOSPrimaryAccountSSO($bEnable)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If $__g_bWebView2_Initialized Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_BUSY, 0, "Set SSO before initialization.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		If Not IsBool($bEnable) Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "SSO option must be Boolean.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__g_bWebView2_EnvironmentSSO = $bEnable
+		$__g_bWebView2_EnvironmentOptionsRequested = True
+		$bResult = True
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Environment_SetOSPrimaryAccountSSO
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_NativeExtensions_EnableForEnvironment
@@ -93,8 +202,26 @@ Func __WebView2_Ext_OptionsString($sValue, $pOutput)
 EndFunc   ;==>__WebView2_Ext_OptionsString
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Ext_OptionsGetArguments
+; Description ...: Supplies the configured browser arguments during environment creation.
+; ===============================================================================================================================
+Func __WebView2_Ext_OptionsGetArguments($pSelf, $pOutput)
+	#forceref $pSelf
+	Return __WebView2_Ext_OptionsString($__g_sWebView2_EnvironmentArguments, $pOutput)
+EndFunc   ;==>__WebView2_Ext_OptionsGetArguments
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Ext_OptionsGetLanguage
+; Description ...: Supplies the configured BCP 47 language during environment creation.
+; ===============================================================================================================================
+Func __WebView2_Ext_OptionsGetLanguage($pSelf, $pOutput)
+	#forceref $pSelf
+	Return __WebView2_Ext_OptionsString($__g_sWebView2_EnvironmentLanguage, $pOutput)
+EndFunc   ;==>__WebView2_Ext_OptionsGetLanguage
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Ext_OptionsGetEmpty
-; Description ...: Supplies default empty arguments and language.
+; Description ...: Supplies an empty default string for an unused options interface field.
 ; ===============================================================================================================================
 Func __WebView2_Ext_OptionsGetEmpty($pSelf, $pOutput)
 	#forceref $pSelf
@@ -121,12 +248,12 @@ EndFunc   ;==>__WebView2_Ext_OptionsPutString
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Ext_OptionsGetFalse
-; Description ...: Keeps single sign-on disabled by default.
+; Description ...: Reports whether Windows-account SSO was explicitly enabled.
 ; ===============================================================================================================================
 Func __WebView2_Ext_OptionsGetFalse($pSelf, $pOutput)
 	#forceref $pSelf
 	If Not $pOutput Then Return $WEBVIEW2_E_POINTER
-	DllStructSetData(DllStructCreate("int", $pOutput), 1, 0)
+	DllStructSetData(DllStructCreate("int", $pOutput), 1, $__g_bWebView2_EnvironmentSSO ? 1 : 0)
 	Return $WEBVIEW2_S_OK
 EndFunc   ;==>__WebView2_Ext_OptionsGetFalse
 
@@ -141,12 +268,12 @@ EndFunc   ;==>__WebView2_Ext_OptionsPutBool
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Ext_OptionsGetEnabled
-; Description ...: Reports browser extensions enabled through ICoreWebView2EnvironmentOptions6.
+; Description ...: Reports the browser-extension option through ICoreWebView2EnvironmentOptions6.
 ; ===============================================================================================================================
 Func __WebView2_Ext_OptionsGetEnabled($pSelf, $pOutput)
 	#forceref $pSelf
 	If Not $pOutput Then Return $WEBVIEW2_E_POINTER
-	DllStructSetData(DllStructCreate("int", $pOutput), 1, 1)
+	DllStructSetData(DllStructCreate("int", $pOutput), 1, $__g_bWebView2_NativeExtensionsRequested ? 1 : 0)
 	Return $WEBVIEW2_S_OK
 EndFunc   ;==>__WebView2_Ext_OptionsGetEnabled
 
@@ -156,9 +283,9 @@ EndFunc   ;==>__WebView2_Ext_OptionsGetEnabled
 ; ===============================================================================================================================
 Func __WebView2_Ext_OptionsCreate()
 	Local $aFuncs[13] = [__WebView2_Ext_OptionsQuery, __WebView2_Ext_OptionsRef, __WebView2_Ext_OptionsUnref, _
-			__WebView2_Ext_OptionsGetEmpty, __WebView2_Ext_OptionsPutString, __WebView2_Ext_OptionsGetTarget, _
+			__WebView2_Ext_OptionsGetArguments, __WebView2_Ext_OptionsPutString, __WebView2_Ext_OptionsGetTarget, _
 			__WebView2_Ext_OptionsGetFalse, __WebView2_Ext_OptionsPutBool, __WebView2_Ext_OptionsGetEnabled, _
-			__WebView2_Ext_OptionsGetEmpty, __WebView2_Ext_OptionsPutString, __WebView2_Ext_OptionsPutBool, __WebView2_Ext_OptionsGetEmpty]
+			__WebView2_Ext_OptionsGetLanguage, __WebView2_Ext_OptionsPutString, __WebView2_Ext_OptionsPutBool, __WebView2_Ext_OptionsGetEmpty]
 	Local $aSignatures[13] = ["ptr;ptr;ptr", "ptr", "ptr", "ptr;ptr", "ptr;ptr", "ptr;ptr", _
 			"ptr;ptr", "ptr;int", "ptr;ptr", "ptr;ptr", "ptr;ptr", "ptr;int", "ptr;ptr"]
 	For $i = 0 To 12

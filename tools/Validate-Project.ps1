@@ -38,6 +38,7 @@ $RequiredFiles = @(
     "examples\036_ScriptDialogs.au3",
     "examples\036_ScriptDialogs\index.html",
     "examples\039_DefaultBackgroundColor.au3",
+    "examples\040_EnvironmentOptions.au3",
     "examples\219-mdMsgBox.au3",
     "examples\219-mdMsgBox_Example.au3",
     "examples\220-NavigationInterception.au3",

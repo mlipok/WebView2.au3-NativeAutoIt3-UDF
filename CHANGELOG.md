@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can now set the WebView2 language and browser arguments before startup, and explicitly enable Windows-account sign-in support for eligible Microsoft identity sites. Example 040 shows the language and browser user agent without enabling sign-in.
+
 - Applications can now change and read the native WebView2 background color beneath transparent page content. Example 039 demonstrates opaque colors and full transparency without the unwanted gray overlay in the page corner.
 - Example 038 opens an EPUB book in the embedded WebView2 reader and lets users select another local EPUB from the reader toolbar.
 - Applications can now disable WebView2's browser shortcuts or intercept a selected key without disabling text editing shortcuts. Example 037 shows how F5 behaves in each mode.

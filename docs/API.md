@@ -8,6 +8,16 @@ Initializes STA COM, native callback objects, the loader DLL and a shared `ICore
 ### `_WebView2_Cleanup()`
 Destroys all WebView instances, releases callbacks/environment, closes the loader and balances COM initialization.
 
+### Environment creation options
+
+Call these setters before `_WebView2_Init()`. They configure the next shared environment, not an individual view. All return `True` on success or `False` with `@error` for invalid arguments or an already initialized environment. `_WebView2_Cleanup()` clears the options.
+
+- `_WebView2_Environment_SetLanguage($sLanguage)` sets a BCP 47 language tag such as `pl-PL`, affecting browser UI and the `Accept-Language` header. Pass `""` for the Runtime default.
+- `_WebView2_Environment_SetAdditionalBrowserArguments($sArguments)` supplies Chromium command-line switches. Pass `""` to clear them. The Runtime may ignore switches that conflict with WebView2; do not put secrets in arguments.
+- `_WebView2_Environment_SetOSPrimaryAccountSSO($bEnable)` opts into using the Windows primary account for eligible Microsoft identity resources. The default is `False`; this setting does not sign in to arbitrary websites. A local page cannot demonstrate authentication.
+
+These options share the creation object already used by native extensions, so the extension switch can be enabled in the same initialization. See [example 040](../examples/040_EnvironmentOptions.au3). Tracking prevention and scrollbar style are separate, versioned options and are not exposed by these setters.
+
 ### `_WebView2_Runtime_IsInstalled([$sLoaderPath = Default])`
 Returns `True` if the loader can query a compatible WebView2 Runtime.
 
