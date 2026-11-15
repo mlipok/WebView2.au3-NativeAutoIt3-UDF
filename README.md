@@ -86,6 +86,7 @@ examples/
     037_AcceleratorKeys.au3
     038_EpubReader.au3
     039_DefaultBackgroundColor.au3
+    040_EnvironmentOptions.au3
 docs/
     API.md
     ARCHITECTURE.md

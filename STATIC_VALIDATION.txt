@@ -1,3 +1,17 @@
+# 2026-11-15: example 040 overlay layout and example guidance
+
+- The user showed a top-left rectangle obscuring example 040's page heading. The example now uses the owned WebView-only window with `WS_EX_NOREDIRECTIONBITMAP` already used in example 039, while its AutoIt controls remain on the main GUI. The project example guidance records this conditional workaround. The user supplied a successful **Read browser values** log (`pl` and the demonstration user agent) and confirmed on 2026-11-15 that the corrected visual appearance is OK. No Windows-account authentication test was performed.
+- `examples/040_EnvironmentOptions.au3` remains UTF-8 without BOM with CRLF. Tidy AutoIt3 v25.205.1420.10 received the explicit file path as its sole argument, made no formatting changes and left no process. Its recursive scan reported four relative include warnings; the files exist. Au3Check 3.3.18.0 with warnings 1–7 reported 0 errors and 0 warnings.
+- The bounded `--smoke` run exited 0 under AutoIt x86 and x64 after the host-window change. This confirms initialization and readback, not the appearance of the WebView2 pane on screen.
+
+# 2026-11-15: environment creation options and example 040
+
+- Added pre-initialization language, additional browser arguments and optional Windows-account SSO settings to the existing environment-options COM object. No existing `_WebView2_Init()` parameter or default was changed.
+- `WebView2_Core.au3`, `WebView2_Extensions.au3` and `examples/040_EnvironmentOptions.au3` are UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 received each existing absolute path as its sole argument, made no formatting changes and left no Tidy process. Its recursive include scan for example 040 warned about four relative UDF includes; all four exist in the checkout.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and example 040.
+- The bounded example 040 `--smoke` exited 0 under AutoIt x86 and x64. It read the configured demo user agent and a Polish browser language from the running WebView2 page. Chromium exposed `pl` for the configured `pl-PL`; the example accepts both. This checks the creation options and script readback, not the visual layout or a real Windows-account sign-in. SSO remains disabled in the sample.
+- `tools/Validate-Project.ps1` reported project structure OK and `git diff --check` passed. Interactive example behavior and native-extension coexistence remain to be confirmed.
+
 # 2026-11-15: example 039 transparent-page overlay workaround
 
 - Reproduced a gray rectangle over the top-left of example 039's page in a visible x64 WebView2 session. A separate owned WebView-only window with `WS_EX_NOREDIRECTIONBITMAP` removed it in a visible screenshot; the surrounding AutoIt controls remained visible. The same issue and window-style workaround are documented in MicrosoftEdge/WebView2Feedback #5500. Post-click appearance and restored-window movement have not been confirmed interactively.

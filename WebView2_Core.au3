@@ -181,11 +181,11 @@ Func _WebView2_Init($sLoaderPath = Default, $sUserDataFolder = "", $sBrowserExec
 		$__g_iWebView2_EnvironmentHRESULT = 0
 
 		Local $pEnvironmentOptions = 0
-		If $__g_bWebView2_NativeExtensionsRequested Then
+		If $__g_bWebView2_NativeExtensionsRequested Or $__g_bWebView2_EnvironmentOptionsRequested Then
 			$pEnvironmentOptions = __WebView2_Ext_OptionsCreate()
 			If @error Or Not $pEnvironmentOptions Then
 				_WebView2_Cleanup()
-				$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_CALLBACK, 0, "Could not create browser-extension environment options.", False)
+				$__WebView2ExitValue = __WebView2_Fail($WEBVIEW2_ERR_CALLBACK, 0, "Could not create WebView2 environment options.", False)
 				$__WebView2ExitError = @error
 				$__WebView2ExitExtended = @extended
 				ExitLoop 1
@@ -274,6 +274,10 @@ Func _WebView2_Cleanup()
 
 	$__g_bWebView2_Initialized = False
 	$__g_bWebView2_NativeExtensionsRequested = False
+	$__g_bWebView2_EnvironmentOptionsRequested = False
+	$__g_sWebView2_EnvironmentLanguage = ""
+	$__g_sWebView2_EnvironmentArguments = ""
+	$__g_bWebView2_EnvironmentSSO = False
 	__WebView2_Ext_Release($__g_pWebView2_ExtResult)
 	$__g_pWebView2_ExtResult = 0
 	$__g_iWebView2_ExtPending = 0
