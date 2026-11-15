@@ -2852,9 +2852,13 @@ Func __WebView2_NavigationCompleted_Invoke($pSelf, $pSender, $pArgs)
 
 		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_NAV_COMPLETE]
 		If IsFunc($fnCallback) Then
-			__WebView2_Trace("NAV_COMPLETE 09 USER CALLBACK ENTER")
-			Call($fnCallback, $iSlot, $bSuccess, $iWebErrorStatus, $iNavigationId)
-			__WebView2_Trace("NAV_COMPLETE 10 USER CALLBACK LEAVE error=" & @error)
+			If __WebView2_EventQueue_IsEnabled($iSlot) Then
+				__WebView2_EventQueue_Push($iSlot, $WEBVIEW2_EVENT_NAVIGATION_COMPLETED, $bSuccess, $iWebErrorStatus, $iNavigationId)
+			Else
+				__WebView2_Trace("NAV_COMPLETE 09 USER CALLBACK ENTER")
+				Call($fnCallback, $iSlot, $bSuccess, $iWebErrorStatus, $iNavigationId)
+				__WebView2_Trace("NAV_COMPLETE 10 USER CALLBACK LEAVE error=" & @error)
+			EndIf
 		EndIf
 		__WebView2_Trace("NAV_COMPLETE 11 LEAVE")
 		$__WebView2ExitValue = $WEBVIEW2_S_OK
@@ -2902,7 +2906,13 @@ Func __WebView2_DocumentTitleChanged_Invoke($pSelf, $pSender, $pArgs)
 		Local $sTitle = __WebView2_CoTaskMemString_ReadAndFree($pTitle)
 
 		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_TITLE]
-		If IsFunc($fnCallback) Then Call($fnCallback, $iSlot, $sTitle)
+		If IsFunc($fnCallback) Then
+			If __WebView2_EventQueue_IsEnabled($iSlot) Then
+				__WebView2_EventQueue_Push($iSlot, $WEBVIEW2_EVENT_DOCUMENT_TITLE_CHANGED, $sTitle)
+			Else
+				Call($fnCallback, $iSlot, $sTitle)
+			EndIf
+		EndIf
 		$__WebView2ExitValue = $WEBVIEW2_S_OK
 		$__WebView2ExitError = @error
 		$__WebView2ExitExtended = @extended
@@ -3058,9 +3068,13 @@ Func __WebView2_WebMessageReceived_Invoke($pSelf, $pSender, $pArgs)
 
 		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_MESSAGE]
 		If IsFunc($fnCallback) Then
-			__WebView2_Trace("WEB_MESSAGE 07 USER CALLBACK ENTER")
-			Call($fnCallback, $iSlot, $sMessage, $sSource, $bJSON)
-			__WebView2_Trace("WEB_MESSAGE 08 USER CALLBACK LEAVE error=" & @error)
+			If __WebView2_EventQueue_IsEnabled($iSlot) Then
+				__WebView2_EventQueue_Push($iSlot, $WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED, $sMessage, $sSource, $bJSON)
+			Else
+				__WebView2_Trace("WEB_MESSAGE 07 USER CALLBACK ENTER")
+				Call($fnCallback, $iSlot, $sMessage, $sSource, $bJSON)
+				__WebView2_Trace("WEB_MESSAGE 08 USER CALLBACK LEAVE error=" & @error)
+			EndIf
 		EndIf
 		__WebView2_Trace("WEB_MESSAGE 09 LEAVE")
 		$__WebView2ExitValue = $WEBVIEW2_S_OK
@@ -3328,6 +3342,7 @@ EndFunc   ;==>__WebView2_Events_Unsubscribe
 ; ===============================================================================================================================
 Func __WebView2_Instance_Dispose($iSlot)
 	If $iSlot < 0 Or $iSlot >= $WEBVIEW2_MAX_INSTANCES Then Return
+	__WebView2_EventQueue_Reset($iSlot)
 	__WebView2_NewWindow_CancelForSource($iSlot)
 	__WebView2_Permission_CancelForView($iSlot)
 	__WebView2_ScriptDialog_CancelForView($iSlot)

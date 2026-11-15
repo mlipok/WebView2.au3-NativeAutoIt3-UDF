@@ -1,5 +1,9 @@
 # WebView2.au3 public API — v0.6.0
 
+## Local draft: notification queue
+
+`_WebView2_EventQueue_Enable($iWebView[, $iCapacity = 32])` opts one view into queued delivery for navigation completion, document title changes and top-level web messages. `Dispatch($iWebView[, $iMaximum = 32])` invokes existing registered callbacks from the ordinary AutoIt GUI loop. `GetStats($iWebView)` returns `[queued, dropped, capacity]`; a full queue rejects the newest notification and increments `dropped`. `Disable($iWebView)` discards pending records and restores direct callback delivery. The capacity and dispatch maximum are each limited to 64. Permission, dialog, new-window and other native-decision events remain direct. See [example 045](../examples/045_EventQueue.au3). This local draft requires runtime validation before integration.
+
 ## Lifecycle and runtime
 
 ### `_WebView2_Init([$sLoaderPath = Default[, $sUserDataFolder = ""[, $sBrowserExecutableFolder = ""[, $iTimeoutMs = 30000]]]])`

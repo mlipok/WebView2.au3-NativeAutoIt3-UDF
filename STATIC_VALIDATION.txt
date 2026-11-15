@@ -279,3 +279,10 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - `tools/Validate-Project.ps1` reported project structure OK. The five edited `.au3` files are UTF-8 without BOM and use CRLF line endings. Project and parent copies of the four edited UDF modules have matching SHA-256 hashes. No private program GUI or production workflow was run.
 - Later on 2026-11-15, the user confirmed that the interactive example 042 works. The report did not include a separate log or screenshot of each color and scroll bar state, and the AutoIt architecture was not stated. This confirmation closes the example's WIP status; it does not establish network tracker blocking.
 - After removing the WIP comment, Tidy AutoIt3 v25.205.1420.10 reported no formatting changes and left no process; its four recursive include lookup warnings were resolved by Au3Check 3.3.18.0, which reported 0 errors and 0 warnings for example 042. `tools/Validate-Project.ps1` reported project structure OK. No additional GUI run was made for this documentation/status update.
+
+# Local draft: opt-in notification queue
+
+- Public include and WIP example 045: Au3Check 3.3.18.0 reported 0 errors and 0 warnings.
+- Targeted two-slot queue smoke passed under AutoIt x64 and x86 with isolated profiles on C:. Five web messages produced two queued records and three reported drops; dispatch returned the first two in FIFO order. Both processes exited 0.
+- Tidy was invoked only with each exact existing absolute .au3 file path as its sole argument; no Tidy process remained. This does not confirm the visible example UI or all view-generation lifecycle cases.
+- `tools/Validate-Project.ps1` reported project structure OK. The isolated checkout lacks optional loader DLLs; the smoke runs used the user's separate loader read-only.

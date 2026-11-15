@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## Local draft: example 045 notification queue
+
+[045_EventQueue.au3](../examples/045_EventQueue.au3) uses a two-slot queue for five page messages. The green log should show only the two oldest messages when AutoIt dispatches the queue; its stats should report three dropped notifications for each burst. The example is WIP until its FIFO, overflow and cleanup behavior are confirmed in a running WebView2 session.
+
 **The new EXAMPLES `200–221` are copies of the EXAMPLES `000–021` set from [GitHub](https://github.com/ioa747/NetWebView2Lib/tree/main/examples), adapted for the native `WebView2.au3` UDF.** The upstream set is by ioa747; the corresponding names and numbers are retained. These are functional copies/adaptations: browser integration was rewritten for the native API, and differences and missing features are documented below.
 
 Source snapshot: local `NetWebView2Lib-main/examples` supplied by the user. Source links use GitHub `main` and can change independently of this local snapshot. This project does not require the source project runtime. The upstream MIT license is preserved in `examples/LICENSE.upstream.txt`.
