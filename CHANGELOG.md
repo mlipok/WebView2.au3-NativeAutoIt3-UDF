@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Example 040 now uses a separate browser window aligned beside its AutoIt controls to address the stray rectangle that covered part of the page heading.
+
 - Applications can now set the WebView2 language and browser arguments before startup, and explicitly enable Windows-account sign-in support for eligible Microsoft identity sites. Example 040 shows the language and browser user agent without enabling sign-in.
 
 - Applications can now change and read the native WebView2 background color beneath transparent page content. Example 039 demonstrates opaque colors and full transparency without the unwanted gray overlay in the page corner.
