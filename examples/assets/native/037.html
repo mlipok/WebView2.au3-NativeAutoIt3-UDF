@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>WebView2 accelerator keys</title>
+  <style>
+    body { font: 18px/1.5 system-ui, sans-serif; margin: 24px; }
+    .counter { border: 2px solid #3175ab; background: #eef7ff; padding: 18px; max-width: 570px; }
+    input { font: inherit; padding: 8px; width: 30em; max-width: 90%; }
+  </style>
+</head>
+<body>
+  <h1>Browser accelerator keys</h1>
+  <div class="counter">This page has loaded <strong id="loads"></strong> time(s) in this session.</div>
+  <p>Click this input to focus WebView2, then press F5:</p>
+  <input aria-label="Keyboard focus target" placeholder="Click here and press F5">
+  <p>Use the AutoIt controls above to compare the global browser-shortcut switch with selective F5 handling.</p>
+  <script>
+    const count = Number(sessionStorage.getItem('acceleratorLoadCount') || '0') + 1;
+    sessionStorage.setItem('acceleratorLoadCount', String(count));
+    document.getElementById('loads').textContent = String(count);
+  </script>
+</body>
+</html>

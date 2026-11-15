@@ -46,6 +46,9 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_NEW_WINDOW_FRESH, _
 		$__WEBVIEW2_INSTANCE_CB_SCRIPT_DIALOG, _
 		$__WEBVIEW2_INSTANCE_TOKEN_SCRIPT_DIALOG, _
+		$__WEBVIEW2_INSTANCE_CONTROLLER_POINTER, _
+		$__WEBVIEW2_INSTANCE_CB_ACCELERATOR, _
+		$__WEBVIEW2_INSTANCE_TOKEN_ACCELERATOR, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -83,6 +86,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 #include "WebView2_Download.au3"
 #include "WebView2_Response.au3"
 #include "WebView2_Extensions.au3"
+#include "WebView2_Accelerator.au3"
 #include "WebView2_NewWindow.au3"
 
 ; #FUNCTION# ====================================================================================================================
@@ -1554,6 +1558,11 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 					ExitLoop 1
 				EndIf
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_SCRIPT_DIALOG] = $fnCallback
+			Case $WEBVIEW2_EVENT_ACCELERATOR_KEY_PRESSED
+				$__WebView2ExitValue = __WebView2_Accelerator_SetCallback($iWebView, $fnCallback)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop 1
 			Case $WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED
 				If Not $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_TOKEN_AUDIO] Then
 					Local $oCore8 = __WebView2_Core_QueryAudioInterface($iWebView)
@@ -2356,6 +2365,12 @@ Func __WebView2_Callbacks_Create()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
+		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_ACCELERATOR_KEY_PRESSED, __WebView2_Accelerator_Invoke, "ptr;ptr;ptr") Then
+			$__WebView2ExitValue = False
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
 		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_DOCUMENT_PLAYING_AUDIO_CHANGED, __WebView2_DocumentPlayingAudioChanged_Invoke, "ptr;ptr;ptr") Then
 			$__WebView2ExitValue = False
 			$__WebView2ExitError = @error
@@ -2478,6 +2493,7 @@ Func __WebView2_ControllerCompleted_Invoke($pSelf, $iErrorCode, $pController)
 			$oController.AddRef()
 			__WebView2_Trace("CREATE 06 Controller AddRef OK")
 			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CONTROLLER] = $oController
+			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CONTROLLER_POINTER] = $pController
 
 			Local $pCore = 0
 			__WebView2_Trace("CREATE 07 get_CoreWebView2 START")
@@ -3133,6 +3149,7 @@ Func __WebView2_Events_Unsubscribe($iSlot)
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
+		__WebView2_Accelerator_Unsubscribe($iSlot)
 
 		Local $oCore = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CORE]
 		If Not IsObj($oCore) Then
@@ -3245,6 +3262,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 
 	__WebView2_Trace("DISPOSE 08 Controller wrapper CLEAR START slot=" & $iSlot)
 	$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CONTROLLER] = Null
+	$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CONTROLLER_POINTER] = 0
 	$oController = Null
 	__WebView2_Trace("DISPOSE 09 Controller wrapper CLEARED slot=" & $iSlot)
 

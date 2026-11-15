@@ -38,6 +38,8 @@ Global Const $WEBVIEW2_IID_ICoreWebView2ContentLoadingEventArgs = "{0C8A1275-9B6
 Global Const $WEBVIEW2_IID_ICoreWebView2DOMContentLoadedEventArgs = "{16B1E21A-C503-44F2-84C9-70ABA5031283}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Settings3 = "{FDB5AB74-AF33-4854-84F0-0A631DEB5EBA}"
+Global Const $WEBVIEW2_IID_ICoreWebView2AcceleratorKeyPressedEventArgs = "{9F760F8A-FB79-42BE-9990-7B56900FA9C7}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469-E119-438A-9B18-7604F25F2E49}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationCompletedEventArgs = "{30D68B7D-20D9-4752-A9CA-EC8448FBB5C1}"
 Global Const $WEBVIEW2_IID_ICoreWebView2WebMessageReceivedEventArgs = "{0F99A40C-E962-4207-9E92-E3D542EFF849}"
@@ -129,8 +131,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Controller = _
 		"remove_GotFocus hresult();" & _
 		"add_LostFocus hresult();" & _
 		"remove_LostFocus hresult();" & _
-		"add_AcceleratorKeyPressed hresult();" & _
-		"remove_AcceleratorKeyPressed hresult();" & _
+		"add_AcceleratorKeyPressed hresult(ptr;struct*);" & _
+		"remove_AcceleratorKeyPressed hresult(int64);" & _
 		"get_ParentWindow hresult(hwnd*);" & _
 		"put_ParentWindow hresult(hwnd);" & _
 		"NotifyParentWindowPositionChanged hresult();" & _
@@ -369,6 +371,20 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings = _
 		"put_IsZoomControlEnabled hresult(int);" & _
 		"get_IsBuiltInErrorPageEnabled hresult(int*);" & _
 		"put_IsBuiltInErrorPageEnabled hresult(int);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings3 = $WEBVIEW2_DTAG_ICoreWebView2Settings & _
+		"get_UserAgent hresult(ptr*);" & _
+		"put_UserAgent hresult(wstr);" & _
+		"get_AreBrowserAcceleratorKeysEnabled hresult(int*);" & _
+		"put_AreBrowserAcceleratorKeysEnabled hresult(int);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2AcceleratorKeyPressedEventArgs = _
+		"get_KeyEventKind hresult(int*);" & _
+		"get_VirtualKey hresult(uint*);" & _
+		"get_KeyEventLParam hresult(int*);" & _
+		"get_PhysicalKeyStatus hresult();" & _
+		"get_Handled hresult(int*);" & _
+		"put_Handled hresult(int);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2NavigationStartingEventArgs = _
 		"get_Uri hresult(ptr*);" & _
