@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Example 004 now applies the JavaScript alert checkbox after reloading its page, so clearing the checkbox suppresses the native alert and checking it restores the alert. Its operation log also identifies checkbox and page-button clicks.
 - Fixed WebView2 setting switches so enabling JavaScript alerts, context menus, DevTools and other Boolean settings actually reaches the native control. Example 009 can now restore its native browser alert after unlocking.
 - Examples 002 and 009 now identify clicks on their WebView2 page buttons in the AutoIt operation log. Example 009 reloads the page after locking or unlocking so its JavaScript alert setting applies to the loaded document. Example 010 logs clicks and focus changes in its page input field without recording typed content.
 - Step-by-step examples 002, 004–007 and 009–010 now show the results of each action in a scrolling AutoIt log beside WebView2, with a yellow guide explaining how to test the feature.

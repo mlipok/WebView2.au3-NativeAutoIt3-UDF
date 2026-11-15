@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>WebView2 settings demo</title>
+  <style>
+    body { font-family: Segoe UI, sans-serif; padding: 30px; }
+    button { padding: 8px 14px; }
+  </style>
+</head>
+<body>
+  <h1>Settings demo</h1>
+  <p>Right-click, use F12 and hover over the link to test WebView2 settings.</p>
+  <p>Click <strong>Show alert pop-up</strong> with JavaScript alert pop-ups checked, unchecked and checked again.</p>
+  <a href="https://www.autoitscript.com">AutoIt</a><br><br>
+  <button id="show-alert">Show alert pop-up</button>
+  <p id="alert-status" role="status">Waiting for a click.</p>
+  <script>
+    document.getElementById('show-alert').addEventListener('click', event => {
+      const status = document.getElementById('alert-status');
+      status.textContent = 'Click received; requesting the browser alert.';
+      try {
+        if (event.isTrusted && window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage('EX_CLICK_TRUSTED:Show alert pop-up');
+        }
+      } catch (error) {
+        status.textContent = 'Web message failed: ' + error.message + '. Requesting the browser alert anyway.';
+      }
+      window.alert('JavaScript alert from the page');
+      status.textContent = 'The alert() call returned.';
+    });
+  </script>
+</body>
+</html>
