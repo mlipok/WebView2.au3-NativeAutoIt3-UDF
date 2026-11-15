@@ -1,6 +1,5 @@
 #Tidy_ILC_Pos=44
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
-; #WIP - Work in Progress: native WebView2 behavior needs an interactive confirmation.
 
 #include <EditConstants.au3>
 #include <GuiEdit.au3>
