@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## Local draft: example 044 asynchronous scripts
+
+[044_AsyncScript.au3](../examples/044_AsyncScript.au3) starts two independent `ExecuteScript` requests, then polls each result in its ordinary AutoIt GUI loop. The AutoIt click counter demonstrates that the loop remains responsive. The script is WIP until the two-result sequence and pending-view cleanup have been tested in a running WebView2 session.
+
 **The new EXAMPLES `200–221` are copies of the EXAMPLES `000–021` set from [GitHub](https://github.com/ioa747/NetWebView2Lib/tree/main/examples), adapted for the native `WebView2.au3` UDF.** The upstream set is by ioa747; the corresponding names and numbers are retained. These are functional copies/adaptations: browser integration was rewritten for the native API, and differences and missing features are documented below.
 
 Source snapshot: local `NetWebView2Lib-main/examples` supplied by the user. Source links use GitHub `main` and can change independently of this local snapshot. This project does not require the source project runtime. The upstream MIT license is preserved in `examples/LICENSE.upstream.txt`.

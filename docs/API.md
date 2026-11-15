@@ -1,5 +1,9 @@
 # WebView2.au3 public API — v0.6.0
 
+## Local draft: asynchronous top-level script execution
+
+`_WebView2_ExecuteScriptAsyncStart($iWebView, $sJavaScript)` starts a native script and returns a positive request ID. `_WebView2_ExecuteScriptAsyncPoll($iRequest, ByRef $sJSON)` returns `0` while pending, `1` with raw WebView2 JSON in `$sJSON` when complete, or `-1` with `@error` and native HRESULT in `@extended` on failure. Polling consumes a completed ID. `_WebView2_ExecuteScriptAsyncForget($iRequest)` discards a completed result or abandons a pending one; it does not cancel native execution. The registry is bounded at 32 requests. The existing synchronous API is unchanged. See [example 044](../examples/044_AsyncScript.au3). This draft requires x86/x64 lifecycle validation before integration.
+
 ## Lifecycle and runtime
 
 ### `_WebView2_Init([$sLoaderPath = Default[, $sUserDataFolder = ""[, $sBrowserExecutableFolder = ""[, $iTimeoutMs = 30000]]]])`
