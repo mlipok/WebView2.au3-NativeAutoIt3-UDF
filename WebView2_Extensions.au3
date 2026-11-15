@@ -2,18 +2,21 @@
 #Tidy_ILC_Pos=44
 
 ; Environment creation options and native extension management. The existing CDP helpers remain available separately.
-; Interface identifiers and vtable slots are taken from Microsoft's WebView2.idl (SDK 1.0.2210.55).
+; Interface identifiers and vtable slots are taken from Microsoft's WebView2.idl (SDK 1.0.2535.41).
 
 Global $__g_bWebView2_NativeExtensionsRequested = False
 Global $__g_bWebView2_EnvironmentOptionsRequested = False
 Global $__g_sWebView2_EnvironmentLanguage = ""
 Global $__g_sWebView2_EnvironmentArguments = ""
 Global $__g_bWebView2_EnvironmentSSO = False
-Global $__g_aWebView2_ExtOptionsCallbacks[13]
+Global $__g_iWebView2_EnvironmentScrollBarStyle = $WEBVIEW2_SCROLLBAR_STYLE_DEFAULT
+Global $__g_aWebView2_ExtOptionsCallbacks[15]
 Global $__g_tWebView2_ExtOptionsBaseVTable = Null
 Global $__g_tWebView2_ExtOptions6VTable = Null
+Global $__g_tWebView2_ExtOptions8VTable = Null
 Global $__g_tWebView2_ExtOptionsBase = Null
 Global $__g_tWebView2_ExtOptions6 = Null
+Global $__g_tWebView2_ExtOptions8 = Null
 Global $__g_iWebView2_ExtPending = 0       ; 0 idle, 1 waiting, 2 timed out
 Global $__g_bWebView2_ExtDone = False
 Global $__g_iWebView2_ExtHRESULT = 0
@@ -125,6 +128,41 @@ Func _WebView2_Environment_SetOSPrimaryAccountSSO($bEnable)
 EndFunc   ;==>_WebView2_Environment_SetOSPrimaryAccountSSO
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Environment_SetScrollBarStyle
+; Description ...: Selects the native scroll bar style for the next environment.
+; Syntax ........: _WebView2_Environment_SetScrollBarStyle($iStyle)
+; Parameters ....: $iStyle - $WEBVIEW2_SCROLLBAR_STYLE_DEFAULT or $WEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY.
+; Return values .: True on success; False with @error for an invalid value or an initialized environment.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Call before _WebView2_Init(). Fluent overlay requires WebView2 Runtime 125 or later.
+; Related .......: _WebView2_Init
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2environmentoptions8
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Environment_SetScrollBarStyle($iStyle)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If $__g_bWebView2_Initialized Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_BUSY, 0, "Set scroll bar style before initialization.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		If Not IsInt($iStyle) Or ($iStyle <> $WEBVIEW2_SCROLLBAR_STYLE_DEFAULT And $iStyle <> $WEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY) Then
+			$bResult = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Unsupported scroll bar style.", False)
+			$iError = @error
+			$iExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__g_iWebView2_EnvironmentScrollBarStyle = $iStyle
+		$__g_bWebView2_EnvironmentOptionsRequested = True
+		$bResult = True
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Environment_SetScrollBarStyle
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_NativeExtensions_EnableForEnvironment
 ; Description ...: Enables native profile extensions for the next environment created by _WebView2_Init().
 ; Syntax ........: _WebView2_NativeExtensions_EnableForEnvironment()
@@ -143,7 +181,7 @@ EndFunc   ;==>_WebView2_NativeExtensions_EnableForEnvironment
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Ext_OptionsQuery
-; Description ...: Exposes only IUnknown, base environment options and environment options 6.
+; Description ...: Exposes IUnknown, base environment options and environment options 6 and 8.
 ; ===============================================================================================================================
 Func __WebView2_Ext_OptionsQuery($pSelf, $pIID, $pOutput)
 	#forceref $pSelf
@@ -152,16 +190,20 @@ Func __WebView2_Ext_OptionsQuery($pSelf, $pIID, $pOutput)
 	DllStructSetData($tOut, 1, 0)
 	Local $tRequested = DllStructCreate("byte[16]", $pIID)
 	Local $bRequested = DllStructGetData($tRequested, 1)
-	For $i = 0 To 2
+	For $i = 0 To 3
 		Local $sIID = $WEBVIEW2_IID_IUnknown
 		If $i = 1 Then $sIID = $WEBVIEW2_IID_ICoreWebView2EnvironmentOptions
 		If $i = 2 Then $sIID = $WEBVIEW2_IID_ICoreWebView2EnvironmentOptions6
+		If $i = 3 Then $sIID = $WEBVIEW2_IID_ICoreWebView2EnvironmentOptions8
 		Local $tKnown = DllStructCreate($tagGUID)
 		Local $aGuid = DllCall("ole32.dll", "long", "IIDFromString", "wstr", $sIID, "ptr", DllStructGetPtr($tKnown))
 		If @error Or $aGuid[0] <> 0 Then ContinueLoop
 		Local $tBytes = DllStructCreate("byte[16]", DllStructGetPtr($tKnown))
 		If $bRequested = DllStructGetData($tBytes, 1) Then
-			DllStructSetData($tOut, 1, DllStructGetPtr($i = 2 ? $__g_tWebView2_ExtOptions6 : $__g_tWebView2_ExtOptionsBase))
+			Local $pOption = DllStructGetPtr($__g_tWebView2_ExtOptionsBase)
+			If $i = 2 Then $pOption = DllStructGetPtr($__g_tWebView2_ExtOptions6)
+			If $i = 3 Then $pOption = DllStructGetPtr($__g_tWebView2_ExtOptions8)
+			DllStructSetData($tOut, 1, $pOption)
 			Return $WEBVIEW2_S_OK
 		EndIf
 	Next
@@ -234,6 +276,7 @@ EndFunc   ;==>__WebView2_Ext_OptionsGetEmpty
 ; ===============================================================================================================================
 Func __WebView2_Ext_OptionsGetTarget($pSelf, $pOutput)
 	#forceref $pSelf
+	If $__g_iWebView2_EnvironmentScrollBarStyle = $WEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY Then Return __WebView2_Ext_OptionsString("125.0.2535.41", $pOutput)
 	Return __WebView2_Ext_OptionsString("120.0.2210.55", $pOutput)
 EndFunc   ;==>__WebView2_Ext_OptionsGetTarget
 
@@ -278,17 +321,40 @@ Func __WebView2_Ext_OptionsGetEnabled($pSelf, $pOutput)
 EndFunc   ;==>__WebView2_Ext_OptionsGetEnabled
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Ext_OptionsGetScrollBarStyle
+; Description ...: Reports the requested environment scroll bar style through Options8.
+; ===============================================================================================================================
+Func __WebView2_Ext_OptionsGetScrollBarStyle($pSelf, $pOutput)
+	#forceref $pSelf
+	If Not $pOutput Then Return $WEBVIEW2_E_POINTER
+	DllStructSetData(DllStructCreate("int", $pOutput), 1, $__g_iWebView2_EnvironmentScrollBarStyle)
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_Ext_OptionsGetScrollBarStyle
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Ext_OptionsPutScrollBarStyle
+; Description ...: Accepts a Runtime write to the creation-only Options8 object.
+; ===============================================================================================================================
+Func __WebView2_Ext_OptionsPutScrollBarStyle($pSelf, $iStyle)
+	#forceref $pSelf
+	If $iStyle <> $WEBVIEW2_SCROLLBAR_STYLE_DEFAULT And $iStyle <> $WEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY Then Return 0x80070057
+	$__g_iWebView2_EnvironmentScrollBarStyle = $iStyle
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_Ext_OptionsPutScrollBarStyle
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Ext_OptionsCreate
-; Description ...: Creates separate COM vtables for base options and options 6.
+; Description ...: Creates separate COM vtables for base options and options 6 and 8.
 ; ===============================================================================================================================
 Func __WebView2_Ext_OptionsCreate()
-	Local $aFuncs[13] = [__WebView2_Ext_OptionsQuery, __WebView2_Ext_OptionsRef, __WebView2_Ext_OptionsUnref, _
+	Local $aFuncs[15] = [__WebView2_Ext_OptionsQuery, __WebView2_Ext_OptionsRef, __WebView2_Ext_OptionsUnref, _
 			__WebView2_Ext_OptionsGetArguments, __WebView2_Ext_OptionsPutString, __WebView2_Ext_OptionsGetTarget, _
 			__WebView2_Ext_OptionsGetFalse, __WebView2_Ext_OptionsPutBool, __WebView2_Ext_OptionsGetEnabled, _
-			__WebView2_Ext_OptionsGetLanguage, __WebView2_Ext_OptionsPutString, __WebView2_Ext_OptionsPutBool, __WebView2_Ext_OptionsGetEmpty]
-	Local $aSignatures[13] = ["ptr;ptr;ptr", "ptr", "ptr", "ptr;ptr", "ptr;ptr", "ptr;ptr", _
-			"ptr;ptr", "ptr;int", "ptr;ptr", "ptr;ptr", "ptr;ptr", "ptr;int", "ptr;ptr"]
-	For $i = 0 To 12
+			__WebView2_Ext_OptionsGetLanguage, __WebView2_Ext_OptionsPutString, __WebView2_Ext_OptionsPutBool, __WebView2_Ext_OptionsGetEmpty, _
+			__WebView2_Ext_OptionsGetScrollBarStyle, __WebView2_Ext_OptionsPutScrollBarStyle]
+	Local $aSignatures[15] = ["ptr;ptr;ptr", "ptr", "ptr", "ptr;ptr", "ptr;ptr", "ptr;ptr", _
+			"ptr;ptr", "ptr;int", "ptr;ptr", "ptr;ptr", "ptr;ptr", "ptr;int", "ptr;ptr", "ptr;ptr", "ptr;int"]
+	For $i = 0 To 14
 		Local $sReturn = ($i = 1 Or $i = 2) ? "ulong" : "long"
 		$__g_aWebView2_ExtOptionsCallbacks[$i] = DllCallbackRegister($aFuncs[$i], $sReturn, $aSignatures[$i])
 		If @error Then
@@ -298,11 +364,13 @@ Func __WebView2_Ext_OptionsCreate()
 	Next
 	$__g_tWebView2_ExtOptionsBaseVTable = DllStructCreate("ptr[11]")
 	$__g_tWebView2_ExtOptions6VTable = DllStructCreate("ptr[5]")
+	$__g_tWebView2_ExtOptions8VTable = DllStructCreate("ptr[5]")
 	; IUnknown entries are shared by both interfaces.
 	For $i = 0 To 2
 		Local $pMethod = DllCallbackGetPtr($__g_aWebView2_ExtOptionsCallbacks[$i])
 		DllStructSetData($__g_tWebView2_ExtOptionsBaseVTable, 1, $pMethod, $i + 1)
 		DllStructSetData($__g_tWebView2_ExtOptions6VTable, 1, $pMethod, $i + 1)
+		DllStructSetData($__g_tWebView2_ExtOptions8VTable, 1, $pMethod, $i + 1)
 	Next
 	Local $aBase[8] = [3, 4, 9, 10, 5, 4, 6, 7]
 	For $i = 0 To 7
@@ -310,10 +378,14 @@ Func __WebView2_Ext_OptionsCreate()
 	Next
 	DllStructSetData($__g_tWebView2_ExtOptions6VTable, 1, DllCallbackGetPtr($__g_aWebView2_ExtOptionsCallbacks[8]), 4)
 	DllStructSetData($__g_tWebView2_ExtOptions6VTable, 1, DllCallbackGetPtr($__g_aWebView2_ExtOptionsCallbacks[11]), 5)
+	DllStructSetData($__g_tWebView2_ExtOptions8VTable, 1, DllCallbackGetPtr($__g_aWebView2_ExtOptionsCallbacks[13]), 4)
+	DllStructSetData($__g_tWebView2_ExtOptions8VTable, 1, DllCallbackGetPtr($__g_aWebView2_ExtOptionsCallbacks[14]), 5)
 	$__g_tWebView2_ExtOptionsBase = DllStructCreate("ptr")
 	$__g_tWebView2_ExtOptions6 = DllStructCreate("ptr")
+	$__g_tWebView2_ExtOptions8 = DllStructCreate("ptr")
 	DllStructSetData($__g_tWebView2_ExtOptionsBase, 1, DllStructGetPtr($__g_tWebView2_ExtOptionsBaseVTable))
 	DllStructSetData($__g_tWebView2_ExtOptions6, 1, DllStructGetPtr($__g_tWebView2_ExtOptions6VTable))
+	DllStructSetData($__g_tWebView2_ExtOptions8, 1, DllStructGetPtr($__g_tWebView2_ExtOptions8VTable))
 	Return DllStructGetPtr($__g_tWebView2_ExtOptionsBase)
 EndFunc   ;==>__WebView2_Ext_OptionsCreate
 
@@ -324,8 +396,10 @@ EndFunc   ;==>__WebView2_Ext_OptionsCreate
 Func __WebView2_Ext_OptionsDelete()
 	$__g_tWebView2_ExtOptionsBase = Null
 	$__g_tWebView2_ExtOptions6 = Null
+	$__g_tWebView2_ExtOptions8 = Null
 	$__g_tWebView2_ExtOptionsBaseVTable = Null
 	$__g_tWebView2_ExtOptions6VTable = Null
+	$__g_tWebView2_ExtOptions8VTable = Null
 	For $i = 0 To UBound($__g_aWebView2_ExtOptionsCallbacks) - 1
 		If $__g_aWebView2_ExtOptionsCallbacks[$i] Then DllCallbackFree($__g_aWebView2_ExtOptionsCallbacks[$i])
 		$__g_aWebView2_ExtOptionsCallbacks[$i] = Null
@@ -368,10 +442,10 @@ Func __WebView2_Ext_Query($pObject, $sIID)
 EndFunc   ;==>__WebView2_Ext_Query
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
-; Name ..........: __WebView2_Ext_Profile7
-; Description ...: Obtains an owned ICoreWebView2Profile7 pointer for an instance.
+; Name ..........: __WebView2_Ext_Profile
+; Description ...: Obtains an owned profile interface pointer for an instance.
 ; ===============================================================================================================================
-Func __WebView2_Ext_Profile7($iWebView)
+Func __WebView2_Ext_Profile($iWebView, $sIID)
 	If Not __WebView2_Instance_IsValid($iWebView) Then Return SetError($WEBVIEW2_ERR_INVALID_INSTANCE, 0, 0)
 	Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
 	Local $pCore13 = __WebView2_Ext_Query($pCore, $WEBVIEW2_IID_ICoreWebView2_13)
@@ -380,11 +454,135 @@ Func __WebView2_Ext_Profile7($iWebView)
 	Local $iCallError = @error
 	__WebView2_Ext_Release($pCore13)
 	If $iCallError Or $aProfile[0] <> 0 Or Not $aProfile[2] Then Return SetError($WEBVIEW2_ERR_HRESULT, $aProfile[0], 0)
-	Local $pProfile7 = __WebView2_Ext_Query($aProfile[2], $WEBVIEW2_IID_ICoreWebView2Profile7)
+	Local $pProfile = __WebView2_Ext_Query($aProfile[2], $sIID)
 	Local $iError = @error, $iExtended = @extended
 	__WebView2_Ext_Release($aProfile[2])
-	Return SetError($iError, $iExtended, $pProfile7)
+	Return SetError($iError, $iExtended, $pProfile)
+EndFunc   ;==>__WebView2_Ext_Profile
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Ext_Profile7
+; Description ...: Obtains an owned ICoreWebView2Profile7 pointer for an instance.
+; ===============================================================================================================================
+Func __WebView2_Ext_Profile7($iWebView)
+	Local $pProfile = __WebView2_Ext_Profile($iWebView, $WEBVIEW2_IID_ICoreWebView2Profile7)
+	Return SetError(@error, @extended, $pProfile)
 EndFunc   ;==>__WebView2_Ext_Profile7
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_Ext_ProfileSetting
+; Description ...: Reads or writes an integer-valued native profile property.
+; ===============================================================================================================================
+Func __WebView2_Ext_ProfileSetting($iWebView, $sIID, $iSlot, $bWrite, $iValue = 0)
+	Local $pProfile = __WebView2_Ext_Profile($iWebView, $sIID)
+	If @error Then Return SetError(@error, @extended, -1)
+	Local $aResult
+	If $bWrite Then
+		$aResult = DllCallAddress("long", __WebView2_Ext_Method($pProfile, $iSlot), "ptr", $pProfile, "int", $iValue)
+	Else
+		$aResult = DllCallAddress("long", __WebView2_Ext_Method($pProfile, $iSlot), "ptr", $pProfile, "int*", 0)
+	EndIf
+	Local $iCallError = @error
+	__WebView2_Ext_Release($pProfile)
+	If $iCallError Then Return SetError($WEBVIEW2_ERR_DLLCALL, 0, -1)
+	If $aResult[0] <> 0 Then Return SetError($WEBVIEW2_ERR_HRESULT, $aResult[0], -1)
+	If $bWrite Then Return 1
+	Return $aResult[2]
+EndFunc   ;==>__WebView2_Ext_ProfileSetting
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Profile_GetPreferredColorScheme
+; Description ...: Reads the native preferred color scheme of the selected profile.
+; Syntax ........: _WebView2_Profile_GetPreferredColorScheme($iWebView)
+; Parameters ....: $iWebView - Valid WebView2 instance ID.
+; Return values .: AUTO (0), LIGHT (1), DARK (2); -1 with @error on failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: This profile-level preference affects WebView2 UI and CSS prefers-color-scheme.
+; Related .......: _WebView2_Profile_SetPreferredColorScheme
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2profile
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Profile_GetPreferredColorScheme($iWebView)
+	Local $iResult = __WebView2_Ext_ProfileSetting($iWebView, $WEBVIEW2_IID_ICoreWebView2Profile, 8, False)
+	Return SetError(@error, @extended, $iResult)
+EndFunc   ;==>_WebView2_Profile_GetPreferredColorScheme
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Profile_SetPreferredColorScheme
+; Description ...: Changes the preferred color scheme of the selected profile.
+; Syntax ........: _WebView2_Profile_SetPreferredColorScheme($iWebView, $iScheme)
+; Parameters ....: $iWebView - Valid WebView2 instance ID.
+;                  $iScheme - $WEBVIEW2_PREFERRED_COLOR_AUTO, LIGHT or DARK.
+; Return values .: True on success; False with @error on failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Other views sharing the profile are affected.
+; Related .......: _WebView2_Profile_GetPreferredColorScheme
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2profile
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Profile_SetPreferredColorScheme($iWebView, $iScheme)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If Not IsInt($iScheme) Or $iScheme < $WEBVIEW2_PREFERRED_COLOR_AUTO Or $iScheme > $WEBVIEW2_PREFERRED_COLOR_DARK Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $iResult = __WebView2_Ext_ProfileSetting($iWebView, $WEBVIEW2_IID_ICoreWebView2Profile, 9, True, $iScheme)
+		$iError = @error
+		$iExtended = @extended
+		$bResult = ($iResult = 1 And $iError = 0)
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Profile_SetPreferredColorScheme
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Profile_GetTrackingPreventionLevel
+; Description ...: Reads the native tracking-prevention level of the selected profile.
+; Syntax ........: _WebView2_Profile_GetTrackingPreventionLevel($iWebView)
+; Parameters ....: $iWebView - Valid WebView2 instance ID.
+; Return values .: NONE (0), BASIC (1), BALANCED (2), STRICT (3); -1 with @error on failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: The environment-level tracking-prevention switch remains enabled by default.
+; Related .......: _WebView2_Profile_SetTrackingPreventionLevel
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2profile3
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Profile_GetTrackingPreventionLevel($iWebView)
+	Local $iResult = __WebView2_Ext_ProfileSetting($iWebView, $WEBVIEW2_IID_ICoreWebView2Profile3, 13, False)
+	Return SetError(@error, @extended, $iResult)
+EndFunc   ;==>_WebView2_Profile_GetTrackingPreventionLevel
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_Profile_SetTrackingPreventionLevel
+; Description ...: Changes the persisted tracking-prevention level of the selected profile.
+; Syntax ........: _WebView2_Profile_SetTrackingPreventionLevel($iWebView, $iLevel)
+; Parameters ....: $iWebView - Valid WebView2 instance ID.
+;                  $iLevel - $WEBVIEW2_TRACKING_PREVENTION_NONE, BASIC, BALANCED or STRICT.
+; Return values .: True on success; False with @error on failure.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Affects all views sharing the profile; NONE disables prevention for that profile.
+; Related .......: _WebView2_Profile_GetTrackingPreventionLevel
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2profile3
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_Profile_SetTrackingPreventionLevel($iWebView, $iLevel)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If Not IsInt($iLevel) Or $iLevel < $WEBVIEW2_TRACKING_PREVENTION_NONE Or $iLevel > $WEBVIEW2_TRACKING_PREVENTION_STRICT Then
+			$iError = $WEBVIEW2_ERR_INVALID_PARAMETER
+			ExitLoop 1
+		EndIf
+		Local $iResult = __WebView2_Ext_ProfileSetting($iWebView, $WEBVIEW2_IID_ICoreWebView2Profile3, 14, True, $iLevel)
+		$iError = @error
+		$iExtended = @extended
+		$bResult = ($iResult = 1 And $iError = 0)
+	Until True
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_Profile_SetTrackingPreventionLevel
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Ext_CompleteWithPointer
