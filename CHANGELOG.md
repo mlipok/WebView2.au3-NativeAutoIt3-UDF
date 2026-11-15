@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Example 038 opens an EPUB book in the embedded WebView2 reader and lets users select another local EPUB from the reader toolbar.
 - Applications can now disable WebView2's browser shortcuts or intercept a selected key without disabling text editing shortcuts. Example 037 shows how F5 behaves in each mode.
 - Example 036 now offers a page-leaving scenario with unsaved changes, allowing users to check the AutoIt Leave/Stay response to a JavaScript `beforeunload` request.
 - Example 004 now applies the JavaScript alert checkbox after reloading its page, so clearing the checkbox suppresses the native alert and checking it restores the alert. Its operation log also identifies checkbox and page-button clicks.

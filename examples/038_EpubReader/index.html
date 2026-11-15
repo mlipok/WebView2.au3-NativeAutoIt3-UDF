@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPUB reader</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script src="dist/js/libs/jszip.min.js"></script>
+  <script src="dist/js/libs/md5.min.js"></script>
+  <script src="dist/js/libs/epub.min.js"></script>
+  <script type="module">
+    import { Reader } from "./dist/js/epubreader.min.js";
+
+    const send = message => {
+      if (window.chrome?.webview) window.chrome.webview.postMessage(message);
+    };
+    window.addEventListener("error", event => send("ERROR:" + event.message));
+    window.addEventListener("unhandledrejection", event =>
+      send("ERROR:" + String(event.reason?.message || event.reason)));
+    window.addEventListener("load", () => {
+      const bookPath = new URL(location.href).searchParams.get("bookPath") || "book.epub";
+      const reader = new Reader(bookPath, { restore: false });
+      reader.on("metadata", metadata => send("TITLE:" + (metadata.title || "Untitled")));
+      reader.on("bookloaded", () => send("READY"));
+      reader.on("displayed", () => send("DISPLAYED"));
+    });
+  </script>
+</head>
+<body></body>
+</html>
