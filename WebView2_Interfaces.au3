@@ -13,6 +13,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2Environment = "{B96D755E-0319-4E92-A296-
 Global Const $WEBVIEW2_IID_ICoreWebView2Environment12 = "{F503DB9B-739F-48DD-B151-FDFCF253F54E}"
 Global Const $WEBVIEW2_IID_ICoreWebView2SharedBuffer = "{B747A495-0C6F-449E-97B8-2F81E9D6AB43}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Controller = "{4D00C0D1-9434-4EB6-8078-8697A560334F}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Controller2 = "{C979903E-D4CA-4228-92EB-47EE3FA96EAB}"
 Global Const $WEBVIEW2_IID_ICoreWebView2 = "{76ECEACB-0462-4D94-AC83-423A6793775E}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_2 = "{9E8F0CF8-E670-4B5E-B2BC-73E061E3184C}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_3 = "{A0D6DF20-3B92-416D-AA0C-437A9C727857}"
@@ -138,6 +139,12 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Controller = _
 		"NotifyParentWindowPositionChanged hresult();" & _
 		"Close hresult();" & _
 		"get_CoreWebView2 hresult(ptr*);"
+
+; COREWEBVIEW2_COLOR is four bytes (A, R, G, B). Passing the packed value as uint
+; preserves the by-value COM ABI on both x86 and x64.
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Controller2 = $WEBVIEW2_DTAG_ICoreWebView2Controller & _
+		"get_DefaultBackgroundColor hresult(struct*);" & _
+		"put_DefaultBackgroundColor hresult(uint);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"get_Settings hresult(ptr*);" & _

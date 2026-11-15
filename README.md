@@ -27,6 +27,7 @@ See [NOTICE.md](NOTICE.md) for attribution and third-party notes.
 - back / forward / reload / stop;
 - source URI and document title;
 - visibility and zoom factor;
+- native default background color with RGB and transparency readback;
 - synchronous AutoIt wrapper around asynchronous `ExecuteScript()`;
 - native-to-web messages (`PostWebMessageAsString`, `PostWebMessageAsJson`);
 - virtual HTTPS host to local folder mapping (`ICoreWebView2_3`);
@@ -56,6 +57,7 @@ WebView2_Frame.au3
 WebView2_NewWindow.au3
 WebView2_Extensions.au3
 WebView2_Accelerator.au3
+WebView2_Background.au3
 WebView2_DOM.au3
 WebView2_IECompat.au3
 WebView2_Advanced.au3
@@ -82,6 +84,8 @@ examples/
     035_WorkerHierarchy.au3
     036_ScriptDialogs.au3
     037_AcceleratorKeys.au3
+    038_EpubReader.au3
+    039_DefaultBackgroundColor.au3
 docs/
     API.md
     ARCHITECTURE.md

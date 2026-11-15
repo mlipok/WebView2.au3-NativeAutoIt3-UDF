@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Applications can now change and read the native WebView2 background color beneath transparent page content. Example 039 demonstrates opaque colors and full transparency.
 - Example 038 opens an EPUB book in the embedded WebView2 reader and lets users select another local EPUB from the reader toolbar.
 - Applications can now disable WebView2's browser shortcuts or intercept a selected key without disabling text editing shortcuts. Example 037 shows how F5 behaves in each mode.
 - Example 036 now offers a page-leaving scenario with unsaved changes, allowing users to check the AutoIt Leave/Stay response to a JavaScript `beforeunload` request.

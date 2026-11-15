@@ -92,7 +92,7 @@ Sources reviewed:
 | `EncodeURI` / `DecodeURI` | `_WebView2_EncodeURI`, `_WebView2_DecodeURI` | FULL | |
 | `EncodeB64` / `DecodeB64` | `_WebView2_EncodeBase64`, `_WebView2_DecodeBase64` | FULL | UTF-8 text. |
 | `DecodeB64ToBinary` | internal `__WebView2_Base64_DecodeBinary` | PARTIAL | Used by public PDF/screenshot Binary APIs; standalone public utility is not exposed. |
-| `BackColor` | none | MISSING | Candidate for `ICoreWebView2Controller2::DefaultBackgroundColor`. |
+| `BackColor` | `_WebView2_SetDefaultBackgroundColor`, `_WebView2_GetDefaultBackgroundColor` | IMPLEMENTED | Native controller color beneath transparent web content; RGB plus opaque or fully transparent alpha. |
 | `AreBrowserAcceleratorKeysEnabled` | none | MISSING | Candidate for newer `ICoreWebView2Settings*`. |
 | `AreBrowserPopupsAllowed` | `$WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED`, `_WebView2_NewWindow_Complete` | PARTIAL | The host can block or hand off each popup request; no global popup-enable setting is exposed. |
 | `AdditionalBrowserArguments` | none | MISSING | Must be supplied at environment creation through options. |
