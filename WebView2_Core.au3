@@ -49,6 +49,8 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_CONTROLLER_POINTER, _
 		$__WEBVIEW2_INSTANCE_CB_ACCELERATOR, _
 		$__WEBVIEW2_INSTANCE_TOKEN_ACCELERATOR, _
+		$__WEBVIEW2_INSTANCE_CB_FULLSCREEN, _
+		$__WEBVIEW2_INSTANCE_TOKEN_FULLSCREEN, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -982,6 +984,41 @@ Func _WebView2_GetIsDocumentPlayingAudio($iWebView)
 EndFunc   ;==>_WebView2_GetIsDocumentPlayingAudio
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _WebView2_GetContainsFullScreenElement
+; Description ...: Reads whether an HTML element currently fills this WebView2 instance.
+; Syntax ........: _WebView2_GetContainsFullScreenElement($iWebView)
+; Parameters ....: $iWebView - WebView2 instance ID.
+; Return values .: On Success - True when an element fills the WebView, otherwise False; @error is zero.
+;                  On Failure - False and @error is set; @extended contains a native HRESULT when available.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: This is the native WebView2 state; it does not mean the host window fills the monitor.
+; Related .......: _WebView2_SetCallback, _WebView2_IsFullScreen
+; Link ..........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2#get_containsfullscreenelement
+; Example .......: Yes
+; ===============================================================================================================================
+Func _WebView2_GetContainsFullScreenElement($iWebView)
+	Local $bResult = False, $iError = 0, $iExtended = 0
+	Do
+		If Not __WebView2_Instance_IsValid($iWebView) Then
+			$iError = $WEBVIEW2_ERR_INVALID_INSTANCE
+			ExitLoop 1
+		EndIf
+		Local $oCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE]
+		Local $iContains = 0
+		Local $iHRESULT = $oCore.get_ContainsFullScreenElement($iContains)
+		If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+			$iError = $WEBVIEW2_ERR_HRESULT
+			$iExtended = $iHRESULT
+			ExitLoop 1
+		EndIf
+		$bResult = $iContains <> 0
+	Until True
+	If $iError Then __WebView2_Error("_WebView2_GetContainsFullScreenElement", $iError, "Could not read full-screen element state.", $iExtended)
+	Return SetError($iError, $iExtended, $bResult)
+EndFunc   ;==>_WebView2_GetContainsFullScreenElement
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_GetIsMuted
 ; Description ...: Reads whether all audio output from a WebView2 instance is muted.
 ; Syntax ........: _WebView2_GetIsMuted($iWebView)
@@ -1507,6 +1544,7 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |                       Return a $WEBVIEW2_PERMISSION_STATE_* constant, [state, saveInProfile] or DEFER.
 ;                  |SCRIPT_DIALOG_OPENING - Called with ($iWebView, $sURI, $iKind, $sMessage, $sDefaultText).
 ;                  |                        Return ACCEPT, CANCEL, DEFER or [ACCEPT, promptResultText].
+;                  |CONTAINS_FULLSCREEN_ELEMENT_CHANGED - Called with ($iWebView, $bContainsFullScreenElement).
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
 ;                  |                                 Observe responses only; do not call blocking WebView2 helpers here.
 ;                  $fnCallback - AutoIt function reference; pass without quotation marks.
@@ -1553,6 +1591,8 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_MESSAGE] = $fnCallback
 			Case $WEBVIEW2_EVENT_NEW_WINDOW_REQUESTED
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_NEW_WINDOW] = $fnCallback
+			Case $WEBVIEW2_EVENT_CONTAINS_FULLSCREEN_ELEMENT_CHANGED
+				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_FULLSCREEN] = $fnCallback
 			Case $WEBVIEW2_EVENT_PERMISSION_REQUESTED
 				$__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CB_PERMISSION] = $fnCallback
 			Case $WEBVIEW2_EVENT_SCRIPT_DIALOG_OPENING
@@ -2347,6 +2387,12 @@ Func __WebView2_Callbacks_Create()
 			$__WebView2ExitExtended = @extended
 			ExitLoop 1
 		EndIf
+		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_CONTAINS_FULLSCREEN_ELEMENT_CHANGED, __WebView2_ContainsFullScreenElementChanged_Invoke, "ptr;ptr;ptr") Then
+			$__WebView2ExitValue = False
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
 		If Not __WebView2_Callback_Create($__WEBVIEW2_CB_WEB_MESSAGE_RECEIVED, __WebView2_WebMessageReceived_Invoke, "ptr;ptr;ptr") Then
 			$__WebView2ExitValue = False
 			$__WebView2ExitError = @error
@@ -2893,6 +2939,33 @@ Func __WebView2_DocumentPlayingAudioChanged_Invoke($pSelf, $pSender, $pArgs)
 EndFunc   ;==>__WebView2_DocumentPlayingAudioChanged_Invoke
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: __WebView2_ContainsFullScreenElementChanged_Invoke
+; Description ...: Dispatches the native full-screen element state change to AutoIt.
+; Syntax ........: __WebView2_ContainsFullScreenElementChanged_Invoke($pSelf, $pSender, $pArgs)
+; Parameters ....: $pSelf - Callback COM pointer.
+;                  $pSender - CoreWebView2 COM pointer.
+;                  $pArgs - Unused event argument pointer.
+; Return values .: S_OK.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: User callback receives ($iWebView, $bContainsFullScreenElement).
+; Related .......: _WebView2_SetCallback, _WebView2_GetContainsFullScreenElement
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
+Func __WebView2_ContainsFullScreenElementChanged_Invoke($pSelf, $pSender, $pArgs)
+	#forceref $pSelf, $pArgs
+	Local $iSlot = __WebView2_Instance_FindByCorePointer($pSender)
+	If $iSlot >= 0 Then
+		Local $bContains = _WebView2_GetContainsFullScreenElement($iSlot)
+		Local $iError = @error
+		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_FULLSCREEN]
+		If Not $iError And IsFunc($fnCallback) Then Call($fnCallback, $iSlot, $bContains)
+	EndIf
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_ContainsFullScreenElementChanged_Invoke
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_IsMutedChanged_Invoke
 ; Description ...: Dispatches the native mute-state event to an AutoIt callback.
 ; Syntax ........: __WebView2_IsMutedChanged_Invoke($pSelf, $pSender, $pArgs)
@@ -3077,6 +3150,17 @@ Func __WebView2_Events_Subscribe($iSlot)
 		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_TITLE] = DllStructGetData($tToken, 1)
 
 		$tToken = DllStructCreate("int64")
+		$iResult = $oCore.add_ContainsFullScreenElementChanged(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_CONTAINS_FULLSCREEN_ELEMENT_CHANGED), $tToken)
+		If @error Or $iResult <> $WEBVIEW2_S_OK Then
+			__WebView2_Events_Unsubscribe($iSlot)
+			$__WebView2ExitValue = SetError($WEBVIEW2_ERR_HRESULT, $iResult, False)
+			$__WebView2ExitError = @error
+			$__WebView2ExitExtended = @extended
+			ExitLoop 1
+		EndIf
+		$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_FULLSCREEN] = DllStructGetData($tToken, 1)
+
+		$tToken = DllStructCreate("int64")
 		$iResult = $oCore.add_WebMessageReceived(__WebView2_Callback_GetPointer($__WEBVIEW2_CB_WEB_MESSAGE_RECEIVED), $tToken)
 		If @error Or $iResult <> $WEBVIEW2_S_OK Then
 			__WebView2_Events_Unsubscribe($iSlot)
@@ -3180,6 +3264,11 @@ Func __WebView2_Events_Unsubscribe($iSlot)
 		If $iToken Then
 			$oCore.remove_DocumentTitleChanged($iToken)
 			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_TITLE] = 0
+		EndIf
+		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_FULLSCREEN]
+		If $iToken Then
+			$oCore.remove_ContainsFullScreenElementChanged($iToken)
+			$__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_FULLSCREEN] = 0
 		EndIf
 
 		$iToken = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_TOKEN_MESSAGE]

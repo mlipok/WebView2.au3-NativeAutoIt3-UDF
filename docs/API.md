@@ -128,6 +128,12 @@ Opens Chromium DevTools for the selected view.
 
 ## Events
 
+### Full-screen HTML element
+
+`_WebView2_GetContainsFullScreenElement($iWebView)` reads the native `ICoreWebView2` property. It returns `True` when a page element fills the WebView, `False` when none does, or `False` with `@error` on failure (`@extended` carries the native HRESULT when available). This state does not mean that the AutoIt window is borderless or fills the monitor. It differs from `_WebView2_IsFullScreen()`, which evaluates `document.fullscreenElement` in the top-level page.
+
+Register `$WEBVIEW2_EVENT_CONTAINS_FULLSCREEN_ELEMENT_CHANGED` with `_WebView2_SetCallback()` to receive `($iWebView, $bContainsFullScreenElement)` when the native state changes. The callback is observational; return promptly and handle GUI layout in the normal message loop. [Example 041](../examples/041_FullScreenElement.au3) provides an interactive test; its full-screen transition still needs confirmation in a visible WebView2 session.
+
 ### Browser accelerator keys
 
 `_WebView2_SetBrowserAcceleratorKeysEnabled($iWebView[, $bEnabled = True])` controls WebView2's browser-specific shortcuts, including F5, Ctrl+P and F12. It requires `ICoreWebView2Settings3`; an unavailable native interface returns `False` with `@error` and an HRESULT in `@extended` when available. Changes may take effect on the next top-level navigation. Text editing shortcuts are not disabled by this switch.
@@ -142,6 +148,7 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_DOCUMENT_TITLE_CHANGED`
 - `$WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED`
 - `$WEBVIEW2_EVENT_ACCELERATOR_KEY_PRESSED` — callback described above; return `True` to handle that key event.
+- `$WEBVIEW2_EVENT_CONTAINS_FULLSCREEN_ELEMENT_CHANGED` — callback `($iWebView, $bContainsFullScreenElement)` for a native full-screen element state change.
 - `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED` — callback `($iWebView, $bIsPlaying)`; available through `ICoreWebView2_8`. The callback is invoked when native document-audio state changes.
 - `$WEBVIEW2_EVENT_MUTED_CHANGED` — callback `($iWebView, $bMuted)`; available through `ICoreWebView2_8`. The callback is invoked when the WebView mute state changes.
 - `$WEBVIEW2_EVENT_FRAME_CREATED` — callback `($iWebView, $iFrame)` when a native iframe is created. Register before navigation.

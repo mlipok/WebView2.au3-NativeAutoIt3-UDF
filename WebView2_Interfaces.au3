@@ -196,8 +196,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"AddHostObjectToScript hresult();" & _
 		"RemoveHostObjectFromScript hresult();" & _
 		"OpenDevToolsWindow hresult();" & _
-		"add_ContainsFullScreenElementChanged hresult();" & _
-		"remove_ContainsFullScreenElementChanged hresult();" & _
+		"add_ContainsFullScreenElementChanged hresult(ptr;struct*);" & _
+		"remove_ContainsFullScreenElementChanged hresult(int64);" & _
 		"get_ContainsFullScreenElement hresult(bool*);" & _
 		"add_WebResourceRequested hresult();" & _
 		"remove_WebResourceRequested hresult();" & _

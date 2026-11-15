@@ -1,3 +1,11 @@
+# 2026-11-15: native full-screen element event and example 041
+
+- `ICoreWebView2::ContainsFullScreenElementChanged` now has typed COM signatures, a callback subscription and cleanup, and a native property getter. Existing event constants and public function signatures remain unchanged; the new event constant is appended.
+- Changed `.au3` files are UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 received each existing absolute path as its sole argument, made no formatting changes and left no Tidy process. Its recursive scan of example 041 reported four relative include warnings; those files exist in the checkout.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/041_FullScreenElement.au3`. The restricted-process launch first failed with a Windows DLL relocation error; it did not produce a syntax result.
+- The bounded `--smoke` process exited 0 under AutoIt x86 and x64 after initialization and the initial native False readback. The smoke path does not trigger the Fullscreen API or verify event delivery.
+- `tools/Validate-Project.ps1` reported project structure OK and `git diff --check` passed. A visible real-click True/False event sequence remains unverified; example 041 stays WIP.
+
 # 2026-11-15: example 040 overlay layout and example guidance
 
 - The user showed a top-left rectangle obscuring example 040's page heading. The example now uses the owned WebView-only window with `WS_EX_NOREDIRECTIONBITMAP` already used in example 039, while its AutoIt controls remain on the main GUI. The project example guidance records this conditional workaround. The user supplied a successful **Read browser values** log (`pl` and the demonstration user agent) and confirmed on 2026-11-15 that the corrected visual appearance is OK. No Windows-account authentication test was performed.
