@@ -280,6 +280,7 @@ Func _WebView2_Cleanup()
 	$__g_sWebView2_EnvironmentLanguage = ""
 	$__g_sWebView2_EnvironmentArguments = ""
 	$__g_bWebView2_EnvironmentSSO = False
+	$__g_iWebView2_EnvironmentScrollBarStyle = $WEBVIEW2_SCROLLBAR_STYLE_DEFAULT
 	__WebView2_Ext_Release($__g_pWebView2_ExtResult)
 	$__g_pWebView2_ExtResult = 0
 	$__g_iWebView2_ExtPending = 0

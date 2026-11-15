@@ -16,7 +16,15 @@ Call these setters before `_WebView2_Init()`. They configure the next shared env
 - `_WebView2_Environment_SetAdditionalBrowserArguments($sArguments)` supplies Chromium command-line switches. Pass `""` to clear them. The Runtime may ignore switches that conflict with WebView2; do not put secrets in arguments.
 - `_WebView2_Environment_SetOSPrimaryAccountSSO($bEnable)` opts into using the Windows primary account for eligible Microsoft identity resources. The default is `False`; this setting does not sign in to arbitrary websites. A local page cannot demonstrate authentication.
 
-These options share the creation object already used by native extensions, so the extension switch can be enabled in the same initialization. See [example 040](../examples/040_EnvironmentOptions.au3). Tracking prevention and scrollbar style are separate, versioned options and are not exposed by these setters.
+These options share the creation object already used by native extensions, so the extension switch can be enabled in the same initialization. See [example 040](../examples/040_EnvironmentOptions.au3).
+
+### Profile appearance and privacy
+
+- `_WebView2_Profile_GetPreferredColorScheme($iWebView)` and `_WebView2_Profile_SetPreferredColorScheme($iWebView, $iScheme)` use native `ICoreWebView2Profile` values `$WEBVIEW2_PREFERRED_COLOR_AUTO` (0), `LIGHT` (1), and `DARK` (2). The setting affects browser UI and the page's `prefers-color-scheme` media query. It applies to all WebViews sharing that profile.
+- `_WebView2_Profile_GetTrackingPreventionLevel($iWebView)` and `_WebView2_Profile_SetTrackingPreventionLevel($iWebView, $iLevel)` use native `ICoreWebView2Profile3` values `$WEBVIEW2_TRACKING_PREVENTION_NONE` (0), `BASIC` (1), `BALANCED` (2), and `STRICT` (3). The level is persisted in the user-data profile. The UDF leaves environment-level tracking prevention enabled by default; `NONE` disables protection for that profile. A setter returning success confirms the native property update, not that any particular network request was blocked.
+- `_WebView2_Environment_SetScrollBarStyle($iStyle)` selects `$WEBVIEW2_SCROLLBAR_STYLE_DEFAULT` (0) or `$WEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY` (1) through `ICoreWebView2EnvironmentOptions8`. Call before `_WebView2_Init()`; this creation option cannot change within an existing environment. Fluent overlay requires WebView2 Runtime 125 or later. Set the page's CSS `color-scheme` to let the scroll bar follow light/dark colors.
+
+Getters return the native integer value or `-1` with `@error`; setters return `True` or `False` with `@error` and native HRESULT in `@extended` where applicable. See [example 042](../examples/042_AppearanceAndPrivacy.au3). Its interactive behavior was confirmed by the user; no network tracker-blocking test was performed.
 
 ### `_WebView2_Runtime_IsInstalled([$sLoaderPath = Default])`
 Returns `True` if the loader can query a compatible WebView2 Runtime.

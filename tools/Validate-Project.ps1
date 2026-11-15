@@ -40,6 +40,7 @@ $RequiredFiles = @(
     "examples\039_DefaultBackgroundColor.au3",
     "examples\040_EnvironmentOptions.au3",
     "examples\041_FullScreenElement.au3",
+    "examples\042_AppearanceAndPrivacy.au3",
     "examples\219-mdMsgBox.au3",
     "examples\219-mdMsgBox_Example.au3",
     "examples\220-NavigationInterception.au3",
