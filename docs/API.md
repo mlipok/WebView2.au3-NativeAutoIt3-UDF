@@ -112,6 +112,12 @@ Opens Chromium DevTools for the selected view.
 
 ## Events
 
+### Browser accelerator keys
+
+`_WebView2_SetBrowserAcceleratorKeysEnabled($iWebView[, $bEnabled = True])` controls WebView2's browser-specific shortcuts, including F5, Ctrl+P and F12. It requires `ICoreWebView2Settings3`; an unavailable native interface returns `False` with `@error` and an HRESULT in `@extended` when available. Changes may take effect on the next top-level navigation. Text editing shortcuts are not disabled by this switch.
+
+For selective handling, register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_ACCELERATOR_KEY_PRESSED, $fnCallback)`. The callback receives `($iWebView, $iKeyEventKind, $iVirtualKey, $iKeyEventLParam)` and must return promptly. Return `True` to mark that event handled and prevent the browser action, or `False` to leave it to WebView2. The event fires even when browser shortcuts are globally disabled. Key kinds are `$WEBVIEW2_KEY_EVENT_KIND_KEY_DOWN`, `_KEY_UP`, `_SYSTEM_KEY_DOWN` and `_SYSTEM_KEY_UP`. Use Win32 key state when a Ctrl or Alt modifier matters. See [example 037](../examples/037_AcceleratorKeys.au3).
+
 ### `_WebView2_SetCallback($iWebView, $iEvent, $fnCallback)`
 Registers an AutoIt function reference. Supported event constants:
 
@@ -119,6 +125,7 @@ Registers an AutoIt function reference. Supported event constants:
 - `$WEBVIEW2_EVENT_NAVIGATION_COMPLETED`
 - `$WEBVIEW2_EVENT_DOCUMENT_TITLE_CHANGED`
 - `$WEBVIEW2_EVENT_WEB_MESSAGE_RECEIVED`
+- `$WEBVIEW2_EVENT_ACCELERATOR_KEY_PRESSED` — callback described above; return `True` to handle that key event.
 - `$WEBVIEW2_EVENT_DOCUMENT_PLAYING_AUDIO_CHANGED` — callback `($iWebView, $bIsPlaying)`; available through `ICoreWebView2_8`. The callback is invoked when native document-audio state changes.
 - `$WEBVIEW2_EVENT_MUTED_CHANGED` — callback `($iWebView, $bMuted)`; available through `ICoreWebView2_8`. The callback is invoked when the WebView mute state changes.
 - `$WEBVIEW2_EVENT_FRAME_CREATED` — callback `($iWebView, $iFrame)` when a native iframe is created. Register before navigation.

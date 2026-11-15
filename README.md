@@ -55,6 +55,7 @@ WebView2_Core.au3
 WebView2_Frame.au3
 WebView2_NewWindow.au3
 WebView2_Extensions.au3
+WebView2_Accelerator.au3
 WebView2_DOM.au3
 WebView2_IECompat.au3
 WebView2_Advanced.au3
@@ -79,6 +80,8 @@ examples/
     033_AdvancedFrameAPIs.au3
     034_FrameDedicatedWorker.au3
     035_WorkerHierarchy.au3
+    036_ScriptDialogs.au3
+    037_AcceleratorKeys.au3
 docs/
     API.md
     ARCHITECTURE.md
@@ -262,6 +265,8 @@ v0.6.0 is an **early native UDF release**. The new virtual-host, permission and 
 Version 0.2.0 adds native equivalents for a selected set of manager-style capabilities: settings control, browser PID, HTML/selection retrieval, CSS injection, print, focus, reset zoom and Lock/Unlock helpers. The implementation remains pure AutoIt + native WebView2 COM; it does not require NetWebView2Lib.dll or .NET.
 
 Additional examples: `004_Settings.au3`, `005_Script_Result.au3`, `006_CSS_Injection.au3`, `007_Content_Selection.au3`, `008_Browser_Navigation.au3`, `009_Kiosk_Lock.au3`, `010_Zoom_Print_Focus.au3`.
+
+The current UDF also supports enabling or disabling browser-specific keyboard shortcuts and handling individual accelerator keys through a native callback; see [example 037](examples/037_AcceleratorKeys.au3).
 ## au3WebDriver-inspired DOM automation additions (0.3.0)
 
 Version 0.3.0 adds a DOM automation layer inspired by the useful browser-automation patterns exposed by `wd_core.au3` and `wd_helper.au3`, while keeping the implementation inside the embedded WebView2 control. No WebDriver executable, TCP port, external browser session or WinHTTP transport is used.

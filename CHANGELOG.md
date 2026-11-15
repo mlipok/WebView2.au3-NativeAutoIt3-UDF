@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Applications can now disable WebView2's browser shortcuts or intercept a selected key without disabling text editing shortcuts. Example 037 shows how F5 behaves in each mode.
 - Example 036 now offers a page-leaving scenario with unsaved changes, allowing users to check the AutoIt Leave/Stay response to a JavaScript `beforeunload` request.
 - Example 004 now applies the JavaScript alert checkbox after reloading its page, so clearing the checkbox suppresses the native alert and checking it restores the alert. Its operation log also identifies checkbox and page-button clicks.
 - Fixed WebView2 setting switches so enabling JavaScript alerts, context menus, DevTools and other Boolean settings actually reaches the native control. Example 009 can now restore its native browser alert after unlocking.

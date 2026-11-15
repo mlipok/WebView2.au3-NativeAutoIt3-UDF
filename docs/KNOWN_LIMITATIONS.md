@@ -44,7 +44,7 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 Useful candidates for later releases include:
 
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
-- accelerator-key settings and default background color through newer interface revisions;
+- default background color through a newer controller interface revision;
 - asynchronous/nonblocking public variants of current synchronous helpers.
 
 PDF.js rendering in example 214 was confirmed by the user in a running WebView2 session on 2026-11-13; this does not verify its omitted upstream extraction and selection/link-lock demonstrations. Example 217 now exercises virtual-folder mapping, example 207 exercises native response metadata, and the download example exercises native download events and control. See [EXAMPLES.md](EXAMPLES.md).
