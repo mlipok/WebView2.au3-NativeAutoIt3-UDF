@@ -87,6 +87,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 #include "WebView2_Response.au3"
 #include "WebView2_Extensions.au3"
 #include "WebView2_Accelerator.au3"
+#include "WebView2_Background.au3"
 #include "WebView2_NewWindow.au3"
 
 ; #FUNCTION# ====================================================================================================================

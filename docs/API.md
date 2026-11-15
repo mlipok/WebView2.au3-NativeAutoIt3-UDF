@@ -49,6 +49,12 @@ Resizes the view to the parent client rectangle.
 ### `_WebView2_SetVisible($iWebView[, $bVisible = True])`
 Sets controller visibility.
 
+### `_WebView2_SetDefaultBackgroundColor($iWebView, $iRGB[, $iAlpha = 255])`
+Sets the native controller color beneath web content. Supply RGB as `0xRRGGBB`; alpha must be `255` (opaque) or `0` (transparent). Returns `True` on success or `False` with `@error` and, when available, the native HRESULT in `@extended`. An opaque page background hides this color. Setting the color after controller creation can allow an initial white flash. See [example 039](../examples/039_DefaultBackgroundColor.au3).
+
+### `_WebView2_GetDefaultBackgroundColor($iWebView)`
+Reads the controller color as `0xRRGGBB`; on success, `@extended` contains alpha (`0` or `255`). On failure, returns `-1` with `@error`; `@extended` then contains the native HRESULT when available. Example 039 verifies the result after every change.
+
 ### `_WebView2_SetZoomFactor($iWebView[, $fZoomFactor = 1.0])`
 Sets zoom, where `1.0` is 100%.
 

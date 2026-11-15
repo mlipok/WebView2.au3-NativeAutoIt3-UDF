@@ -1,3 +1,18 @@
+# 2026-11-15: example 039 transparent-page overlay workaround
+
+- Reproduced a gray rectangle over the top-left of example 039's page in a visible x64 WebView2 session. A separate owned WebView-only window with `WS_EX_NOREDIRECTIONBITMAP` removed it in a visible screenshot; the surrounding AutoIt controls remained visible. The same issue and window-style workaround are documented in MicrosoftEdge/WebView2Feedback #5500. Post-click appearance and restored-window movement have not been confirmed interactively.
+- Example 039 remains UTF-8 without BOM with CRLF. Tidy AutoIt3 v25.205.1420.10 received the explicit example file path as its sole argument, reported no formatting updates and left no Tidy process. Its recursive include scan warned about four relative UDF includes, which are present in the checkout. Au3Check 3.3.18.0 reported 0 errors and 0 warnings outside the restricted Codex process.
+- The bounded example 039 `--smoke` exited 0 and printed `EX_SMOKE_OK` under AutoIt x86 and x64 after the host-window change. This confirms the native color readbacks, not every visible color or alpha result.
+- `tools/Validate-Project.ps1` reported project structure OK; `git diff --check` passed.
+
+# 2026-11-15: native default background color
+
+- Added `ICoreWebView2Controller2` setter/getter wrappers and example 039. The official Microsoft WebView2 SDK 1.0.2210.55 `WebView2.h` confirms the interface IID, two appended methods and four-byte A/R/G/B structure.
+- The four changed/new `.au3` files use UTF-8 without BOM and CRLF. Tidy AutoIt3 v25.205.1420.10 ran with each explicit existing file path as its sole argument and left no process running. It formatted the new module and example; the existing core and interfaces files required no updates. The example include scan warned about four relative UDF includes.
+- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and example 039. The restricted-process launch failed with a Windows DLL relocation error; that launch failure is separate from the successful syntax results.
+- The bounded example 039 `--smoke` process exited 0 under both AutoIt x86 and x64 after four native setter/getter readbacks (pastel blue, pastel green, white, transparent). This confirms the controller state, not the visible pixel colors; the interactive window remains for user confirmation.
+- `tools/Validate-Project.ps1` reported project structure OK. `git diff --check` passed.
+
 # 2026-11-15: example 036 beforeunload manual scenario
 
 - Added a local page with a user-triggered unsaved-change state, a Leave this page action, and a second local destination page. The existing AutoIt dialog host now labels a beforeunload request and supplies an explanatory message when the native event message is empty. Browser-trusted page-button clicks are recorded separately from dialog results. No UDF code or public API was changed.
