@@ -1,5 +1,9 @@
 # WebView2.au3 public API — v0.6.0
 
+## Local draft: host DPI helpers
+
+`_WebView2_DPI_SetProcessPerMonitorV2()` requests Per Monitor v2 awareness before any host UI exists. It returns `True` when the request succeeds or the current thread already reports that context; otherwise it returns `False` with `@error`. An application manifest is the preferred production setting. `_WebView2_DPI_GetWindowDpi($hWnd)` returns the current native DPI for a host window. Handle `WM_DPICHANGED` in the host GUI and pass physical client coordinates to `_WebView2_SetBounds()` after the window change. See [example 043](../examples/043_HighDPI.au3).
+
 ## Lifecycle and runtime
 
 ### `_WebView2_Init([$sLoaderPath = Default[, $sUserDataFolder = ""[, $sBrowserExecutableFolder = ""[, $iTimeoutMs = 30000]]]])`

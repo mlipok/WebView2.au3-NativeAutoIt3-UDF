@@ -279,3 +279,8 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - `tools/Validate-Project.ps1` reported project structure OK. The five edited `.au3` files are UTF-8 without BOM and use CRLF line endings. Project and parent copies of the four edited UDF modules have matching SHA-256 hashes. No private program GUI or production workflow was run.
 - Later on 2026-11-15, the user confirmed that the interactive example 042 works. The report did not include a separate log or screenshot of each color and scroll bar state, and the AutoIt architecture was not stated. This confirmation closes the example's WIP status; it does not establish network tracker blocking.
 - After removing the WIP comment, Tidy AutoIt3 v25.205.1420.10 reported no formatting changes and left no process; its four recursive include lookup warnings were resolved by Au3Check 3.3.18.0, which reported 0 errors and 0 warnings for example 042. `tools/Validate-Project.ps1` reported project structure OK. No additional GUI run was made for this documentation/status update.
+
+# Local draft: host DPI and example 043
+
+- The public include and example 043 passed Au3Check 3.3.18.0 with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: 0 errors and 0 warnings each. The restricted Codex process first failed to launch Au3Check with a Windows DLL relocation error; the same checks succeeded outside that process. The launch failure is not a syntax-check result.
+- This draft has not been run across two monitors with different scaling. Example 043 retains its WIP marker. No parent UDF copy or private application was changed.
