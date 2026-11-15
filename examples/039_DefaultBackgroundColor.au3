@@ -10,8 +10,9 @@
 
 Opt("MustDeclareVars", 1)
 
-Global $g_EX_hGUI = 0, $g_EX_idLog = 0, $g_EX_idGuide = 0, $g_EX_iWebView = -1
+Global $g_EX_hGUI = 0, $g_EX_hHost = 0, $g_EX_idLog = 0, $g_EX_idGuide = 0, $g_EX_iWebView = -1
 Global $g_EX_iSmokeExit = 0
+Global $g_EX_bHostMoved = False
 Global Const $g_EX_sHTML = '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;min-height:100%;background:transparent;font:18px Segoe UI,sans-serif}main{margin:24px;padding:24px;border:2px solid #405b70;border-radius:10px;background:rgba(255,255,255,.72);max-width:620px}h1{margin-top:0}</style></head><body><main><h1>Controller background color</h1><p>The colored area around this translucent card comes from the native WebView2 controller, not the page CSS.</p><p>Use the AutoIt buttons above the view to change it without navigating.</p></main></body></html>'
 
 _Example()
@@ -35,6 +36,7 @@ Func _Example()
 	If $CmdLine[0] And $CmdLine[1] = "--smoke" Then $g_EX_iSmokeExit = 1
 	Do
 		$g_EX_hGUI = GUICreate("WebView2 - Default background color", 1100, 720, -1, -1, BitOR($WS_OVERLAPPEDWINDOW, $WS_CLIPCHILDREN))
+		GUIRegisterMsg($WM_MOVE, "_OnMainMove")
 		Local $idBlue = GUICtrlCreateButton("Pastel blue", 10, 8, 125, 30)
 		Local $idGreen = GUICtrlCreateButton("Pastel green", 145, 8, 125, 30)
 		Local $idWhite = GUICtrlCreateButton("Default white", 280, 8, 125, 30)
@@ -55,6 +57,13 @@ Func _Example()
 		GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hGUI)
 		Local $aClient = WinGetClientSize($g_EX_hGUI)
 		_Layout($aClient)
+		Local $tPoint = DllStructCreate("long X;long Y")
+		DllStructSetData($tPoint, "X", 305)
+		DllStructSetData($tPoint, "Y", 48)
+		DllCall("user32.dll", "bool", "ClientToScreen", "hwnd", $g_EX_hGUI, "struct*", $tPoint)
+		; The separate WebView-only window avoids the Runtime's top-left overlay artifact on transparent pages.
+		$g_EX_hHost = GUICreate("", $aClient[0] - 313, $aClient[1] - 280, DllStructGetData($tPoint, "X"), DllStructGetData($tPoint, "Y"), $WS_POPUP, $WS_EX_NOREDIRECTIONBITMAP, $g_EX_hGUI)
+		GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hHost)
 		_Log("Starting WebView2...")
 		Local $sProfile = @LocalAppDataDir & "\WebView2.au3\Examples\039_DefaultBackgroundColor"
 		If Not _WebView2_Init(Default, $sProfile) Then
@@ -63,7 +72,7 @@ Func _Example()
 			_Log("Init failed: " & _WebView2_Error_GetDescription())
 			ExitLoop 1
 		EndIf
-		$g_EX_iWebView = _WebView2_Create($g_EX_hGUI, 305, 48, $aClient[0] - 313, $aClient[1] - 280)
+		$g_EX_iWebView = _WebView2_Create($g_EX_hHost, 0, 0, $aClient[0] - 313, $aClient[1] - 280)
 		If @error Then
 			$iError = @error
 			$iExtended = @extended
@@ -89,6 +98,10 @@ Func _Example()
 		EndIf
 		While True
 			Local $iMsg = GUIGetMsg()
+			If $g_EX_bHostMoved Then
+				$g_EX_bHostMoved = False
+				_SyncHost()
+			EndIf
 			Switch $iMsg
 				Case $idBlue, $idGreen, $idWhite, $idTransparent
 					Local $sCaption = ""
@@ -114,17 +127,14 @@ Func _Example()
 							_SetColor($sCaption, 0x000000, 0)
 					EndSwitch
 				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
-					$aClient = WinGetClientSize($g_EX_hGUI)
-					If IsArray($aClient) Then
-						_Layout($aClient)
-						_WebView2_SetBounds($g_EX_iWebView, 305, 48, $aClient[0] - 313, $aClient[1] - 280)
-					EndIf
+					_SyncHost()
 				Case $GUI_EVENT_CLOSE
 					ExitLoop
 			EndSwitch
 		WEnd
 	Until True
 	_WebView2_Cleanup()
+	If $g_EX_hHost Then GUIDelete($g_EX_hHost)
 	If $g_EX_hGUI Then GUIDelete($g_EX_hGUI)
 	Return SetError($iError, $iExtended, 0)
 EndFunc   ;==>_Example
@@ -183,6 +193,55 @@ Func _Layout($aClient)
 	EndIf
 	Return
 EndFunc   ;==>_Layout
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _OnMainMove
+; Description ...: Defers owned WebView host positioning until the GUI message loop resumes.
+; Syntax ........: _OnMainMove($hWnd, $iMsg, $wParam, $lParam)
+; Parameters ....: $hWnd - Message target window.
+;                  $iMsg - Windows message identifier.
+;                  $wParam - Message parameter.
+;                  $lParam - Message parameter.
+; Return values .: $GUI_RUNDEFMSG.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......: _SyncHost
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _OnMainMove($hWnd, $iMsg, $wParam, $lParam)
+	#forceref $iMsg, $wParam, $lParam
+	If $hWnd = $g_EX_hGUI Then $g_EX_bHostMoved = True
+	Return $GUI_RUNDEFMSG
+EndFunc   ;==>_OnMainMove
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _SyncHost
+; Description ...: Keeps the owned WebView host aligned with its area in the main GUI.
+; Syntax ........: _SyncHost()
+; Parameters ....: None.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......:
+; Related .......: _OnMainMove, _Layout
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _SyncHost()
+	Local $aClient = WinGetClientSize($g_EX_hGUI)
+	If IsArray($aClient) Then
+		_Layout($aClient)
+		Local $tPoint = DllStructCreate("long X;long Y")
+		DllStructSetData($tPoint, "X", 305)
+		DllStructSetData($tPoint, "Y", 48)
+		DllCall("user32.dll", "bool", "ClientToScreen", "hwnd", $g_EX_hGUI, "struct*", $tPoint)
+		WinMove($g_EX_hHost, "", DllStructGetData($tPoint, "X"), DllStructGetData($tPoint, "Y"), $aClient[0] - 313, $aClient[1] - 280)
+		_WebView2_SetBounds($g_EX_iWebView, 0, 0, $aClient[0] - 313, $aClient[1] - 280)
+	EndIf
+	Return
+EndFunc   ;==>_SyncHost
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _Log
