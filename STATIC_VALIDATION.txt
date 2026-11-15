@@ -279,3 +279,10 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - `tools/Validate-Project.ps1` reported project structure OK. The five edited `.au3` files are UTF-8 without BOM and use CRLF line endings. Project and parent copies of the four edited UDF modules have matching SHA-256 hashes. No private program GUI or production workflow was run.
 - Later on 2026-11-15, the user confirmed that the interactive example 042 works. The report did not include a separate log or screenshot of each color and scroll bar state, and the AutoIt architecture was not stated. This confirmation closes the example's WIP status; it does not establish network tracker blocking.
 - After removing the WIP comment, Tidy AutoIt3 v25.205.1420.10 reported no formatting changes and left no process; its four recursive include lookup warnings were resolved by Au3Check 3.3.18.0, which reported 0 errors and 0 warnings for example 042. `tools/Validate-Project.ps1` reported project structure OK. No additional GUI run was made for this documentation/status update.
+
+# Local draft: fixed-shape JSON RPC example
+
+- WIP example 046: Au3Check 3.3.18.0 reported 0 errors and 0 warnings.
+- Bounded `--smoke` passed under AutoIt x64 and x86 with isolated profiles on C:. The trusted local page received a random session, its Promise-based `add(2, 3)` request was validated, and the page displayed `AutoIt returned 5`; both processes exited 0.
+- This is a narrow example prototype, not a general RPC API. Visible GUI, malformed-input, navigation and lifetime cases remain unconfirmed.
+- Tidy AutoIt3 v25.205.1420.10 ran with only the exact existing example path, finished, and left no process. Its nested-include lookup warnings were resolved by Au3Check. `node --check` accepted `046.js`. `tools/Validate-Project.ps1` reported project structure OK; the isolated checkout lacks optional loader DLLs, so the smoke used the separate local loader read-only.
