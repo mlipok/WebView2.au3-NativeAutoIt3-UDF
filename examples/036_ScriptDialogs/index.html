@@ -18,9 +18,26 @@
     <button id="alert" type="button">Open alert</button>
     <button id="confirm" type="button">Open confirm</button>
     <button id="prompt" type="button">Open prompt</button>
-    <p id="result">Choose one of the three dialogs.</p>
+    <button id="dirty" type="button">Mark unsaved changes</button>
+    <button id="leave" type="button" disabled>Leave this page</button>
+    <p id="result">Choose a dialog or mark unsaved changes to test leaving the page.</p>
   </main>
   <script>
+    const result = document.getElementById('result');
+    let hasUnsavedChanges = false;
+
+    function logTrustedClick(event) {
+      if (event.isTrusted) {
+        chrome.webview.postMessage('EX_CLICK_TRUSTED:' + event.currentTarget.textContent);
+      }
+    }
+
+    window.addEventListener('beforeunload', event => {
+      if (!hasUnsavedChanges) return;
+      event.preventDefault();
+      event.returnValue = '';
+    });
+
     function show(kind) {
       // Schedule the dialog after the button handler returns to the browser.
       setTimeout(() => {
@@ -33,13 +50,30 @@
         } else {
           value = prompt('Enter a sample value:', 'Default answer');
         }
-        document.getElementById('result').textContent = kind + ' returned: ' + String(value);
+        result.textContent = kind + ' returned: ' + String(value);
         chrome.webview.postMessage({type: 'result', kind, value});
       }, 0);
     }
     for (const kind of ['alert', 'confirm', 'prompt']) {
-      document.getElementById(kind).addEventListener('click', () => show(kind));
+      document.getElementById(kind).addEventListener('click', event => {
+        logTrustedClick(event);
+        show(kind);
+      });
     }
+    document.getElementById('dirty').addEventListener('click', event => {
+      logTrustedClick(event);
+      hasUnsavedChanges = true;
+      document.getElementById('leave').disabled = false;
+      result.textContent = 'Unsaved changes are marked. Click Leave this page.';
+    });
+    document.getElementById('leave').addEventListener('click', event => {
+      logTrustedClick(event);
+      result.textContent = 'Waiting for the Leave or Stay decision...';
+      setTimeout(() => {
+        window.location.assign('left.html');
+        setTimeout(() => { result.textContent = 'Stayed on this page. Unsaved changes remain.'; }, 100);
+      }, 0);
+    });
     chrome.webview.postMessage({type: 'ready'});
   </script>
 </body>

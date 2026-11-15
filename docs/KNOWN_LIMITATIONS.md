@@ -43,7 +43,6 @@ A user-supplied sleep callback can cancel a wait by setting `@error`. In that ca
 
 Useful candidates for later releases include:
 
-- Native JavaScript dialog callbacks now support immediate and deferred decisions for `alert`, `confirm`, and `prompt`. The `beforeunload` path is exposed but its Runtime behavior has not been verified. The host must poll or answer deferred dialogs so page scripts do not remain blocked;
 - audit the current [NetWebView2Lib](https://github.com/mlipok/NetWebView2Lib) API against this native UDF, update [API_COMPARISON.md](API_COMPARISON.md) with every missing or partial capability, and prioritize native equivalents without introducing a .NET dependency;
 - accelerator-key settings and default background color through newer interface revisions;
 - asynchronous/nonblocking public variants of current synchronous helpers.
