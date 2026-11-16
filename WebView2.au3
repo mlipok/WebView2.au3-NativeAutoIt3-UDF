@@ -12,6 +12,8 @@
 ; ===============================================================================================================================
 
 #include "WebView2_Core.au3"
+#include "WebView2_DPI.au3"
+
 #include "WebView2_Async.au3"
 #include "WebView2_DOM.au3"
 #include "WebView2_IECompat.au3"
