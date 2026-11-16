@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Example 047 can download and extract a Fixed Version Runtime matching AutoIt x86/x64, then run its preview from the local Runtime folder without a system installation. Download progress and cancellation are available.
+
+- Example 047 checks the available WebView2 Runtime version, previews a local page, and asks before opening Microsoft's Runtime download page. A simulated missing-Runtime mode allows testing the prompt without uninstalling software.
+
 - Example 043 now adapts its panels and native text to display scaling and window snapping, and separates WebView2 from native controls to address an overlapping label artifact.
 
 - Example 043 shows how an AutoIt host can keep its embedded WebView2 panel fitted when moving between displays with different Windows scaling. Visible mixed-monitor behavior still requires confirmation.

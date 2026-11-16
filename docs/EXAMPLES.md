@@ -1,5 +1,15 @@
 # Examples and upstream copy/adaptation
 
+## 047_RuntimeCheck.au3
+
+**Download Fixed Runtime** downloads the pinned Microsoft CAB matching `@AutoItX64`, shows progress in the green log, and extracts it under `%LOCALAPPDATA%\WebView2.au3\Examples\047_FixedRuntime\157.0.4341.60\<x86|x64>`. **Cancel download** cancels an active transfer. The PowerShell helper checks the Microsoft executable signature, version and PE architecture before writing a ready marker. **Preview Fixed Runtime** recreates the WebView2 environment using that extracted folder and a separate profile. Existing **Start preview** continues to use the default Runtime. See [Fixed Runtime details](FIXED_RUNTIME_EXAMPLE.md). The sample remains WIP pending interactive download/cancel and preview verification.
+
+Scenario inspiration: [Ralle1976's Runtime check example](https://github.com/Ralle1976/Autoit-WebView2-UDF/blob/main/Examples/Example_RuntimeCheck.au3). This implementation uses the native UDF's existing version API and the project's owned-window pattern; it does not copy the upstream installer helper.
+
+[Example 047](../examples/047_RuntimeCheck.au3) queries the available WebView2 Runtime version before initialization. **Check Runtime** logs the result; **Start preview** checks again and creates an offline page if a Runtime is available. Loader errors are reported separately from an unavailable Runtime. **Download options** opens an AutoIt Yes/No message box and opens [Microsoft's official download page](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) in the default browser only after Yes. No installer is downloaded or executed. Checking and previewing work offline; browsing download options requires Internet access.
+
+Launch `047_RuntimeCheck.au3 --simulate-missing` to test the missing-Runtime prompt without uninstalling software. In this mode **Check Runtime** logs SIMULATION and **Start preview** offers the download-page question instead of creating WebView2. Choose No to test cancellation, then Yes only if you want to open the external browser. Relaunch normally to return to real detection. The green log and yellow guide stay in the main GUI; a separate owned WebView-only host addresses the native-control overlay. Matching loader DLLs belong in `bin/x86` and `bin/x64`. Interactive operation has been confirmed.
+
 ## 043_HighDPI.au3
 
 [043_HighDPI.au3](../examples/043_HighDPI.au3) demonstrates a pre-window Per Monitor v2 request, `WM_DPICHANGED` handling, native DPI readback, and WebView2 bounds updates after the host window changes size. Change display scaling on the current monitor, or move the restored window between monitors with different scaling. The native panels use explicit DPI-dependent layout with automatic control docking disabled. A separate owned WebView-only window addresses the overlapping native label artifact; its screen position follows moving and snapping the main window. The supplied log confirms a 96-to-168 DPI transition on one monitor. The corrected layout has been confirmed interactively after same-monitor scale changes and window snapping. See [DPI_DRAFT.md](DPI_DRAFT.md).

@@ -1,5 +1,11 @@
 # 2026-11-15: native full-screen element event and example 041
 
+# 2026-11-16: local Runtime-check example 047
+
+- Added a separate owned WebView-only host and local x64/x86 loader DLLs. Both DLLs have valid Authenticode signatures and matching SHA-256 source/destination hashes. Tidy completed and left no process; seven nested-include lookup warnings were resolved by Au3Check 3.3.18.0 (0 errors, 0 warnings). Project structure validation passed. UTF-8 without BOM and CRLF are required for the example. No GUI, external-browser launch or installer was executed; real detection, preview, simulation and Yes/No behavior await interactive confirmation. No core UDF code was changed.
+
+# Earlier full-screen validation
+
 - `ICoreWebView2::ContainsFullScreenElementChanged` now has typed COM signatures, a callback subscription and cleanup, and a native property getter. Existing event constants and public function signatures remain unchanged; the new event constant is appended.
 - Changed `.au3` files are UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 received each existing absolute path as its sole argument, made no formatting changes and left no Tidy process. Its recursive scan of example 041 reported four relative include warnings; those files exist in the checkout.
 - Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/041_FullScreenElement.au3`. The restricted-process launch first failed with a Windows DLL relocation error; it did not produce a syntax result.
@@ -318,3 +324,7 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - This is a narrow example prototype, not a general RPC API. Visible GUI, malformed-input, navigation and lifetime cases remain unconfirmed.
 - Tidy AutoIt3 v25.205.1420.10 ran with only the exact existing example path, finished, and left no process. Its nested-include lookup warnings were resolved by Au3Check. `node --check` accepted `046.js`. `tools/Validate-Project.ps1` reported project structure OK; the isolated checkout lacks optional loader DLLs, so the smoke used the separate local loader read-only.
 - 2026-11-16: interactive operation and the corrected visual layout were confirmed; the example WIP marker was removed. Negative-input and lifecycle checks remain separate follow-ups.
+
+- 2026-11-16: removed the duplicate yellow guide control from example 047. Exactly one guide creation remains. Tidy finished without changes; Au3Check 3.3.18.0 reported 0 errors and 0 warnings. No GUI test was run for this layout correction.
+- 2026-11-16: added asynchronous CAB download/cancel, PowerShell expand/signature/version/PE-architecture validation, and explicit Fixed Runtime preview in example 047. Actual 157.0.4341.60 packages downloaded and prepared successfully for x64 and x86. Hidden AutoIt probes initialized WebView2 with each explicit extracted folder and read a local page title; both exited 0. These do not establish the interactive button/progress/cancellation paths. No system installation or ACL change was performed; downloads and probe profiles are under the local C: workspace. The sample code stores user-triggered downloads under LocalAppData.
+- 2026-11-16: interactive example operation confirmed; WIP marker removed. Temporary validation CABs, extracted runtimes and probe profiles were deleted. Runtime binaries and archives are excluded from publication and project synchronization.
