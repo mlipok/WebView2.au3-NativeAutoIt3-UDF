@@ -282,7 +282,10 @@ The current icon-removal change was not tested through an interactive GUI run. E
 
 # Local draft: opt-in notification queue
 
+- 2026-11-16: example 045 adopted the separate owned WebView-only host used by example 044, with geometry synchronization in the GUI loop and source-window checks for close events. Both local loader DLLs were copied from the existing project, verified with valid Authenticode signatures and matching SHA-256 hashes. Tidy reported no changes and left no process; five nested-include lookup warnings were resolved by Au3Check 3.3.18.0 (0 errors, 0 warnings). Project structure validation passed. The corrected appearance awaits interactive confirmation; no GUI test was launched for this layout change.
+
 - Public include and WIP example 045: Au3Check 3.3.18.0 reported 0 errors and 0 warnings.
 - Targeted two-slot queue smoke passed under AutoIt x64 and x86 with isolated profiles on C:. Five web messages produced two queued records and three reported drops; dispatch returned the first two in FIFO order. Both processes exited 0.
 - Tidy was invoked only with each exact existing absolute .au3 file path as its sole argument; no Tidy process remained. This does not confirm the visible example UI or all view-generation lifecycle cases.
 - `tools/Validate-Project.ps1` reported project structure OK. The isolated checkout lacks optional loader DLLs; the smoke runs used the user's separate loader read-only.
+- 2026-11-16: interactive example 045 and its corrected visual layout were confirmed; its WIP marker was removed. View-reuse and callback lifecycle cases remain separate follow-up checks.

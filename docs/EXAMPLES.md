@@ -2,7 +2,9 @@
 
 ## Local draft: example 045 notification queue
 
-[045_EventQueue.au3](../examples/045_EventQueue.au3) uses a two-slot queue for five page messages. The green log should show only the two oldest messages when AutoIt dispatches the queue; its stats should report three dropped notifications for each burst. The example is WIP until its FIFO, overflow and cleanup behavior are confirmed in a running WebView2 session.
+WebView2 uses a separate owned WebView-only window with `WS_EX_NOREDIRECTIONBITMAP` to avoid the native-control overlay seen in examples 043 and 044. Its position and bounds follow the main GUI. Local x86/x64 loader DLLs are required in the corresponding `bin` directories.
+
+[045_EventQueue.au3](../examples/045_EventQueue.au3) uses a two-slot queue for five page messages. The green log should show only the two oldest messages when AutoIt dispatches the queue; its stats should report three dropped notifications for each burst. The interactive FIFO and overflow sequence and corrected visual layout have been confirmed. View-reuse and callback lifecycle cases remain separate follow-up checks.
 
 **The new EXAMPLES `200–221` are copies of the EXAMPLES `000–021` set from [GitHub](https://github.com/ioa747/NetWebView2Lib/tree/main/examples), adapted for the native `WebView2.au3` UDF.** The upstream set is by ioa747; the corresponding names and numbers are retained. These are functional copies/adaptations: browser integration was rewritten for the native API, and differences and missing features are documented below.
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Example 045 hosts WebView2 separately from its native controls to prevent the gray overlay covering browser content.
+
 - Applications can optionally deliver selected WebView2 notifications from their AutoIt event loop and inspect queue overflow. Example 045 demonstrates bounded message delivery; runtime validation remains pending.
 
 - Applications can now choose a WebView2 profile's light or dark appearance and its tracking-prevention level, and request Fluent overlay scroll bars at startup. Example 042 demonstrates the native settings and their readback.

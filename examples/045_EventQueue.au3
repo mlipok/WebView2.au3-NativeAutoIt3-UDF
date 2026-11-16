@@ -1,4 +1,3 @@
-; #WIP - Work in Progress: interactive FIFO and overflow behavior awaits confirmation.
 #Tidy_ILC_Pos=44
 #AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7
 
@@ -11,7 +10,8 @@
 
 Opt("MustDeclareVars", 1)
 
-Global $g_EX_hGUI = 0, $g_EX_idLog = 0, $g_EX_idGuide = 0, $g_EX_iWebView = -1
+Global $g_EX_hGUI = 0, $g_EX_hHost = 0, $g_EX_idLog = 0, $g_EX_idGuide = 0, $g_EX_iWebView = -1
+Global $g_EX_sHostGeometry = ""
 
 _Example()
 
@@ -23,7 +23,7 @@ _Example()
 ; Return values .: None.
 ; Author ........: mLipok
 ; Modified ......:
-; Remarks .......: Four of six messages are intentionally dropped with a two-slot queue.
+; Remarks .......: Three of five messages are intentionally dropped with a two-slot queue.
 ; Related .......: _WebView2_EventQueue_Enable, _WebView2_EventQueue_Dispatch
 ; Link ..........:
 ; Example .......: Yes
@@ -52,6 +52,9 @@ Func _Example()
 		GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hGUI)
 		Local $aClient = WinGetClientSize($g_EX_hGUI)
 		_Layout($aClient)
+		$g_EX_hHost = GUICreate("", 1, 1, 0, 0, $WS_POPUP, $WS_EX_NOREDIRECTIONBITMAP, $g_EX_hGUI)
+		_SyncHost()
+		GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hHost)
 		_Log("Starting WebView2...")
 		If Not _WebView2_Init(Default, @LocalAppDataDir & "\WebView2.au3\Examples\045_EventQueue") Then
 			$iError = @error
@@ -59,7 +62,7 @@ Func _Example()
 			_Log("Init failed: " & _WebView2_Error_GetDescription())
 			ExitLoop 1
 		EndIf
-		$g_EX_iWebView = _WebView2_Create($g_EX_hGUI, 305, 48, $aClient[0] - 313, $aClient[1] - 280)
+		$g_EX_iWebView = _WebView2_Create($g_EX_hHost, 0, 0, $aClient[0] - 313, $aClient[1] - 280)
 		If @error Then
 			$iError = @error
 			$iExtended = @extended
@@ -92,7 +95,8 @@ Func _Example()
 		EndIf
 		_Log("Page loading. Wait until the heading is visible before queueing a burst.")
 		While True
-			Local $iMsg = GUIGetMsg()
+			Local $aMsg = GUIGetMsg(1)
+			Local $iMsg = $aMsg[0]
 			Switch $iMsg
 				Case $idBurst
 					_Click("Queue five messages")
@@ -109,15 +113,15 @@ Func _Example()
 					Local $aStats = _WebView2_EventQueue_GetStats($g_EX_iWebView)
 					If IsArray($aStats) Then _Log("Queue: queued=" & $aStats[0] & ", dropped=" & $aStats[1] & ", capacity=" & $aStats[2] & ".")
 				Case $GUI_EVENT_MAXIMIZE, $GUI_EVENT_RESTORE, $GUI_EVENT_RESIZED
-					$aClient = WinGetClientSize($g_EX_hGUI)
-					_Layout($aClient)
-					_WebView2_SetBounds($g_EX_iWebView, 305, 48, $aClient[0] - 313, $aClient[1] - 280)
+					_SyncHost()
 				Case $GUI_EVENT_CLOSE
-					ExitLoop
+					If $aMsg[1] = $g_EX_hGUI Then ExitLoop
 			EndSwitch
+			_SyncHost()
 		WEnd
 	Until True
 	_WebView2_Cleanup()
+	If $g_EX_hHost Then GUIDelete($g_EX_hHost)
 	If $g_EX_hGUI Then GUIDelete($g_EX_hGUI)
 	Return SetError($iError, $iExtended, 0)
 EndFunc   ;==>_Example
@@ -161,6 +165,43 @@ Func _Layout($aClient)
 	EndIf
 	Return
 EndFunc   ;==>_Layout
+
+; #INTERNAL_USE_ONLY# ===========================================================================================================
+; Name ..........: _SyncHost
+; Description ...: Aligns the separate WebView-only window with the main GUI's browser panel.
+; Syntax ........: _SyncHost()
+; Parameters ....: None.
+; Return values .: None.
+; Author ........: mLipok
+; Modified ......:
+; Remarks .......: Geometry is checked in the GUI loop; native controls remain in the main window.
+; Related .......: _Layout, _WebView2_SetBounds
+; Link ..........:
+; Example .......: Yes
+; ===============================================================================================================================
+Func _SyncHost()
+	Do
+		If Not $g_EX_hHost Then ExitLoop 1
+		Local $aClient = WinGetClientSize($g_EX_hGUI)
+		If Not IsArray($aClient) Then ExitLoop 1
+		Local $tPoint = DllStructCreate("long X;long Y")
+		DllStructSetData($tPoint, "X", 305)
+		DllStructSetData($tPoint, "Y", 48)
+		Local $aCall = DllCall("user32.dll", "bool", "ClientToScreen", "hwnd", $g_EX_hGUI, "struct*", $tPoint)
+		If @error Then ExitLoop 1
+		If Not $aCall[0] Then ExitLoop 1
+		Local $iWidth = $aClient[0] - 313, $iHeight = $aClient[1] - 280
+		If $iWidth < 1 Then $iWidth = 1
+		If $iHeight < 1 Then $iHeight = 1
+		Local $sGeometry = DllStructGetData($tPoint, "X") & ":" & DllStructGetData($tPoint, "Y") & ":" & $iWidth & ":" & $iHeight
+		If $sGeometry = $g_EX_sHostGeometry Then ExitLoop 1
+		$g_EX_sHostGeometry = $sGeometry
+		_Layout($aClient)
+		WinMove($g_EX_hHost, "", DllStructGetData($tPoint, "X"), DllStructGetData($tPoint, "Y"), $iWidth, $iHeight)
+		If $g_EX_iWebView >= 0 Then _WebView2_SetBounds($g_EX_iWebView, 0, 0, $iWidth, $iHeight)
+	Until True
+	Return
+EndFunc   ;==>_SyncHost
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: _Log
