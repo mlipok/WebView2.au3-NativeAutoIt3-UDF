@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Example 048 now offers nine chart variants through a Chart type ComboBox, preserving values when switching between them.
+
+- Example 048 displays an offline Chart.js bar chart, updates its values from AutoIt and reports clicked bars back to the AutoIt log.
+
 - Example 047 can download and extract a Fixed Version Runtime matching AutoIt x86/x64, then run its preview from the local Runtime folder without a system installation. Download progress and cancellation are available.
 
 - Example 047 checks the available WebView2 Runtime version, previews a local page, and asks before opening Microsoft's Runtime download page. A simulated missing-Runtime mode allows testing the prompt without uninstalling software.

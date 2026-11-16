@@ -49,6 +49,10 @@ See [EXAMPLES.md](docs/EXAMPLES.md) for the source-to-copy table, Markdown usage
 
 Example 024 vendors the MIT-licensed [Blazor-Calendar](https://github.com/tossnet/Blazor-Calendar) library and publishes a separate Blazor WebAssembly host. See [its license](examples/024_BlazorCalendar/LICENSE.BlazorCalendar.txt) and [example guide](examples/024_BlazorCalendar/README.md).
 
+## Chart.js example
+
+Example 048 bundles the unmodified Chart.js 4.5.1 UMD build under the MIT license, Copyright (c) 2014-2024 Chart.js Contributors. See the [bundled license](examples/assets/native/048-chart/LICENSE.md) and [source URL and SHA-256 notice](examples/assets/native/048-chart/NOTICE.md). The sample page and AutoIt integration are project-owned code.
+
 ## EPUB reader example
 
 Example 038 includes published browser assets from [intity/epubreader-js](https://github.com/intity/epubreader-js), an MIT-licensed fork of epubjs-reader. Its local `index.html` is adapted for WebView2. The direct JavaScript libraries retain their own licenses: epub.js (BSD-style), JSZip (MIT or GPLv3; this example uses MIT), and js-md5 (MIT). See the [example guide and license copies](examples/038_EpubReader/README.md). The Wolne Lektury sample EPUB is downloaded only at runtime and is not distributed here.

@@ -1,5 +1,11 @@
 # Examples and upstream copy/adaptation
 
+## 048_ChartJS.au3
+
+The **Chart type** ComboBox switches among Bar, Line, Pie, Doughnut, Radar, Polar area, Scatter, Bubble and Mixed (bar + line), preserving current values. The expanded `--smoke` checks all nine types and retained values under x64/x86. The original bar example was confirmed interactively; manual selection of the new types remains to be confirmed.
+
+[Example 048](../examples/048_ChartJS.au3) embeds a local Chart.js 4.5.1 bar chart using the shared virtual HTTPS host. **Update values** sets `[35,15,45]`, **Reset values** restores `[10,20,30]`, and **Read chart data** reads JSON containing the version, values and canvas dimensions. A browser-trusted click on a bar sends its label/value to the green AutoIt log with a WebView2 click entry. The yellow guide explains the test and canvas/message mechanism. The browser uses a separate owned host to address native-control overlays. All assets are local and no Internet connection is required. The `--smoke` mode passed under x64/x86, checking ready, update and getter readback; Interactive behavior, including the chart-type selector, has been confirmed. See [details](CHARTJS_EXAMPLE.md).
+
 ## 047_RuntimeCheck.au3
 
 **Download Fixed Runtime** downloads the pinned Microsoft CAB matching `@AutoItX64`, shows progress in the green log, and extracts it under `%LOCALAPPDATA%\WebView2.au3\Examples\047_FixedRuntime\157.0.4341.60\<x86|x64>`. **Cancel download** cancels an active transfer. The PowerShell helper checks the Microsoft executable signature, version and PE architecture before writing a ready marker. **Preview Fixed Runtime** recreates the WebView2 environment using that extracted folder and a separate profile. Existing **Start preview** continues to use the default Runtime. See [Fixed Runtime details](FIXED_RUNTIME_EXAMPLE.md). The sample remains WIP pending interactive download/cancel and preview verification.
