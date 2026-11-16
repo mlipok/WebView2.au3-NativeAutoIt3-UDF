@@ -1,5 +1,19 @@
 # Examples and upstream copy/adaptation
 
+## 043_HighDPI.au3
+
+[043_HighDPI.au3](../examples/043_HighDPI.au3) demonstrates a pre-window Per Monitor v2 request, `WM_DPICHANGED` handling, native DPI readback, and WebView2 bounds updates after the host window changes size. Change display scaling on the current monitor, or move the restored window between monitors with different scaling. The native panels use explicit DPI-dependent layout with automatic control docking disabled. A separate owned WebView-only window addresses the overlapping native label artifact; its screen position follows moving and snapping the main window. The supplied log confirms a 96-to-168 DPI transition on one monitor. The corrected layout has been confirmed interactively after same-monitor scale changes and window snapping. See [DPI_DRAFT.md](DPI_DRAFT.md).
+
+## Example 044 asynchronous scripts
+
+[044_AsyncScript.au3](../examples/044_AsyncScript.au3) starts two independent `ExecuteScript` requests, then polls each result in its ordinary AutoIt GUI loop. The AutoIt click counter demonstrates that the loop remains responsive. Interactive operation was confirmed on 2026-11-16, with an overlapping native-control artifact reported separately. The revised example hosts WebView2 in a separate owned WebView-only window and synchronizes its position and size from the GUI loop. The corrected visual layout was subsequently confirmed; pending-view cleanup remains a separate lifecycle follow-up.
+
+## Local draft: example 045 notification queue
+
+WebView2 uses a separate owned WebView-only window with `WS_EX_NOREDIRECTIONBITMAP` to avoid the native-control overlay seen in examples 043 and 044. Its position and bounds follow the main GUI. Local x86/x64 loader DLLs are required in the corresponding `bin` directories.
+
+[045_EventQueue.au3](../examples/045_EventQueue.au3) uses a two-slot queue for five page messages. The green log should show only the two oldest messages when AutoIt dispatches the queue; its stats should report three dropped notifications for each burst. The interactive FIFO and overflow sequence and corrected visual layout have been confirmed. View-reuse and callback lifecycle cases remain separate follow-up checks.
+
 **The new EXAMPLES `200–221` are copies of the EXAMPLES `000–021` set from [GitHub](https://github.com/ioa747/NetWebView2Lib/tree/main/examples), adapted for the native `WebView2.au3` UDF.** The upstream set is by ioa747; the corresponding names and numbers are retained. These are functional copies/adaptations: browser integration was rewritten for the native API, and differences and missing features are documented below.
 
 Source snapshot: local `NetWebView2Lib-main/examples` supplied by the user. Source links use GitHub `main` and can change independently of this local snapshot. This project does not require the source project runtime. The upstream MIT license is preserved in `examples/LICENSE.upstream.txt`.

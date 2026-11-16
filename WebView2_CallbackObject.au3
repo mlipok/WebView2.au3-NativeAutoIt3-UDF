@@ -62,7 +62,10 @@ Global Enum _
 		$__WEBVIEW2_CB_CONTAINS_FULLSCREEN_ELEMENT_CHANGED, _
 		$__WEBVIEW2_CB_COUNT
 
-Global $__g_aWebView2_Callbacks[$__WEBVIEW2_CB_COUNT][$__WEBVIEW2_CB_FIELDS]
+Global Const $__WEBVIEW2_ASYNC_REQUEST_CAPACITY = 32
+Global Const $__WEBVIEW2_CB_ASYNC_BASE = $__WEBVIEW2_CB_COUNT
+Global Const $__WEBVIEW2_CB_TOTAL = $__WEBVIEW2_CB_COUNT + $__WEBVIEW2_ASYNC_REQUEST_CAPACITY
+Global $__g_aWebView2_Callbacks[$__WEBVIEW2_CB_TOTAL][$__WEBVIEW2_CB_FIELDS]
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
 ; Name ..........: __WebView2_Callback_QueryInterface
@@ -157,7 +160,7 @@ Func __WebView2_Callback_Create($iIndex, $fnInvoke, $sInvokeSignature)
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		If $iIndex < 0 Or $iIndex >= $__WEBVIEW2_CB_COUNT Then
+		If $iIndex < 0 Or $iIndex >= $__WEBVIEW2_CB_TOTAL Then
 			$__WebView2ExitValue = SetError($WEBVIEW2_ERR_INVALID_PARAMETER, 0, 0)
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
@@ -240,7 +243,7 @@ Func __WebView2_Callback_GetPointer($iIndex)
 	Local $__WebView2ExitValue = 0
 	Local $__WebView2ExitError = 0, $__WebView2ExitExtended = 0
 	Do
-		If $iIndex < 0 Or $iIndex >= $__WEBVIEW2_CB_COUNT Then
+		If $iIndex < 0 Or $iIndex >= $__WEBVIEW2_CB_TOTAL Then
 			$__WebView2ExitValue = 0
 			$__WebView2ExitError = @error
 			$__WebView2ExitExtended = @extended
@@ -268,7 +271,7 @@ EndFunc   ;==>__WebView2_Callback_GetPointer
 ; Example .......: No
 ; ===============================================================================================================================
 Func __WebView2_Callback_DeleteAll()
-	For $i = 0 To $__WEBVIEW2_CB_COUNT - 1
+	For $i = 0 To $__WEBVIEW2_CB_TOTAL - 1
 		If $__g_aWebView2_Callbacks[$i][$__WEBVIEW2_CB_POINTER] Then
 			DllCallbackFree($__g_aWebView2_Callbacks[$i][$__WEBVIEW2_CB_INVOKE])
 			DllCallbackFree($__g_aWebView2_Callbacks[$i][$__WEBVIEW2_CB_RELEASE])
