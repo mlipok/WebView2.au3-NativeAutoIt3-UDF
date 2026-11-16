@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bounded JSON RPC</title>
+<style>
+  body { font: 19px Segoe UI, sans-serif; margin: 24px; }
+  article { border: 2px solid #2772a8; background: #eaf4ff; padding: 24px; }
+  button { font: inherit; padding: 10px 18px; }
+  output { display: block; margin-top: 20px; padding: 16px; background: #fff; }
+</style>
+<article>
+  <h1>Authenticated, correlated page-to-AutoIt request</h1>
+  <p>This local page receives an ephemeral session token from AutoIt. It can request only the sample <code>add</code> method.</p>
+  <button id="add" type="button" disabled>Add sample values</button>
+  <output id="result">Waiting for an authorized session...</output>
+</article>
+<script src="046.js"></script>
+</html>
