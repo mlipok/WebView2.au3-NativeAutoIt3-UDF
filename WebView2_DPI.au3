@@ -1,6 +1,8 @@
 #include-once
 #Tidy_ILC_Pos=44
 
+#include "WebView2_Constants.au3"
+
 ; #INDEX# =======================================================================================================================
 ; Title .........: WebView2_DPI.au3
 ; Description ...: Optional host-process DPI helpers for WebView2 applications.
