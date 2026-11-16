@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Example 043 now adapts its panels and native text to display scaling and window snapping, and separates WebView2 from native controls to address an overlapping label artifact.
+
+- Example 043 shows how an AutoIt host can keep its embedded WebView2 panel fitted when moving between displays with different Windows scaling. Visible mixed-monitor behavior still requires confirmation.
+
 - Applications can now choose a WebView2 profile's light or dark appearance and its tracking-prevention level, and request Fluent overlay scroll bars at startup. Example 042 demonstrates the native settings and their readback.
 
 - Applications can now receive a native notification when a page element enters or leaves full-screen mode in WebView2 and read that state directly. Example 041 provides an interactive check.
