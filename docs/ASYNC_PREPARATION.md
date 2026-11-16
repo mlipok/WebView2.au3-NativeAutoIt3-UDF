@@ -24,4 +24,4 @@ Only after script request lifetimes are proven, split controller creation into `
 4. An invalid script produces a WebView2 JSON result or native HRESULT according to the native contract, without blocking GUI input.
 5. Existing `_WebView2_ExecuteScript()` and frame script calls retain their current contract.
 
-Keep this candidate local until those checks run under x86 and x64 AutoIt. Example 044 is WIP, and the new API is not ready for publication.
+The basic overlapping-result smoke passed under x86 and x64 AutoIt. The interactive example and corrected layout have also been confirmed. Reverse-order multi-view completion, abandonment and pending-view destruction remain explicit lifecycle follow-ups.

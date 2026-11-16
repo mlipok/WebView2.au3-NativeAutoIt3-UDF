@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Applications can start two JavaScript requests without waiting for either result and collect each JSON result later from the AutoIt event loop. Example 044 shows the request IDs and results; runtime validation remains pending.
+- Applications can start two JavaScript requests without waiting for either result and collect each JSON result later from the AutoIt event loop. Example 044 shows the request IDs and results.
+- Example 044 now separates its browser host from native controls to address the gray label-like overlay covering WebView2 content.
 
 - Applications can now choose a WebView2 profile's light or dark appearance and its tracking-prevention level, and request Fluent overlay scroll bars at startup. Example 042 demonstrates the native settings and their readback.
 

@@ -282,6 +282,8 @@ The current icon-removal change was not tested through an interactive GUI run. E
 
 # Local draft: asynchronous ExecuteScript
 
+- 2026-11-16: interactive operation of example 044 was reported as working, with an overlapping gray native-control artifact. The example now hosts WebView2 in a separate owned window using WS_EX_NOREDIRECTIONBITMAP, tracks its geometry from the GUI loop, and distinguishes close events by their source window. Tidy reported no formatting changes and left no process; its five nested-include lookup warnings were resolved by Au3Check 3.3.18.0 (0 errors, 0 warnings). Project structure validation passed. No GUI run was performed for this visual correction; its appearance awaits confirmation.
+
 - Public include and WIP example 044: Au3Check 3.3.18.0 reported 0 errors and 0 warnings.
 - Targeted overlapping-request smoke passed under AutoIt x64 and x86 with isolated profiles on C:. Request A returned JSON `2`, request B returned JSON `4`; both processes exited 0.
 - Tidy was invoked only with each exact existing absolute .au3 file path as its sole argument; no Tidy process remained. This does not confirm the visible example UI or pending-request destruction cases.
