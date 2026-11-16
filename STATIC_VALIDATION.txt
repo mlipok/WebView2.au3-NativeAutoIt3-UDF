@@ -288,3 +288,13 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - This draft has not been run across two monitors with different scaling. Example 043 retains its WIP marker. No parent UDF copy or private application was changed.
 - A separate direct Au3Check run of `WebView2_DPI.au3` initially reported 2 errors and 2 warnings because its shared error constants were not declared when the module was checked alone. The module now includes `WebView2_Constants.au3` directly. Tidy ran with the exact existing module path as its sole argument and left no process. Au3Check 3.3.18.0 then reported 0 errors and 0 warnings for the module, the public `WebView2.au3` entry point and example 043. This change affects the module's include dependency only; no GUI test was performed.
 - 2026-11-16: the corrected example layout was confirmed interactively; its WIP marker was removed. Same-monitor scale readback is confirmed at DPI 96 and 168. Mixed-monitor coverage is not separately established.
+
+# Local draft: asynchronous ExecuteScript
+
+- 2026-11-16: interactive operation of example 044 was reported as working, with an overlapping gray native-control artifact. The example now hosts WebView2 in a separate owned window using WS_EX_NOREDIRECTIONBITMAP, tracks its geometry from the GUI loop, and distinguishes close events by their source window. Tidy reported no formatting changes and left no process; its five nested-include lookup warnings were resolved by Au3Check 3.3.18.0 (0 errors, 0 warnings). Project structure validation passed. No GUI run was performed for this visual correction; its appearance awaits confirmation.
+
+- Public include and WIP example 044: Au3Check 3.3.18.0 reported 0 errors and 0 warnings.
+- Targeted overlapping-request smoke passed under AutoIt x64 and x86 with isolated profiles on C:. Request A returned JSON `2`, request B returned JSON `4`; both processes exited 0.
+- Tidy was invoked only with each exact existing absolute .au3 file path as its sole argument; no Tidy process remained. This does not confirm the visible example UI or pending-request destruction cases.
+- `tools/Validate-Project.ps1` reported project structure OK. The isolated checkout lacks optional loader DLLs; the smoke runs used the user's separate loader read-only.
+- 2026-11-16: the corrected layout and interactive example were confirmed; the WIP marker was removed. Pending-view destruction and other lifecycle follow-ups remain separately listed.

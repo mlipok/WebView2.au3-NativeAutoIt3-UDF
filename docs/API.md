@@ -4,6 +4,10 @@
 
 `_WebView2_DPI_SetProcessPerMonitorV2()` requests Per Monitor v2 awareness before any host UI exists. It returns `True` when the request succeeds or the current thread already reports that context; otherwise it returns `False` with `@error`. An application manifest is the preferred production setting. `_WebView2_DPI_GetWindowDpi($hWnd)` returns the current native DPI for a host window. Handle `WM_DPICHANGED` in the host GUI and pass physical client coordinates to `_WebView2_SetBounds()` after the window change. See [example 043](../examples/043_HighDPI.au3).
 
+## Local draft: asynchronous top-level script execution
+
+`_WebView2_ExecuteScriptAsyncStart($iWebView, $sJavaScript)` starts a native script and returns a positive request ID. `_WebView2_ExecuteScriptAsyncPoll($iRequest, ByRef $sJSON)` returns `0` while pending, `1` with raw WebView2 JSON in `$sJSON` when complete, or `-1` with `@error` and native HRESULT in `@extended` on failure. Polling consumes a completed ID. `_WebView2_ExecuteScriptAsyncForget($iRequest)` discards a completed result or abandons a pending one; it does not cancel native execution. The registry is bounded at 32 requests. The existing synchronous API is unchanged. See [example 044](../examples/044_AsyncScript.au3). This draft requires x86/x64 lifecycle validation before integration.
+
 ## Lifecycle and runtime
 
 ### `_WebView2_Init([$sLoaderPath = Default[, $sUserDataFolder = ""[, $sBrowserExecutableFolder = ""[, $iTimeoutMs = 30000]]]])`

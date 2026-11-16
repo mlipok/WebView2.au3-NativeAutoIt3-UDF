@@ -288,6 +288,7 @@ Func _WebView2_Cleanup()
 	$__g_bWebView2_EnvironmentDone = False
 	$__g_iWebView2_PendingCreateSlot = -1
 	$__g_bWebView2_ScriptBusy = False
+	__WebView2_Async_Cleanup()
 
 	__WebView2_Trace("CLEANUP 04 Callback objects DELETE START")
 	__WebView2_Callback_DeleteAll()
@@ -554,6 +555,7 @@ Func _WebView2_Destroy($iWebView)
 		EndIf
 
 		$__g_aWebView2_Tabs[$iWebView] = False
+		__WebView2_Async_InvalidateView($iWebView)
 		__WebView2_Instance_Dispose($iWebView)
 		$__WebView2ExitValue = True
 		$__WebView2ExitError = @error
