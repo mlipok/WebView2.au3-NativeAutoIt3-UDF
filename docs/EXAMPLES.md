@@ -1,5 +1,13 @@
 # Examples and upstream copy/adaptation
 
+## 043_HighDPI.au3
+
+[043_HighDPI.au3](../examples/043_HighDPI.au3) demonstrates a pre-window Per Monitor v2 request, `WM_DPICHANGED` handling, native DPI readback, and WebView2 bounds updates after the host window changes size. Change display scaling on the current monitor, or move the restored window between monitors with different scaling. The native panels use explicit DPI-dependent layout with automatic control docking disabled. A separate owned WebView-only window addresses the overlapping native label artifact; its screen position follows moving and snapping the main window. The supplied log confirms a 96-to-168 DPI transition on one monitor. The corrected layout has been confirmed interactively after same-monitor scale changes and window snapping. See [DPI_DRAFT.md](DPI_DRAFT.md).
+
+## Example 044 asynchronous scripts
+
+[044_AsyncScript.au3](../examples/044_AsyncScript.au3) starts two independent `ExecuteScript` requests, then polls each result in its ordinary AutoIt GUI loop. The AutoIt click counter demonstrates that the loop remains responsive. Interactive operation was confirmed on 2026-11-16, with an overlapping native-control artifact reported separately. The revised example hosts WebView2 in a separate owned WebView-only window and synchronizes its position and size from the GUI loop. The corrected visual layout was subsequently confirmed; pending-view cleanup remains a separate lifecycle follow-up.
+
 ## Local draft: example 045 notification queue
 
 WebView2 uses a separate owned WebView-only window with `WS_EX_NOREDIRECTIONBITMAP` to avoid the native-control overlay seen in examples 043 and 044. Its position and bounds follow the main GUI. Local x86/x64 loader DLLs are required in the corresponding `bin` directories.

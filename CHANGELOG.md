@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Example 043 now adapts its panels and native text to display scaling and window snapping, and separates WebView2 from native controls to address an overlapping label artifact.
+
+- Example 043 shows how an AutoIt host can keep its embedded WebView2 panel fitted when moving between displays with different Windows scaling. Visible mixed-monitor behavior still requires confirmation.
+
+- Applications can start two JavaScript requests without waiting for either result and collect each JSON result later from the AutoIt event loop. Example 044 shows the request IDs and results.
+- Example 044 now separates its browser host from native controls to address the gray label-like overlay covering WebView2 content.
+
 - Example 045 hosts WebView2 separately from its native controls to prevent the gray overlay covering browser content.
 
 - Applications can optionally deliver selected WebView2 notifications from their AutoIt event loop and inspect queue overflow. Example 045 demonstrates bounded message delivery; runtime validation remains pending.

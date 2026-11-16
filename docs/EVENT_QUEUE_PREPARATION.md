@@ -22,4 +22,4 @@ When the queue is full, reject the newest notification, increment a dropped coun
 4. Dispatch is reentrancy guarded; callbacks may enqueue later notifications without recursively dispatching them.
 5. Existing callback delivery is unchanged unless queue mode is explicitly enabled.
 
-This local branch includes the opt-in implementation and WIP example 045. It has not been published or copied to the parent UDF. Visible behavior, overflow and view-reuse checks remain before integration.
+The opt-in implementation and example 045 passed the bounded FIFO/overflow smoke under x86 and x64. The interactive example and corrected visual layout have been confirmed. View-reuse and callback-triggered destruction remain additional lifecycle checks.
