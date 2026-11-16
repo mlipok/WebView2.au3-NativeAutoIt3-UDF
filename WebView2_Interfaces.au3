@@ -43,6 +43,7 @@ Global Const $WEBVIEW2_IID_ICoreWebView2ContentLoadingEventArgs = "{0C8A1275-9B6
 Global Const $WEBVIEW2_IID_ICoreWebView2DOMContentLoadedEventArgs = "{16B1E21A-C503-44F2-84C9-70ABA5031283}"
 Global Const $WEBVIEW2_IID_ICoreWebView2_8 = "{E9632730-6E1E-43AB-B7B8-7B2C9E62E094}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings = "{E562E4F0-D7FA-43AC-8D71-C05150499F00}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Settings7 = "{488DC902-35EF-42D2-BC7D-94B65C4BC49C}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Settings3 = "{FDB5AB74-AF33-4854-84F0-0A631DEB5EBA}"
 Global Const $WEBVIEW2_IID_ICoreWebView2AcceleratorKeyPressedEventArgs = "{9F760F8A-FB79-42BE-9990-7B56900FA9C7}"
 Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs = "{5B495469-E119-438A-9B18-7604F25F2E49}"
@@ -388,6 +389,18 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings3 = $WEBVIEW2_DTAG_ICoreWebView
 		"put_UserAgent hresult(wstr);" & _
 		"get_AreBrowserAcceleratorKeysEnabled hresult(int*);" & _
 		"put_AreBrowserAcceleratorKeysEnabled hresult(int);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Settings7 = $WEBVIEW2_DTAG_ICoreWebView2Settings3 & _
+		"get_IsPasswordAutosaveEnabled hresult(int*);" & _
+		"put_IsPasswordAutosaveEnabled hresult(int);" & _
+		"get_IsGeneralAutofillEnabled hresult(int*);" & _
+		"put_IsGeneralAutofillEnabled hresult(int);" & _
+		"get_IsPinchZoomEnabled hresult(int*);" & _
+		"put_IsPinchZoomEnabled hresult(int);" & _
+		"get_IsSwipeNavigationEnabled hresult(int*);" & _
+		"put_IsSwipeNavigationEnabled hresult(int);" & _
+		"get_HiddenPdfToolbarItems hresult(int*);" & _
+		"put_HiddenPdfToolbarItems hresult(int);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2AcceleratorKeyPressedEventArgs = _
 		"get_KeyEventKind hresult(int*);" & _

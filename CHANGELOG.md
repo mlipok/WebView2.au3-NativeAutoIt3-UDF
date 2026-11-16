@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can hide individual controls in the built-in PDF toolbar and read the current setting. Example 049 demonstrates choosing hidden items and restoring the default toolbar.
+
 - Example 048 now offers nine chart variants through a Chart type ComboBox, preserving values when switching between them.
 
 - Example 048 displays an offline Chart.js bar chart, updates its values from AutoIt and reports clicked bars back to the AutoIt log.
