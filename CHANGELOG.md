@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Example 046 hosts WebView2 separately from native controls to prevent the gray overlay covering its RPC test page.
+
 - Applications can now choose a WebView2 profile's light or dark appearance and its tracking-prevention level, and request Fluent overlay scroll bars at startup. Example 042 demonstrates the native settings and their readback.
 
 - Applications can now receive a native notification when a page element enters or leaves full-screen mode in WebView2 and read that state directly. Example 041 provides an interactive check.

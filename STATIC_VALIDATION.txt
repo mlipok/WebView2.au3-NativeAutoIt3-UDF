@@ -282,7 +282,10 @@ The current icon-removal change was not tested through an interactive GUI run. E
 
 # Local draft: fixed-shape JSON RPC example
 
+- 2026-11-16: example 046 adopted the separate owned WebView-only host used by example 045, with GUI-loop geometry synchronization and source-window close handling. Smoke mode keeps the additional host hidden. Local x64/x86 loader DLLs have valid Authenticode signatures and matching source/destination SHA-256 hashes. Tidy reported no changes and left no process; four nested-include lookup warnings were resolved by Au3Check 3.3.18.0 (0 errors, 0 warnings). Project structure validation passed. No GUI test was launched for this layout correction; its appearance awaits interactive confirmation.
+
 - WIP example 046: Au3Check 3.3.18.0 reported 0 errors and 0 warnings.
 - Bounded `--smoke` passed under AutoIt x64 and x86 with isolated profiles on C:. The trusted local page received a random session, its Promise-based `add(2, 3)` request was validated, and the page displayed `AutoIt returned 5`; both processes exited 0.
 - This is a narrow example prototype, not a general RPC API. Visible GUI, malformed-input, navigation and lifetime cases remain unconfirmed.
 - Tidy AutoIt3 v25.205.1420.10 ran with only the exact existing example path, finished, and left no process. Its nested-include lookup warnings were resolved by Au3Check. `node --check` accepted `046.js`. `tools/Validate-Project.ps1` reported project structure OK; the isolated checkout lacks optional loader DLLs, so the smoke used the separate local loader read-only.
+- 2026-11-16: interactive operation and the corrected visual layout were confirmed; the example WIP marker was removed. Negative-input and lifecycle checks remain separate follow-ups.
