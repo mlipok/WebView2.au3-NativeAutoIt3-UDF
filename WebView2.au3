@@ -15,6 +15,8 @@
 #include "WebView2_DPI.au3"
 
 #include "WebView2_Async.au3"
+
+#include "WebView2_EventQueue.au3"
 #include "WebView2_DOM.au3"
 #include "WebView2_IECompat.au3"
 #include "WebView2_Advanced.au3"
