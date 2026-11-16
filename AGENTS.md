@@ -61,6 +61,8 @@ This repository contains a native Microsoft Edge WebView2 UDF for AutoIt. Preser
 
 ## Documentation and releases
 
+- In pull request descriptions, write each prose paragraph and each list item on a single source line, without manual line wrapping. Let GitHub wrap the displayed text. Separate paragraphs and list blocks with blank lines; preserve intentional line breaks inside fenced code blocks.
+
 - Update relevant documentation when user-visible behavior changes.
 - Keep version declarations in `WebView2.au3`, source headers, and `VERSION` consistent when preparing a release.
 - Record release changes in `CHANGELOG.md` and `RELEASE_NOTES.md` when a new version is requested.
