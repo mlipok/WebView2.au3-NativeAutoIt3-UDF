@@ -1,5 +1,13 @@
 # Examples and upstream copy/adaptation
 
+## 049_PdfToolbar.au3
+
+[Example 049](../examples/049_PdfToolbar.au3) tests the native PDF viewer toolbar with 13 independent checkboxes. Checked means hidden: choose items, then click **[Apply and reload]**. The log records the requested mask and immediate native readback, then a new PDF navigation applies the setting. **[Read native value]** reads without navigation. **[Restore all items]** clears the mask and navigates again. The yellow guide explains expected results, profile scope and the difference from PDF.js. The separate WebView-only host avoids native-control overlay artifacts.
+
+The example opens the already bundled `assets/pdfjs/web/compressed.tracemonkey-pldi-09.pdf` directly through the virtual HTTPS host; it does not run PDF.js. Keep that existing sample and its bundled notices when moving the example. It uses an isolated example profile and the repository's x86/x64 loaders. No Internet connection or new third-party package is needed.
+
+Validation: `--smoke` checks PDF navigation, 17 native mask round trips, five rejected input types/masks and invalid instance handling under x86 and x64. These checks do not prove toolbar appearance. The example's interactive behavior was confirmed on 2026-11-16; the architecture and exhaustive per-flag coverage of that manual session were not recorded. Shared-profile GUI behavior and older Runtimes remain outside the verified scope. Settings7 availability is checked at runtime; unsupported older Runtimes report an error.
+
 ## 048_ChartJS.au3
 
 The **Chart type** ComboBox switches among Bar, Line, Pie, Doughnut, Radar, Polar area, Scatter, Bubble and Mixed (bar + line), preserving current values. The expanded `--smoke` checks all nine types and retained values under x64/x86. The original bar example was confirmed interactively; manual selection of the new types remains to be confirmed.

@@ -20,3 +20,5 @@
 #include "WebView2_DOM.au3"
 #include "WebView2_IECompat.au3"
 #include "WebView2_Advanced.au3"
+
+#include "WebView2_PDF.au3"

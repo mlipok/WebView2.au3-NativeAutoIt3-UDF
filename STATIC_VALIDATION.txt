@@ -1,3 +1,11 @@
+# 2026-11-16: NET-05 native PDF toolbar (native API and example 049)
+
+- Added opt-in Settings7 `HiddenPdfToolbarItems` setter/getter and 13 flags, plus NONE/ALL. The setter does not navigate or change defaults. Example 049 reads back the mask immediately and navigates a local bundled PDF to apply it, in its own profile and a separate WebView-only host.
+- Tidy v25.205.1420.10 ran with each of five concrete absolute .au3 paths as its sole argument; no Tidy process remained. WebView2.au3 and Constants were formatting no-ops; the other files were formatted. Example scanning reported eight relative-include warnings; all referenced files exist. Source encoding is UTF-8 without BOM with CRLF.
+- Au3Check 3.3.18.0, warnings 1-7: public include and example 049 passed with 0 errors/0 warnings. The first restricted-process launch failed before checking syntax (DLL relocation); retry outside that process succeeded. Module validation uses the public include, not a standalone module missing its dependency declarations.
+- Targeted hidden x86/x64 smoke runs exited 0 for native mask round trips and rejected invalid masks/types/instances. Final smoke also waits for native PDF navigation completion. No other example or private-program GUI was run. Interactive example behavior was confirmed on 2026-11-16; its manual architecture and exhaustive per-flag coverage were not recorded. The WIP marker was removed. Shared-profile GUI behavior and older Runtimes remain unconfirmed.
+- CONTRIBUTING.md reviewed: existing contributor guidance already covers native API, examples and validation; no contributor-process change was needed. Publication scope is NET-05 only. The separate, unpublished comprehensive NetWebView2Lib audit is excluded from this branch; no PR is created by this task.
+
 # 2026-11-15: native full-screen element event and example 041
 
 # 2026-11-16: local Runtime-check example 047
@@ -8,7 +16,7 @@
 
 - `ICoreWebView2::ContainsFullScreenElementChanged` now has typed COM signatures, a callback subscription and cleanup, and a native property getter. Existing event constants and public function signatures remain unchanged; the new event constant is appended.
 - Changed `.au3` files are UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 received each existing absolute path as its sole argument, made no formatting changes and left no Tidy process. Its recursive scan of example 041 reported four relative include warnings; those files exist in the checkout.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/041_FullScreenElement.au3`. The restricted-process launch first failed with a Windows DLL relocation error; it did not produce a syntax result.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/041_FullScreenElement.au3`. The restricted-process launch first failed with a Windows DLL relocation error; it did not produce a syntax result.
 - The bounded `--smoke` process exited 0 under AutoIt x86 and x64 after initialization and the initial native False readback. The smoke path does not trigger the Fullscreen API or verify event delivery.
 - `tools/Validate-Project.ps1` reported project structure OK and `git diff --check` passed. The user supplied a visible WebView2 screenshot and operation log on 2026-11-15: the dark-blue full-screen element filled the WebView, and repeated real button clicks produced native `True`/`False` events. The native getter also reported `False` after exit. The run's AutoIt architecture was not recorded. This confirms the example's key interactive behavior, so its WIP marker was removed.
 
@@ -22,7 +30,7 @@
 
 - Added pre-initialization language, additional browser arguments and optional Windows-account SSO settings to the existing environment-options COM object. No existing `_WebView2_Init()` parameter or default was changed.
 - `WebView2_Core.au3`, `WebView2_Extensions.au3` and `examples/040_EnvironmentOptions.au3` are UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 received each existing absolute path as its sole argument, made no formatting changes and left no Tidy process. Its recursive include scan for example 040 warned about four relative UDF includes; all four exist in the checkout.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and example 040.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and example 040.
 - The bounded example 040 `--smoke` exited 0 under AutoIt x86 and x64. It read the configured demo user agent and a Polish browser language from the running WebView2 page. Chromium exposed `pl` for the configured `pl-PL`; the example accepts both. This checks the creation options and script readback, not the visual layout or a real Windows-account sign-in. SSO remains disabled in the sample.
 - `tools/Validate-Project.ps1` reported project structure OK and `git diff --check` passed. Interactive example behavior and native-extension coexistence remain to be confirmed.
 
@@ -37,7 +45,7 @@
 
 - Added `ICoreWebView2Controller2` setter/getter wrappers and example 039. The official Microsoft WebView2 SDK 1.0.2210.55 `WebView2.h` confirms the interface IID, two appended methods and four-byte A/R/G/B structure.
 - The four changed/new `.au3` files use UTF-8 without BOM and CRLF. Tidy AutoIt3 v25.205.1420.10 ran with each explicit existing file path as its sole argument and left no process running. It formatted the new module and example; the existing core and interfaces files required no updates. The example include scan warned about four relative UDF includes.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and example 039. The restricted-process launch failed with a Windows DLL relocation error; that launch failure is separate from the successful syntax results.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and example 039. The restricted-process launch failed with a Windows DLL relocation error; that launch failure is separate from the successful syntax results.
 - The bounded example 039 `--smoke` process exited 0 under both AutoIt x86 and x64 after four native setter/getter readbacks (pastel blue, pastel green, white, transparent). This confirms the controller state, not the visible pixel colors; the interactive window remains for user confirmation.
 - `tools/Validate-Project.ps1` reported project structure OK. `git diff --check` passed.
 
@@ -52,20 +60,20 @@
 
 - Reviewed project-owned `.au3`, HTML and JavaScript example sources for user-facing dialog or pop-up claims, excluding vendored PDF.js/marked assets. Existing `MsgBox`, `FileOpenDialog` and `FileSaveDialog` calls open native windows. Example 036 has its own interactive AutoIt pop-up and previously passed targeted `--smoke-popup` runs. Example 023's `window.open` concerns tabs or windows, not a modal dialog. Examples 004 and 009 were the two browser-alert demonstrations needing explicit initial settings, action labels and instructions.
 - Examples 004 and 009 now enable WebView2's default script dialogs before navigation and explain when their page's alert should be shown or suppressed. The changed `.au3` files are UTF-8 without BOM and use CRLF line endings. Tidy AutoIt3 v25.205.1420.10 was invoked on each explicit existing file path as its sole argument; it reported no formatting updates, exited with its no-op code `-1`, and left no Tidy process. It also warned that some included UDF modules were not found during its own include scan.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, could not start in the restricted Codex process because of a Windows DLL relocation error. Repeating both checks outside that environment reported 0 errors and 0 warnings for each example.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, could not start in the restricted Codex process because of a Windows DLL relocation error. Repeating both checks outside that environment reported 0 errors and 0 warnings for each example.
 - `tools/Validate-Project.ps1` reported project structure OK in the isolated worktree; optional loader DLLs are absent there. `git diff --check` passed. A targeted x64 GUI run from the synchronized Z project displayed the revised Settings page, but the process ended while attempting its alert interaction. The alert's visible appearance and suppression/restoration in examples 004 and 009 are not confirmed. That focused GUI verification remains in `docs/KNOWN_LIMITATIONS.md`.
 
 # 2026-11-14: frame-destroy callback slot reuse
 
 - The frame-destroy callback now retains the original frame ID and checks that the registry slot still holds that active frame before native-subscription and worker cleanup. A callback may destroy the owning view or cause its frame slot to be reused; the old callback path then leaves the new frame untouched.
-- `WebView2_Frame.au3` remains UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 ran with this explicit existing file path as its only argument and exited; no Tidy process remained. Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` initially failed to launch in the restricted Codex process with a DLL relocation error. Repeating the same command outside that environment on the public `WebView2.au3` entry point reported 0 errors and 0 warnings.
+- `WebView2_Frame.au3` remains UTF-8 without BOM with CRLF line endings. Tidy AutoIt3 v25.205.1420.10 ran with this explicit existing file path as its only argument and exited; no Tidy process remained. Au3Check 3.3.18.0 at `Au3Check.exe` initially failed to launch in the restricted Codex process with a DLL relocation error. Repeating the same command outside that environment on the public `WebView2.au3` entry point reported 0 errors and 0 warnings.
 - A temporary, non-GUI AutoIt regression probe passed under x86 and x64 for ordinary frame destruction, clearing the slot inside the callback, and reusing the slot for a different frame before callback return. The probe was removed afterward. This does not confirm the full native WebView2 callback sequence in a visible GUI. `git diff --check` passed.
 
 # 2026-11-14: all-example manual button-click log audit
 
 - Audited all 60 `.au3` files under `examples/`. Thirty files with manual AutoIt buttons and a native operation log gained a blank separator and timestamped `'<button caption>' was clicked.` entry before each button action. Examples 027, 034 and 035 already provided this behavior. Example 031 has only page buttons; nine button-driven files have no native operation log, and seventeen files have no AutoIt buttons. The exceptions and their layout reasons are recorded in `docs/EXAMPLES.md`.
 - Checked the yellow guides against the relevant action captions and expected results; adjusted guides in examples 024, 032, 033, 204, 204_Loop, 206, 214, 217 and 220. Automated smoke paths do not call the new manual-click helpers.
-- All 30 edited `.au3` files remain UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file as its sole argument, made no formatting changes and left no process running. Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for each file.
+- All 30 edited `.au3` files remain UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file as its sole argument, made no formatting changes and left no process running. Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for each file.
 - `tools/Validate-Project.ps1` reported project structure OK; optional x86/x64 loader DLL copies are absent in this isolated worktree. `git diff --check` passed. The 30 manual GUI button sequences were not executed in this pass; static validation alone does not confirm visible behavior.
 
 # 2026-11-14: example 027 manual click log groups
@@ -78,7 +86,7 @@
 
 - Set all four action buttons in example 027 to fixed-position, fixed-size docking so maximizing and resizing the window do not spread them across the content area.
 - Tidy ran on one explicit existing staging copy of `examples/027_NativeFrames.au3` as its sole argument. It made no formatting changes and left no process running. Its `-1` exit code reflects a formatting no-op in this installation.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for the modified example.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for the modified example.
 - The edited AutoIt source remains UTF-8 without BOM with CRLF line endings. This is a layout-only change; no GUI test was run solely to check button positioning.
 - `tools/Validate-Project.ps1` reported project structure OK in the branch worktree; optional loader DLLs are absent there. `git diff --check` passed.
 
@@ -86,7 +94,7 @@
 
 - The `ICoreWebView2Frame` and `ICoreWebView2Frame2` COM method signatures for NameChanged, ContentLoading and DOMContentLoaded were completed against Microsoft WebView2.idl SDK 1.0.4129.50. The new event constants were appended, preserving existing values.
 - The six changed AutoIt source files are UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file, made no formatting changes and left no process running.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/027_NativeFrames.au3`. Inside the restricted process, the same executable failed to start with a Windows DLL relocation error; that launch failure is not a syntax result.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/027_NativeFrames.au3`. Inside the restricted process, the same executable failed to start with a Windows DLL relocation error; that launch failure is not a syntax result.
 - Targeted `027_NativeFrames.au3 --smoke-lifecycle` runs passed under AutoIt x64 and x86 against the synchronized local UDF: the frame name changed to `renamed-frame`, and ContentLoading and DOMContentLoaded each fired twice with matching reload navigation IDs. Both runs exited with code 0 and printed `EX_SMOKE_OK`.
 - `tools/Validate-Project.ps1` reported project structure OK. The isolated Git worktree reported missing optional x86/x64 loader DLLs; the local Z project supplies them. `git diff --check` passed.
 - The visible example 027 button sequence was not manually tested; the bounded smoke run exercised the native lifecycle path. Private dependent programs were assessed statically, not executed.
@@ -102,7 +110,7 @@
 
 - Based on Microsoft WebView2.idl from SDK 1.0.4129.50: `ICoreWebView2_29` adds the main-document worker event after 48 methods introduced by `_9` through `_28`; `ICoreWebView2DedicatedWorker` exposes child creation. The native interfaces are queried optionally.
 - The four modified UDF `.au3` modules and new example 035 are UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file, made no formatting changes and left no process running.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/035_WorkerHierarchy.au3`.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for `WebView2.au3` and `examples/035_WorkerHierarchy.au3`.
 - Targeted `035_WorkerHierarchy.au3 --smoke` runs passed under AutoIt x64 and x86: four tracked workers, the expected immediate parent IDs and two direct JSON replies with `sum:7`. The existing example 034 `--smoke` passed under x64 and x86 after the UDF change.
 - The visible example 035 button sequence and resize were not tested manually. The smoke test uses a process-specific temporary profile and local virtual-host assets; no external network resource is needed.
 
@@ -111,13 +119,13 @@
 - Examples 200–218 and 220–221 now call `GUISetState(@SW_MAXIMIZE, $g_EX_hGUI)` before `GUISetState(@SW_SHOWNOACTIVATE, $g_EX_hGUI)`; the later client-size adjustment remains in place.
 - The local copy of example 217 already had this ordering. It was preserved and incorporated into the branch with the other 21 examples.
 - All 22 changed AutoIt files remain UTF-8 without BOM with CRLF line endings. Tidy was invoked on one explicit existing staging file at a time, made no formatting changes, and left no process running.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` failed to launch in the restricted Codex process with a DLL relocation error. Repeating the checks outside it with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7` reported 0 errors and 0 warnings for each of the 22 examples.
+- Au3Check 3.3.18.0 at `Au3Check.exe` failed to launch in the restricted Codex process with a DLL relocation error. Repeating the checks outside it with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7` reported 0 errors and 0 warnings for each of the 22 examples.
 - This change affects window display order. No GUI test was run solely for this layout change, so the visible startup transition is not confirmed by runtime testing.
 
 # 2026-11-13: PR #26 profile isolation and initial/resize bounds
 
 - The 24 changed AutoIt examples remain UTF-8 without BOM with CRLF line endings. Tidy ran on one explicit existing staging copy per file, with no extra switch or orphaned process.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for all 24 changed examples.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for all 24 changed examples.
 - Static inspection found no remaining default `_WebView2_Init()` call in examples 001–025, no fixed numeric WebView2 creation bounds in examples 002–020, and a resize handler in each example 002–023.
 - `tools/Validate-Project.ps1` reported project structure OK. The isolated worktree has no optional x86/x64 loader DLLs; the synchronized Z project reported structure OK with its bundled loaders. `git diff --check` passed.
 - This follow-up changes profile paths and view geometry; no GUI test was run solely for size or position. Existing smoke evidence for the previous PR commit remains separate and does not confirm the corrected visual bounds.
@@ -126,7 +134,7 @@
 
 - Modified 57 example AutoIt files. All checked source files are UTF-8 without BOM with CRLF line endings.
 - Tidy was run for each modified `.au3` through an isolated staging copy, with exactly one explicit existing file path as its only argument. Formatted copies were applied to the branch; no Tidy process remained.
-- Au3Check 3.3.18.0 (`Z:\AutoItPortable\App\Au3Check.exe`), run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for all 57 modified examples. Four files were checked again after their final edits with the same result.
+- Au3Check 3.3.18.0 (`Au3Check.exe`), run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for all 57 modified examples. Four files were checked again after their final edits with the same result.
 - `tools/Validate-Project.ps1`: project structure validation OK. The isolated Git worktree lacks the optional x86 and x64 runtime loader DLLs; the local Z project retains them.
 - `git diff --check` passed. GUI layout and manual button sequences have not been confirmed across all modified examples; static validation does not establish runtime behavior.
 - After synchronizing the examples to the local Z project, focused `--smoke` runs of examples 024, 200 and 026 under AutoIt x64 exited with code 0. These checks exercised page loading and example cleanup, not the visual three-panel layout or manual button sequences. AutoIt x86 was not run for this layout update.
@@ -148,13 +156,13 @@
 ## 2026-11-13: example 034 operation log and information panel
 
 - The updated example source is UTF-8 without BOM and uses CRLF line endings. Tidy ran on one explicit existing staging copy and reported no updates to make; the staging copy matched the source byte-for-byte, and no Tidy process remained. The staging invocation warned that its relative WebView2 include was not present there.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for example 034.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for example 034.
 - A targeted `--smoke` run of the synchronized example under AutoIt x64 exited with code 0. It checks that the Win32 EDIT log contains the native JSON reply with `"sum":5` and the worker-destruction message. This run did not manually verify the visual layout or scrolling position.
 
 ## 2026-11-13: dedicated-worker JSON messages and lifetime
 
 - The changed AutoIt files are UTF-8 without BOM and use CRLF line endings. Tidy ran on each changed or new `.au3` file with exactly one explicit existing path in an isolated staging directory. It made a small indentation change in `WebView2_Frame.au3`, which was applied. Other files needed no formatting change. No Tidy process remained.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process after the latter reported a DLL relocation error, checked the public `WebView2.au3` entry point and example 034 with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: each reported 0 errors and 0 warnings. The example was checked again after its final code change, with the same result.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process after the latter reported a DLL relocation error, checked the public `WebView2.au3` entry point and example 034 with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: each reported 0 errors and 0 warnings. The example was checked again after its final code change, with the same result.
 - Targeted example 034 `--smoke` passed under AutoIt x86 and x64 (exit code 0): the worker was tracked with the owning frame ID and script URI; the active-worker list contained its ID; a worker-ready JSON message reached AutoIt; AutoIt posted an add request directly to that worker; a JSON result with `sum: 5` reached AutoIt; native destruction removed the ID; and sending to the stale ID returned `$WEBVIEW2_ERR_INVALID_PARAMETER`. `--smoke-late` passed under x64 with callback registration after the iframe was tracked.
 - The visible button sequence and resize behavior were not manually checked. The tests used separate temporary WebView2 profiles and did not create `AutoIt3*.exe.WebView2` profile directories beside the portable executables.
 
@@ -162,14 +170,14 @@
 
 - `tools/Validate-Project.ps1`: project structure validation OK. The six changed or new AutoIt files are UTF-8 without BOM and use CRLF line endings.
 - Tidy was invoked for each of those six files with a single explicit existing `.au3` path in an isolated staging location; each exited with `-1` and made no content change. No Tidy process remained. `WebView2_Frame.au3` and example 034 were rechecked with the same Tidy invocation after their final code edits.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: public project and parent `WebView2.au3` entry points and example 034 each reported 0 errors and 0 warnings.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: public project and parent `WebView2.au3` entry points and example 034 each reported 0 errors and 0 warnings.
 - Targeted example 034 `--smoke` passed in x86 and x64 AutoIt: native iframe worker-created callback reported the tracked frame ID and expected full script URI, then WebView2 cleanup completed. `--smoke-late` passed in x64 with registration after the iframe was tracked. The visible button and resize behavior were not manually tested.
 - The five changed UDF modules were synchronized byte-for-byte with the parent `UDF_AI` copies. No `AutoIt3*.exe.WebView2` profile directory was created beside the portable AutoIt executables.
 
 ## 2026-11-12: nested native frames
 
 - `tools/Validate-Project.ps1`: project structure validation OK. Changed AutoIt files are UTF-8 without BOM with CRLF line endings; `git diff --check` passed.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: `WebView2.au3` and example 028 each reported 0 errors and 0 warnings. The public include was checked to include dependent frame modules.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`: `WebView2.au3` and example 028 each reported 0 errors and 0 warnings. The public include was checked to include dependent frame modules.
 - Tidy was attempted on the four changed AutoIt files. Some invocations opened an unwanted file-selection dialog, so a clean Tidy result for all four files is **not** claimed. The dialog/process was closed, and no `Tidy.exe` process remained at the final check. No further Tidy invocation was made.
 - Focused `examples/028_NestedFrames.au3 --smoke` runs passed under AutoIt x86 and x64: 15 native frames, parent hierarchy 1 + 2 + 6 + 6, frame navigation callbacks, native ID, 15 one-label updates and direct `_v3` update. This is runtime confirmation inside WebView2. Visible layout and private application workflows were not exercised.
 
@@ -198,10 +206,10 @@ The current icon-removal change was not tested through an interactive GUI run. E
 
 - Added a bounded pending permission registry for main-document and tracked-frame callbacks. Existing immediate decisions retain their signatures and return values. Pending requests can be inspected, answered, cancelled, timed out, or cancelled during frame/view cleanup.
 - Tidy AutoIt3 v25.205.1420.10 ran with the explicit path of each changed `.au3` file as its sole argument. It made no changes except formatting the new `WebView2_Permission.au3` module; each process exited. Tidy reported include-resolution warnings while inspecting example 031, but Au3Check resolved those includes successfully.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` failed to launch in the restricted Codex process due to a Windows DLL relocation error. The same command outside that process reported 0 errors and 0 warnings for example 031 and its public UDF include chain.
+- Au3Check 3.3.18.0 at `Au3Check.exe` failed to launch in the restricted Codex process due to a Windows DLL relocation error. The same command outside that process reported 0 errors and 0 warnings for example 031 and its public UDF include chain.
 - `tools/Validate-Project.ps1` reported project structure OK. It noted that optional loader DLLs are absent in the isolated Git worktree; both architecture-specific DLLs are present in the synchronized local project.
 - Targeted `examples/031_PermissionRequests.au3 --smoke` runs under x64 and x86 AutoIt exited with code 0 and `EX_SMOKE_OK ... deferred=deny`. They covered immediate DENY and ALLOW, then deferred DENY and the browser's resulting page message. Deferred ALLOW, frame-origin deferral, timeout, and manual GUI clicks were not exercised in this pass.
-- A source search in `KK_EPU`, `Skaner`, `MICHAELO_Faktury` and `UDF_ML\BROWSER.au3`, excluding generated stripped files, found no direct use of the new APIs or permission callbacks. Private program workflows were not run; this impact assessment is static only.
+- A scoped consumer source search found no direct use of the new APIs. Consumer application workflows were not run; this impact assessment is static only.
 
 # 2026-11-14: example 031 click-log source labels
 
@@ -212,7 +220,7 @@ The current icon-removal change was not tested through an interactive GUI run. E
 
 - Added native `ScriptDialogOpening` handling, immediate and deferred answers, a bounded pending-request registry, timeout cancellation, and cleanup when the owning view is destroyed. Example 036 uses a local virtual host to demonstrate `alert`, `confirm`, and `prompt`.
 - Tidy AutoIt3 v25.205.1420.10 ran with each of the six changed `.au3` files passed as one explicit existing absolute path. It reported no formatting updates and left no Tidy process running. New AutoIt files were converted to UTF-8 without BOM with CRLF line endings. Tidy's include scan reported missing optional includes in the isolated worktree while processing the example; the runtime project contains them.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` initially failed to start inside the restricted Codex process with a Windows DLL relocation error. Repeating the checks outside that process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7` reported 0 errors and 0 warnings for `WebView2.au3` and `examples/036_ScriptDialogs.au3`.
+- Au3Check 3.3.18.0 at `Au3Check.exe` initially failed to start inside the restricted Codex process with a Windows DLL relocation error. Repeating the checks outside that process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7` reported 0 errors and 0 warnings for `WebView2.au3` and `examples/036_ScriptDialogs.au3`.
 - Targeted `--smoke` runs against the local WebView2 project passed under AutoIt x86 and x64. Each run received an accepted alert result, `false` from a dismissed confirmation, and `"AutoIt reply"` from an accepted prompt. Both processes exited with code 0 and printed `EX_SMOKE_OK`.
 - `tools/Validate-Project.ps1` reported structure OK; the isolated Git worktree lacks optional loader DLL copies. The visible manual button sequence, resizing, timeout and `beforeunload` were not verified by this smoke test.
 
@@ -234,7 +242,7 @@ The current icon-removal change was not tested through an interactive GUI run. E
 
 - Added native operation logs and yellow test guides to examples 002, 004–007 and 009–010. Viewers, editors, complex browser examples and examples without step-by-step manual interaction retain their existing layouts.
 - Tidy AutoIt3 v25.205.1420.10 ran once per changed `.au3` file with its explicit existing absolute path as the sole argument; all seven invocations exited with no formatting changes and no Tidy process remained.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe` failed to start in the restricted Codex process with a Windows DLL relocation error. The same checks outside that process, using `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for each of the seven changed examples.
+- Au3Check 3.3.18.0 at `Au3Check.exe` failed to start in the restricted Codex process with a Windows DLL relocation error. The same checks outside that process, using `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for each of the seven changed examples.
 - All seven changed `.au3` files are UTF-8 without BOM and have CRLF line endings. `git diff --check` passed. `tools/Validate-Project.ps1` reported project structure OK; optional x86 and x64 loader DLLs are absent in the isolated Git worktree.
 - The added panels, click logs and resizing have not been confirmed in a running WebView2 GUI. No x86 or x64 runtime claim is made for this change.
 
@@ -243,7 +251,7 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - Examples 002 and 009 now send an explicit marker only for a browser-trusted click on their local page button. The native message callback writes the `[WebView2]: ... was clicked.` entry before other message results. Example 010 reports the labeled input field's trusted click, focus and blur events without sending its content.
 - Example 009 maps its local HTML file to the established virtual HTTPS host, reloads it after Lock or Unlock because WebView2 applies the default JavaScript dialog setting when a document loads, and enables the default dialog before the initial navigation.
 - Tidy AutoIt3 v25.205.1420.10 ran with each changed `.au3` file's explicit existing absolute path as its sole argument. An initial run of example 009 returned exit code 5 because of a missing `EndIf`; the code was corrected, then Tidy returned -1 (no formatting changes) and no Tidy process remained.
-- Au3Check 3.3.18.0 at `Z:\AutoItPortable\App\Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for examples 002 and 010 and, after the correction, example 009.
+- Au3Check 3.3.18.0 at `Au3Check.exe`, run outside the restricted Codex process with warnings 1–7, reported 0 errors and 0 warnings for examples 002 and 010 and, after the correction, example 009.
 - All three modified `.au3` files are UTF-8 without BOM with CRLF line endings. `git diff --check` passed and `tools/Validate-Project.ps1` reported structure OK. The isolated Git worktree lacks optional x86/x64 WebView2Loader DLL copies; the synchronized local project has both.
 - A focused interactive alert check was attempted in example 009 under x86 and x64 AutoIt. The x64 window and local page appeared in the accessibility tree, but UI automation could not click the page button because its computed point was outside the available screen bounds; the process then ended before the sequence could be completed. This pass does not confirm the visible alert, page-click entries, or input-field events in a running GUI.
 
@@ -252,7 +260,7 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - The user's example 009 log and page status showed that `window.alert()` ran and returned without displaying a browser alert, before Lock and after Unlock. A focused native COM probe showed that `put_AreDefaultScriptDialogsEnabled(True)` returned success while a following getter still reported False. With an `int` Win32 BOOL signature and numeric 1, the getter reported True. The UDF's nine `ICoreWebView2Settings` Boolean getters and setters now use 32-bit `int` signatures, and their common setter passes numeric 1 or 0.
 - The public `WebView2.au3` include and example 009 passed Au3Check 3.3.18.0 outside the restricted Codex process: 0 errors, 0 warnings. Tidy ran on both changed UDF modules with each exact existing `.au3` path as its sole argument, reported no formatting updates, and left no running Tidy process.
 - A focused x64 native probe before the fix showed `Set True` returning success while the getter read False. After the fix, separate x86 and x64 AutoIt runs read default dialogs as 1, then 0 after `_WebView2_LockWebView()` and 1 after `_WebView2_UnlockWebView()`. Context menus, DevTools and zoom controls likewise read 0 after Lock and 1 after Unlock in both architectures. These are native property readbacks, not proof that an alert window was visible.
-- The project and parent `Z:\!!!_SVN_AU3\UDF_AI\` copies of both changed UDF modules were synchronized with matching hashes. At this probe's completion, visible alert behavior remained unconfirmed; see the later manual confirmation below.
+- Local UDF copies were synchronized with matching hashes; the relevant public include checks reported 0 errors and 0 warnings.
 - On 2026-11-14, the user confirmed that example 009 works after the fix and supplied a log showing a trusted page click before Lock, another while locked, and a third after Unlock. The user also confirmed that the other changed examples work. The architecture and exact visual observations of that manual run were not recorded. This is user-reported GUI confirmation, separate from the x86/x64 native property readbacks above. Example 004's visible alert sequence remains to be checked.
 # 2026-11-15: example 004 browser alert setting and click log
 
@@ -268,7 +276,7 @@ The current icon-removal change was not tested through an interactive GUI run. E
 - An isolated native property probe initialized WebView2 and created a controller under both x86 and x64 AutoIt. `ICoreWebView2Settings3` was available; its accelerator-key getter read 1 by default, 0 after the new setter disabled browser shortcuts, and 1 after it re-enabled them. The setter returned success with `@error=0` in both architectures.
 - The user supplied two interactive example 037 logs on 2026-11-15. They show native F5 callbacks changing between `handled=False` and `handled=True` as **Block F5** is toggled, and successful clicks on **Disable browser shortcuts**, **Enable browser shortcuts**, and **Reload page**. The user confirmed that the example works. The logs do not record the page's visual reload counter, so the visual response and the global switch behavior are user-confirmed observations rather than independently captured log evidence. The architecture of the user's interactive run was not recorded.
 - `tools/Validate-Project.ps1` reported `Project structure validation: OK`. The isolated public checkout omits its optional x86 loader DLL, so the validator warned about that file; the x86 native probe used the separate local loader supplied with the user's Z: project.
-- After synchronization, Au3Check 3.3.18.0 reported 0 errors and 0 warnings for both `Z:\!!!_SVN_AU3\UDF_AI\WebView2\WebView2.au3` and the parent `Z:\!!!_SVN_AU3\UDF_AI\WebView2.au3` public entry points. The changed module hashes match between both local locations. Example 037 and its HTML page are present in the project copy.
+- Local UDF copies were synchronized with matching hashes; the relevant public include checks reported 0 errors and 0 warnings.
 
 # 2026-11-15: example 038 EPUB reader
 
@@ -281,7 +289,7 @@ The current icon-removal change was not tested through an interactive GUI run. E
 
 - Added native ICoreWebView2Profile color-scheme getter/setter, ICoreWebView2Profile3 tracking-prevention getter/setter, and creation-time ICoreWebView2EnvironmentOptions8 scroll bar style. The environment's default tracking prevention remains enabled. Public existing signatures and event numbers were not changed.
 - Example 042 is an offline, isolated-profile, three-panel demonstration. Its `--smoke` mode wrote and read back Dark color and Strict tracking prevention, then restored the previous values. AutoIt x64 and x86 runs both exited 0 with `EX_SMOKE_OK` after the final target-version adjustment. This does not verify visible scroll bar rendering, CSS color changes, or blocking of network trackers; example 042 remains WIP.
-- Tidy AutoIt3 v25.205.1420.10 ran with each changed `.au3` file's exact existing absolute path as its sole argument and reported no formatting updates. The example's nested include lookup emitted four warnings; Au3Check resolved those includes. No Tidy process remained. Au3Check 3.3.18.0, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for the project public include and example 042. Parent public include, BROWSER.au3, and KK_EPU.au3 also reported 0 errors and 0 warnings.
+- Tidy AutoIt3 v25.205.1420.10 ran with each changed `.au3` file's exact existing absolute path as its sole argument and reported no formatting updates. The example's nested include lookup emitted four warnings; Au3Check resolved those includes. No Tidy process remained. Au3Check 3.3.18.0, run outside the restricted Codex process with `-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6 -w 7`, reported 0 errors and 0 warnings for the project public include and example 042. Consumer public include entry points also reported 0 errors and 0 warnings.
 - `tools/Validate-Project.ps1` reported project structure OK. The five edited `.au3` files are UTF-8 without BOM and use CRLF line endings. Project and parent copies of the four edited UDF modules have matching SHA-256 hashes. No private program GUI or production workflow was run.
 - Later on 2026-11-15, the user confirmed that the interactive example 042 works. The report did not include a separate log or screenshot of each color and scroll bar state, and the AutoIt architecture was not stated. This confirmation closes the example's WIP status; it does not establish network tracker blocking.
 - After removing the WIP comment, Tidy AutoIt3 v25.205.1420.10 reported no formatting changes and left no process; its four recursive include lookup warnings were resolved by Au3Check 3.3.18.0, which reported 0 errors and 0 warnings for example 042. `tools/Validate-Project.ps1` reported project structure OK. No additional GUI run was made for this documentation/status update.

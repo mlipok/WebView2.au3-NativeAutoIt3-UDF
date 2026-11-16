@@ -1,5 +1,39 @@
 # WebView2.au3 public API — v0.6.0
 
+## Native PDF toolbar visibility
+
+`_WebView2_SetHiddenPdfToolbarItems($iWebView, $iItems = 0)` hides the selected native PDF toolbar controls. Combine `$WEBVIEW2_PDF_TOOLBAR_ITEMS_*` flags with `BitOR`. Zero (`NONE`) restores default controls; `ALL` combines the 13 defined flags. The setter accepts integers from 0 through `0x1FFF` and returns `True` on success. `_WebView2_GetHiddenPdfToolbarItems($iWebView)` reads the actual native bitmask; zero is also a valid success value, so check `@error` immediately.
+
+| Flag suffix | Value |
+| --- | --- |
+| `SAVE` | `0x0001` |
+| `PRINT` | `0x0002` |
+| `SAVE_AS` | `0x0004` |
+| `ZOOM_IN` | `0x0008` |
+| `ZOOM_OUT` | `0x0010` |
+| `ROTATE` | `0x0020` |
+| `FIT_PAGE` | `0x0040` |
+| `PAGE_LAYOUT` | `0x0080` |
+| `BOOKMARKS` | `0x0100` |
+| `PAGE_SELECTOR` | `0x0200` |
+| `SEARCH` | `0x0400` |
+| `FULL_SCREEN` | `0x0800` |
+| `MORE_SETTINGS` | `0x1000` |
+
+Both functions use `ICoreWebView2Settings7`. They report invalid instance, native HRESULT or DLL-call errors through `@error`, with the underlying HRESULT in `@extended` where available. The setter additionally rejects invalid masks with `$WEBVIEW2_ERR_INVALID_PARAMETER`. An older Runtime without Settings7 fails explicitly; there is no fallback that silently changes PDF.js or URL fragments.
+
+**Changes apply on the next navigation** and to views sharing the same environment and profile. The setter does not navigate automatically. Readback confirms the configured native value, not whether a specific Runtime displays that toolbar item. This customizes the built-in PDF viewer, not PDF.js, and does not prevent saving/printing through other routes.
+
+```autoit
+Local $iHide = BitOR($WEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT, $WEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE, $WEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS)
+If _WebView2_SetHiddenPdfToolbarItems($iWebView, $iHide) Then
+    Local $iActual = _WebView2_GetHiddenPdfToolbarItems($iWebView)
+    If Not @error And $iActual = $iHide Then _WebView2_Navigate($iWebView, $sPdfURL)
+EndIf
+```
+
+See [example 049](../examples/049_PdfToolbar.au3) and [Microsoft's native contract](https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2settings7).
+
 ## Local draft: host DPI helpers
 
 `_WebView2_DPI_SetProcessPerMonitorV2()` requests Per Monitor v2 awareness before any host UI exists. It returns `True` when the request succeeds or the current thread already reports that context; otherwise it returns `False` with `@error`. An application manifest is the preferred production setting. `_WebView2_DPI_GetWindowDpi($hWnd)` returns the current native DPI for a host window. Handle `WM_DPICHANGED` in the host GUI and pass physical client coordinates to `_WebView2_SetBounds()` after the window change. See [example 043](../examples/043_HighDPI.au3).
