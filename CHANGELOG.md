@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can now provide credentials, cancel, or defer native HTTP authentication requests. Example 050 demonstrates automatic login, a credential dialog, cancellation and timeouts against a local demonstration server.
+
 - Applications can hide individual controls in the built-in PDF toolbar and read the current setting. Example 049 demonstrates choosing hidden items and restoring the default toolbar.
 
 - Example 048 now offers nine chart variants through a Chart type ComboBox, preserving values when switching between them.

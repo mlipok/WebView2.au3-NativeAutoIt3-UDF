@@ -1,3 +1,9 @@
+# 2026-11-19: NET-01 native HTTP authentication and example 050
+
+- Tidy completed for the changed AutoIt sources and reported eight relative-include lookup warnings for example 050. Au3Check 3.3.18.0 resolved the includes and reported 0 errors and 0 warnings for the public entry point and example 050. Project structure validation passed.
+- Hidden x86 and x64 runs exercised real loopback HTTP 401 challenges, immediate and deferred credentials, wrong-password retry cancellation, explicit cancellation, expiration, invalid inputs, stale IDs, navigation, controller reuse and cleanup. Two concurrent asynchronous script results also passed.
+- Example 050 retains its WIP marker for visible credential-dialog verification. The smoke fixture tests Basic authentication on loopback.
+
 # 2026-11-16: NET-05 native PDF toolbar (native API and example 049)
 
 - Added opt-in Settings7 `HiddenPdfToolbarItems` setter/getter and 13 flags, plus NONE/ALL. The setter does not navigate or change defaults. Example 049 reads back the mask immediately and navigates a local bundled PDF to apply it, in its own profile and a separate WebView-only host.
