@@ -56,6 +56,14 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_AUTH_TOKEN, _
 		$__WEBVIEW2_INSTANCE_PROCESS_FAILED_CALLBACK, _
 		$__WEBVIEW2_INSTANCE_PROCESS_FAILED_TOKEN, _
+		$__WEBVIEW2_INSTANCE_MENU_CORE, _
+		$__WEBVIEW2_INSTANCE_MENU_TOKEN, _
+		$__WEBVIEW2_INSTANCE_MENU_CALLBACK, _
+		$__WEBVIEW2_INSTANCE_MENU_ITEM, _
+		$__WEBVIEW2_INSTANCE_MENU_ITEM_POINTER, _
+		$__WEBVIEW2_INSTANCE_MENU_ITEM_TOKEN, _
+		$__WEBVIEW2_INSTANCE_MENU_ITEM_CALLBACK, _
+		$__WEBVIEW2_INSTANCE_MENU_ITEM_CONTEXT, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -88,6 +96,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 
 #include "WebView2_Authentication.au3"
 #include "WebView2_Process.au3"
+#include "WebView2_ContextMenu.au3"
 #include "WebView2_Permission.au3"
 #include "WebView2_ScriptDialog.au3"
 #include "WebView2_Frame.au3"
@@ -1557,6 +1566,9 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |CONTAINS_FULLSCREEN_ELEMENT_CHANGED - Called with ($iWebView, $bContainsFullScreenElement).
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
 ;                  |                                 Observe responses only; do not call blocking WebView2 helpers here.
+;                  |CONTEXT_MENU_REQUESTED - Called with ($iWebView, $aContext).
+;                  |Return True to suppress, [caption, selectionCallback] to append a command, or Default to leave the native menu intact.
+;                  |The selection callback receives ($iWebView, $aContext). Both callbacks must return promptly.
 ;                  |PROCESS_FAILED - Called with ($iWebView, $iKind, $vReason, $vExitCode, $vDescription).
 ;                  |Additional fields are Null if unavailable. Read details in the callback and schedule recovery outside it.
 ;                  |BASIC_AUTHENTICATION_REQUESTED - Called with ($iWebView, $iRequest, $sURI, $sChallenge).
@@ -1596,6 +1608,12 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 		EndIf
 
 		Switch $iEvent
+			Case $WEBVIEW2_EVENT_CONTEXT_MENU_REQUESTED
+				$sMessage = "Could not subscribe to ContextMenuRequested."
+				$__WebView2ExitValue = __WebView2_ContextMenu_Subscribe($iWebView, $fnCallback)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop
 			Case $WEBVIEW2_EVENT_PROCESS_FAILED
 				$__WebView2ExitValue = __WebView2_ProcessFailed_Subscribe($iWebView, $fnCallback)
 				$__WebView2ExitError = @error
@@ -3371,6 +3389,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 	__WebView2_NewWindow_CancelForSource($iSlot)
 	__WebView2_Permission_CancelForView($iSlot)
 	__WebView2_ScriptDialog_CancelForView($iSlot)
+	__WebView2_ContextMenu_Cleanup($iSlot)
 	__WebView2_ProcessFailed_Unsubscribe($iSlot)
 	__WebView2_Authentication_Cleanup($iSlot)
 

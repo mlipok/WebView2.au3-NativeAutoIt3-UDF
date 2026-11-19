@@ -1,5 +1,24 @@
 # WebView2.au3 public API — v0.6.0
 
+## Native context menus
+
+Register `_WebView2_SetCallback($iView, $WEBVIEW2_EVENT_CONTEXT_MENU_REQUESTED, _OnMenu)` to inspect native context-menu requests for one view. Registration requires `ICoreWebView2_11`. Keep the view's default context menus enabled when using this event.
+
+The request callback receives `($iView, $aContext)`. The copied array has these indices:
+
+| Index constant | Value |
+| --- | --- |
+| `$WEBVIEW2_CONTEXT_MENU_KIND` | Native target kind. Compare with the `$WEBVIEW2_CONTEXT_MENU_TARGET_*` constants. |
+| `$WEBVIEW2_CONTEXT_MENU_X`, `$WEBVIEW2_CONTEXT_MENU_Y` | Runtime coordinates relative to the WebView bounds. |
+| `$WEBVIEW2_CONTEXT_MENU_PAGE_URI`, `$WEBVIEW2_CONTEXT_MENU_FRAME_URI` | Document and child-frame URIs. The frame URI is empty for the main frame. |
+| `$WEBVIEW2_CONTEXT_MENU_LINK_URI` | Link destination, if available. A linked image can have a link URI too. |
+| `$WEBVIEW2_CONTEXT_MENU_SELECTION_TEXT` | Selected text, if available. |
+| `$WEBVIEW2_CONTEXT_MENU_MAIN_FRAME` | Boolean main-frame flag. |
+
+Return `Default` or `False` to keep the native menu, `True` to suppress it for this request, or `[caption, selectionCallback]` to append one native command through `ICoreWebView2Environment9`. Invalid descriptors and failed insertions leave the standard menu available. WebView2 calls `selectionCallback($iView, $aContext)` only when the custom command is selected. It receives the copied context from that request. Check the page URI, frame and link destination before enabling an application command. Keep callbacks brief and queue GUI or blocking work for the main loop.
+
+This API supports one appended command per request. See [example 052](../examples/052_ContextMenu.au3) and [Microsoft's context-menu event](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_11#add_contextmenurequested).
+
 ## Native process diagnostics
 
 Register `_WebView2_SetCallback($iView, $WEBVIEW2_EVENT_PROCESS_FAILED, _OnProcessFailed)` for an individual view. The callback receives `($iView, $iKind, $vReason, $vExitCode, $vDescription)`. Compare the kind and reason with the `$WEBVIEW2_PROCESS_FAILED_KIND_*` and `$WEBVIEW2_PROCESS_FAILED_REASON_*` constants. The optional fields are `Null` when the Runtime cannot provide them. A successfully read description may be empty.

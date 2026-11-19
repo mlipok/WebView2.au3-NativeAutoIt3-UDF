@@ -1,3 +1,9 @@
+# 2026-11-19: NET-03 native context menus and example 052
+
+- Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the UDF and example 052. Project structure validation passed.
+- Hidden x86/x64 runs loaded the offline demo page and registered the callback. Targeted interactive x86/x64 probes verified native command insertion and selection and showed that the callback received the original link address.
+- Older Runtime versions were outside the verification scope.
+
 # 2026-11-19: NET-02 native process diagnostics and example 051
 
 - Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 051. Project structure validation passed.

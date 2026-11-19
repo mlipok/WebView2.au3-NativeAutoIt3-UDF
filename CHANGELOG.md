@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can inspect WebView2 context-menu requests, suppress the menu for a request or add a custom command. Example 052 demonstrates copying a link address from the native menu.
+
 - Added native WebView2 process-failure notifications and failure-report directory readback. Example 051 shows how to diagnose a renderer failure and restore the demo page.
 
 - Applications can now provide credentials, cancel, or defer native HTTP authentication requests. Example 050 demonstrates automatic login, a credential dialog, cancellation and timeouts against a local demonstration server.

@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 052_ContextMenu.au3
+
+[Example 052](../examples/052_ContextMenu.au3) uses an isolated profile and an offline page mapped to `https://udf-virtual-host.example/index.html`. Right-click either sample link and select **Copy link address** at the bottom of the native WebView2 menu. Paste into a text editor to check whether the address ends in `#first` or `#second`. Right-click ordinary text to see the standard menu without the additional command, or select text first to see it in the AutoIt log. Press Escape to dismiss the menu without changing the clipboard. Use **Reload test page** to repeat. Native custom command insertion and selection were verified on x86 and x64.
+
 ## 051_ProcessFailed.au3
 
 [Example 051](../examples/051_ProcessFailed.au3) uses a separate temporary profile and an offline demo page. Click **Read report folder** to log the native diagnostics path. Click **Crash demo renderer** and wait for `RenderProcessExited` with reason, exit code and description when available. Click **Restore demo page** to navigate back and confirm that the demo heading returns. The hidden `--smoke` mode verified the native event and recovery on x86 and x64.
