@@ -133,16 +133,16 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Controller = _
 		(@AutoItX64 ? "put_Bounds hresult(struct*);" : "put_Bounds hresult(struct);") & _
 		"get_ZoomFactor hresult(double*);" & _
 		"put_ZoomFactor hresult(double);" & _
-		"add_ZoomFactorChanged hresult();" & _
-		"remove_ZoomFactorChanged hresult();" & _
+		"add_ZoomFactorChanged hresult(ptr;struct*);" & _
+		"remove_ZoomFactorChanged hresult(int64);" & _
 		"SetBoundsAndZoomFactor hresult();" & _
 		"MoveFocus hresult(int);" & _
 		"add_MoveFocusRequested hresult();" & _
 		"remove_MoveFocusRequested hresult();" & _
-		"add_GotFocus hresult();" & _
-		"remove_GotFocus hresult();" & _
-		"add_LostFocus hresult();" & _
-		"remove_LostFocus hresult();" & _
+		"add_GotFocus hresult(ptr;struct*);" & _
+		"remove_GotFocus hresult(int64);" & _
+		"add_LostFocus hresult(ptr;struct*);" & _
+		"remove_LostFocus hresult(int64);" & _
 		"add_AcceleratorKeyPressed hresult(ptr;struct*);" & _
 		"remove_AcceleratorKeyPressed hresult(int64);" & _
 		"get_ParentWindow hresult(hwnd*);" & _
@@ -166,8 +166,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"remove_NavigationStarting hresult(int64);" & _
 		"add_ContentLoading hresult();" & _
 		"remove_ContentLoading hresult();" & _
-		"add_SourceChanged hresult();" & _
-		"remove_SourceChanged hresult();" & _
+		"add_SourceChanged hresult(ptr;struct*);" & _
+		"remove_SourceChanged hresult(int64);" & _
 		"add_HistoryChanged hresult();" & _
 		"remove_HistoryChanged hresult();" & _
 		"add_NavigationCompleted hresult(ptr;struct*);" & _
@@ -530,3 +530,6 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2ContextMenuItem = _
 		"add_CustomItemSelected hresult(ptr;struct*);remove_CustomItemSelected hresult(int64);"
 Global Const $WEBVIEW2_DTAG_ICoreWebView2ContextMenuItemCollection = _
 		"get_Count hresult(uint*);GetValueAtIndex hresult();RemoveValueAtIndex hresult();InsertValueAtIndex hresult(uint;ptr);"
+
+Global Const $WEBVIEW2_IID_ICoreWebView2SourceChangedEventArgs = "{31E0E545-1DBA-4266-8914-F63848A1F7D7}"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2SourceChangedEventArgs = "get_IsNewDocument hresult(int*);"

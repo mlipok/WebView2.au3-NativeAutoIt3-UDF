@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Native WebView2 view events</title>
+<style>
+    body { margin: 2rem; color: #183046; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 46rem; }
+    label { display: block; margin: 1.25rem 0; }
+    input { margin-left: .35rem; padding: .3rem .45rem; font: inherit; }
+    #sample { padding: .75rem 1rem; background: #e7f1fa; }
+    #sample:target { outline: 2px solid #275e88; }
+</style>
+</head>
+<body>
+<main>
+    <h1>Native WebView2 view events</h1>
+    <p><a href="#sample">Jump to sample</a> changes the address within this document.</p>
+    <label>WebView2 focus field <input id="web-focus" type="text" autocomplete="off"></label>
+    <p id="sample">Hold Ctrl and scroll the mouse wheel over this panel to change the browser zoom.</p>
+</main>
+</body>
+</html>

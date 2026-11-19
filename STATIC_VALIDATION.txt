@@ -1,3 +1,10 @@
+# 2026-11-20: NET-04 native source, zoom and focus events
+
+- Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 053. Project structure validation passed.
+- Hidden x86 and x64 runs verified new-document navigation, same-document fragment changes, going back and callback replacement without duplicate notifications.
+- Targeted x86 and x64 runs observed native zoom changes to 110% and 125% and both focus transitions between AutoIt and WebView2.
+- Older Runtime versions were outside the verification scope.
+
 # 2026-11-19: NET-03 native context menus and example 052
 
 - Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the UDF and example 052. Project structure validation passed.

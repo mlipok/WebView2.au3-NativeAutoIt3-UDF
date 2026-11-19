@@ -97,6 +97,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 #include "WebView2_Authentication.au3"
 #include "WebView2_Process.au3"
 #include "WebView2_ContextMenu.au3"
+#include "WebView2_ViewEvents.au3"
 #include "WebView2_Permission.au3"
 #include "WebView2_ScriptDialog.au3"
 #include "WebView2_Frame.au3"
@@ -1566,6 +1567,9 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |CONTAINS_FULLSCREEN_ELEMENT_CHANGED - Called with ($iWebView, $bContainsFullScreenElement).
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
 ;                  |                                 Observe responses only; do not call blocking WebView2 helpers here.
+;                  |SOURCE_CHANGED - Called with ($iWebView, $sURI, $bIsNewDocument).
+;                  |ZOOM_FACTOR_CHANGED - Called with ($iWebView, $fZoomFactor).
+;                  |GOT_FOCUS / LOST_FOCUS - Called with ($iWebView) when the controller gains or loses focus.
 ;                  |CONTEXT_MENU_REQUESTED - Called with ($iWebView, $aContext).
 ;                  |Return True to suppress, [caption, selectionCallback] to append a command, or Default to leave the native menu intact.
 ;                  |The selection callback receives ($iWebView, $aContext). Both callbacks must return promptly.
@@ -1608,6 +1612,12 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 		EndIf
 
 		Switch $iEvent
+			Case $WEBVIEW2_EVENT_SOURCE_CHANGED To $WEBVIEW2_EVENT_LOST_FOCUS
+				$sMessage = "Could not subscribe to the native view event."
+				$__WebView2ExitValue = __WebView2_ViewEvents_Subscribe($iWebView, $iEvent, $fnCallback)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop
 			Case $WEBVIEW2_EVENT_CONTEXT_MENU_REQUESTED
 				$sMessage = "Could not subscribe to ContextMenuRequested."
 				$__WebView2ExitValue = __WebView2_ContextMenu_Subscribe($iWebView, $fnCallback)
@@ -3389,6 +3399,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 	__WebView2_NewWindow_CancelForSource($iSlot)
 	__WebView2_Permission_CancelForView($iSlot)
 	__WebView2_ScriptDialog_CancelForView($iSlot)
+	__WebView2_ViewEvents_Cleanup($iSlot)
 	__WebView2_ContextMenu_Cleanup($iSlot)
 	__WebView2_ProcessFailed_Unsubscribe($iSlot)
 	__WebView2_Authentication_Cleanup($iSlot)
