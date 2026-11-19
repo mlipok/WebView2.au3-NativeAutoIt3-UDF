@@ -95,7 +95,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment = _
 		"remove_NewBrowserVersionAvailable hresult();"
 
 ; Environment2 through Environment11 add 16 methods before Environment12.
-Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment11 = $WEBVIEW2_DTAG_ICoreWebView2Environment & _
+Global Const $WEBVIEW2_IID_ICoreWebView2Environment9 = "{F06F41BF-4B5A-49D8-B9F6-FA16CD29F274}"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment9 = $WEBVIEW2_DTAG_ICoreWebView2Environment & _
 		"CreateWebResourceRequest hresult();" & _
 		"CreateCoreWebView2CompositionController hresult();" & _
 		"CreateCoreWebView2PointerInfo hresult();" & _
@@ -107,7 +108,9 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment11 = $WEBVIEW2_DTAG_ICoreWeb
 		"add_ProcessInfosChanged hresult();" & _
 		"remove_ProcessInfosChanged hresult();" & _
 		"GetProcessInfos hresult();" & _
-		"CreateContextMenuItem hresult();" & _
+		"CreateContextMenuItem hresult(wstr;ptr;int;ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment11 = $WEBVIEW2_DTAG_ICoreWebView2Environment9 & _
 		"CreateCoreWebView2ControllerOptions hresult();" & _
 		"CreateCoreWebView2ControllerWithOptions hresult();" & _
 		"CreateCoreWebView2CompositionControllerWithOptions hresult();" & _
@@ -503,3 +506,27 @@ Global Const $WEBVIEW2_IID_ICoreWebView2ProcessFailedEventArgs2 = "{4DAB9422-46F
 Global Const $WEBVIEW2_DTAG_ICoreWebView2ProcessFailedEventArgs = "get_ProcessFailedKind hresult(int*);"
 Global Const $WEBVIEW2_DTAG_ICoreWebView2ProcessFailedEventArgs2 = $WEBVIEW2_DTAG_ICoreWebView2ProcessFailedEventArgs & _
 		"get_Reason hresult(int*);get_ExitCode hresult(int*);get_ProcessDescription hresult(ptr*);get_FrameInfosForFailedProcess hresult(ptr*);"
+
+Global Const $WEBVIEW2_IID_ICoreWebView2_11 = "{0BE78E56-C193-4051-B943-23B460C08BDB}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ContextMenuRequestedEventArgs = "{A1D309EE-C03F-11EB-8529-0242AC130003}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ContextMenuTarget = "{B8611D99-EED6-4F3F-902C-A198502AD472}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ContextMenuItem = "{7AED49E3-A93F-497A-811C-749C6B6B6C65}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ContextMenuItemCollection = "{F562A2F5-C415-45CF-B909-D4B7C1E276D3}"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_11 = $WEBVIEW2_DTAG_ICoreWebView2_10 & _
+		"CallDevToolsProtocolMethodForSession hresult();" & _
+		"add_ContextMenuRequested hresult(ptr;struct*);remove_ContextMenuRequested hresult(int64);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ContextMenuRequestedEventArgs = _
+		"get_MenuItems hresult(ptr*);get_ContextMenuTarget hresult(ptr*);get_Location hresult(struct*);" & _
+		"put_SelectedCommandId hresult();get_SelectedCommandId hresult();put_Handled hresult(int);get_Handled hresult();GetDeferral hresult();"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ContextMenuTarget = _
+		"get_Kind hresult(int*);get_IsEditable hresult();get_IsRequestedForMainFrame hresult(int*);" & _
+		"get_PageUri hresult(ptr*);get_FrameUri hresult(ptr*);get_HasLinkUri hresult(int*);get_LinkUri hresult(ptr*);" & _
+		"get_HasLinkText hresult();get_LinkText hresult();get_HasSourceUri hresult();get_SourceUri hresult();" & _
+		"get_HasSelection hresult(int*);get_SelectionText hresult(ptr*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ContextMenuItem = _
+		"get_Name hresult();get_Label hresult();get_CommandId hresult();get_ShortcutKeyDescription hresult();" & _
+		"get_Icon hresult();get_Kind hresult();put_IsEnabled hresult(int);get_IsEnabled hresult();" & _
+		"put_IsChecked hresult();get_IsChecked hresult();get_Children hresult();" & _
+		"add_CustomItemSelected hresult(ptr;struct*);remove_CustomItemSelected hresult(int64);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ContextMenuItemCollection = _
+		"get_Count hresult(uint*);GetValueAtIndex hresult();RemoveValueAtIndex hresult();InsertValueAtIndex hresult(uint;ptr);"
