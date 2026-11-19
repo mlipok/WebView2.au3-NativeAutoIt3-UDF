@@ -10,6 +10,7 @@
 ; ===============================================================================================================================
 
 Global Const $WEBVIEW2_IID_ICoreWebView2Environment = "{B96D755E-0319-4E92-A296-23436F46A1FC}"
+Global Const $WEBVIEW2_IID_ICoreWebView2Environment11 = "{F0913DC6-A0EC-42EF-9805-91DFF3A2966A}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Environment12 = "{F503DB9B-739F-48DD-B151-FDFCF253F54E}"
 Global Const $WEBVIEW2_IID_ICoreWebView2SharedBuffer = "{B747A495-0C6F-449E-97B8-2F81E9D6AB43}"
 Global Const $WEBVIEW2_IID_ICoreWebView2Controller = "{4D00C0D1-9434-4EB6-8078-8697A560334F}"
@@ -94,7 +95,7 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment = _
 		"remove_NewBrowserVersionAvailable hresult();"
 
 ; Environment2 through Environment11 add 16 methods before Environment12.
-Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment12 = $WEBVIEW2_DTAG_ICoreWebView2Environment & _
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment11 = $WEBVIEW2_DTAG_ICoreWebView2Environment & _
 		"CreateWebResourceRequest hresult();" & _
 		"CreateCoreWebView2CompositionController hresult();" & _
 		"CreateCoreWebView2PointerInfo hresult();" & _
@@ -110,7 +111,9 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment12 = $WEBVIEW2_DTAG_ICoreWeb
 		"CreateCoreWebView2ControllerOptions hresult();" & _
 		"CreateCoreWebView2ControllerWithOptions hresult();" & _
 		"CreateCoreWebView2CompositionControllerWithOptions hresult();" & _
-		"get_FailureReportFolderPath hresult();" & _
+		"get_FailureReportFolderPath hresult(ptr*);"
+
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Environment12 = $WEBVIEW2_DTAG_ICoreWebView2Environment11 & _
 		"CreateSharedBuffer hresult(uint64;ptr*);"
 
 Global Const $WEBVIEW2_DTAG_ICoreWebView2SharedBuffer = _
@@ -174,8 +177,8 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2 = _
 		"remove_ScriptDialogOpening hresult(int64);" & _
 		"add_PermissionRequested hresult(ptr;struct*);" & _
 		"remove_PermissionRequested hresult(int64);" & _
-		"add_ProcessFailed hresult();" & _
-		"remove_ProcessFailed hresult();" & _
+		"add_ProcessFailed hresult(ptr;struct*);" & _
+		"remove_ProcessFailed hresult(int64);" & _
 		"AddScriptToExecuteOnDocumentCreated hresult(wstr;ptr);" & _
 		"RemoveScriptToExecuteOnDocumentCreated hresult(wstr);" & _
 		"ExecuteScript hresult(wstr;ptr);" & _
@@ -494,3 +497,9 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2BasicAuthenticationRequestedEventArgs =
 		"get_Cancel hresult(int*);put_Cancel hresult(int);GetDeferral hresult(ptr*);"
 Global Const $WEBVIEW2_DTAG_ICoreWebView2BasicAuthenticationResponse = _
 		"get_UserName hresult(ptr*);put_UserName hresult(wstr);get_Password hresult(ptr*);put_Password hresult(wstr);"
+
+Global Const $WEBVIEW2_IID_ICoreWebView2ProcessFailedEventArgs = "{8155A9A4-1474-4A86-8CAE-151B0FA6B8CA}"
+Global Const $WEBVIEW2_IID_ICoreWebView2ProcessFailedEventArgs2 = "{4DAB9422-46FA-4C3E-A5D2-41D2071D3680}"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ProcessFailedEventArgs = "get_ProcessFailedKind hresult(int*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2ProcessFailedEventArgs2 = $WEBVIEW2_DTAG_ICoreWebView2ProcessFailedEventArgs & _
+		"get_Reason hresult(int*);get_ExitCode hresult(int*);get_ProcessDescription hresult(ptr*);get_FrameInfosForFailedProcess hresult(ptr*);"

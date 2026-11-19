@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 051_ProcessFailed.au3
+
+[Example 051](../examples/051_ProcessFailed.au3) uses a separate temporary profile and an offline demo page. Click **Read report folder** to log the native diagnostics path. Click **Crash demo renderer** and wait for `RenderProcessExited` with reason, exit code and description when available. Click **Restore demo page** to navigate back and confirm that the demo heading returns. The hidden `--smoke` mode verified the native event and recovery on x86 and x64.
+
 ## 050_HttpAuthentication.au3
 
 [Example 050](../examples/050_HttpAuthentication.au3) demonstrates native HTTP authentication against an AutoIt loopback server. It offers **[Automatic login]**, **[Ask for credentials]**, **[Cancel authentication]**, **[Timeout (5 s)]**, **[Wrong password]** and **[Leave page]**. The credential window is AutoIt-owned and answers a native deferral. Each test uses a fresh port and realm to avoid cached authentication. The example is offline and includes no external server dependency. x86/x64 hidden smoke checks passed; visible popup/layout behavior remains WIP. See [the complete test guide](HTTP_AUTHENTICATION_EXAMPLE.md).

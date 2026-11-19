@@ -1,5 +1,13 @@
 # WebView2.au3 public API — v0.6.0
 
+## Native process diagnostics
+
+Register `_WebView2_SetCallback($iView, $WEBVIEW2_EVENT_PROCESS_FAILED, _OnProcessFailed)` for an individual view. The callback receives `($iView, $iKind, $vReason, $vExitCode, $vDescription)`. Compare the kind and reason with the `$WEBVIEW2_PROCESS_FAILED_KIND_*` and `$WEBVIEW2_PROCESS_FAILED_REASON_*` constants. The optional fields are `Null` when the Runtime cannot provide them. A successfully read description may be empty.
+
+`_WebView2_GetFailureReportFolderPath()` reads the diagnostic directory of the active environment via `ICoreWebView2Environment11`. On failure it returns an empty string and sets `@error`, with the native HRESULT in `@extended` when available. The directory may contain older reports or no dump for the current event.
+
+Schedule recovery after the callback returns. A top-level renderer exit can often be recovered by navigating again. A browser process exit requires recreating the affected WebViews. See [example 051](../examples/051_ProcessFailed.au3) and [Microsoft's process-related events guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/process-related-events).
+
 ## Native HTTP authentication
 
 Register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_BASIC_AUTHENTICATION_REQUESTED, $fnCallback)` before protected navigation. The optional native subscription uses `ICoreWebView2_10`; unsupported Runtimes return a query error/HRESULT. Existing views without this subscription keep normal Runtime behavior.

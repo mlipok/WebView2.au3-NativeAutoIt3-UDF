@@ -1,3 +1,9 @@
+# 2026-11-19: NET-02 native process diagnostics and example 051
+
+- Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 051. Project structure validation passed.
+- Hidden AutoIt x86 and x64 runs read the native report directory, observed RenderProcessExited with reason Crashed, and restored the local demo page. The Runtime returned an empty process description.
+- Dump creation, other process failure kinds and older Runtime versions remain unverified.
+
 # 2026-11-19: NET-01 native HTTP authentication and example 050
 
 - Tidy completed for the changed AutoIt sources and reported eight relative-include lookup warnings for example 050. Au3Check 3.3.18.0 resolved the includes and reported 0 errors and 0 warnings for the public entry point and example 050. Project structure validation passed.
