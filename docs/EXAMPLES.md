@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 050_HttpAuthentication.au3
+
+[Example 050](../examples/050_HttpAuthentication.au3) demonstrates native HTTP authentication against an AutoIt loopback server. It offers **[Automatic login]**, **[Ask for credentials]**, **[Cancel authentication]**, **[Timeout (5 s)]**, **[Wrong password]** and **[Leave page]**. The credential window is AutoIt-owned and answers a native deferral. Each test uses a fresh port and realm to avoid cached authentication. The example is offline and includes no external server dependency. x86/x64 hidden smoke checks passed; visible popup/layout behavior remains WIP. See [the complete test guide](HTTP_AUTHENTICATION_EXAMPLE.md).
+
 ## 049_PdfToolbar.au3
 
 [Example 049](../examples/049_PdfToolbar.au3) tests the native PDF viewer toolbar with 13 independent checkboxes. Checked means hidden: choose items, then click **[Apply and reload]**. The log records the requested mask and immediate native readback, then a new PDF navigation applies the setting. **[Read native value]** reads without navigation. **[Restore all items]** clears the mask and navigates again. The yellow guide explains expected results, profile scope and the difference from PDF.js. The separate WebView-only host avoids native-control overlay artifacts.

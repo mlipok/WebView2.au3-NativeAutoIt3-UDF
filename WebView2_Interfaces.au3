@@ -478,3 +478,19 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2WebMessageReceivedEventArgs = _
 		"get_Source hresult(ptr*);" & _
 		"get_WebMessageAsJson hresult(ptr*);" & _
 		"TryGetWebMessageAsString hresult(ptr*);"
+
+Global Const $WEBVIEW2_IID_ICoreWebView2_10 = "{B1690564-6F5A-4983-8E48-31D1143FECDB}"
+Global Const $WEBVIEW2_IID_ICoreWebView2BasicAuthenticationRequestedEventArgs = "{EF05516F-D897-4F9E-B672-D8E2307A3FB0}"
+Global Const $WEBVIEW2_IID_ICoreWebView2BasicAuthenticationResponse = "{07023F7D-2D77-4D67-9040-6E7D428C6A40}"
+; Inherit _9's nine entries in exact SDK vtable order before _10's authentication methods.
+Global Const $WEBVIEW2_DTAG_ICoreWebView2_10 = $WEBVIEW2_DTAG_ICoreWebView2_8 & _
+		"add_IsDefaultDownloadDialogOpenChanged hresult();remove_IsDefaultDownloadDialogOpenChanged hresult();" & _
+		"get_IsDefaultDownloadDialogOpen hresult();OpenDefaultDownloadDialog hresult();CloseDefaultDownloadDialog hresult();" & _
+		"get_DefaultDownloadDialogCornerAlignment hresult();put_DefaultDownloadDialogCornerAlignment hresult();" & _
+		"get_DefaultDownloadDialogMargin hresult();put_DefaultDownloadDialogMargin hresult();" & _
+		"add_BasicAuthenticationRequested hresult(ptr;struct*);remove_BasicAuthenticationRequested hresult(int64);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2BasicAuthenticationRequestedEventArgs = _
+		"get_Uri hresult(ptr*);get_Challenge hresult(ptr*);get_Response hresult(ptr*);" & _
+		"get_Cancel hresult(int*);put_Cancel hresult(int);GetDeferral hresult(ptr*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2BasicAuthenticationResponse = _
+		"get_UserName hresult(ptr*);put_UserName hresult(wstr);get_Password hresult(ptr*);put_Password hresult(wstr);"

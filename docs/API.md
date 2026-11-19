@@ -1,5 +1,21 @@
 # WebView2.au3 public API — v0.6.0
 
+## Native HTTP authentication
+
+Register `_WebView2_SetCallback($iWebView, $WEBVIEW2_EVENT_BASIC_AUTHENTICATION_REQUESTED, $fnCallback)` before protected navigation. The optional native subscription uses `ICoreWebView2_10`; unsupported Runtimes return a query error/HRESULT. Existing views without this subscription keep normal Runtime behavior.
+
+The callback receives `($iWebView, $iRequest, $sURI, $sChallenge)`. Return a one-dimensional two-string `[user, password]` array to supply credentials, `$WEBVIEW2_AUTH_CANCEL` to cancel, or `$WEBVIEW2_AUTH_DEFER` to answer later. Invalid return values and callback errors cancel the request; the UDF does not fall back to an unexpected default credential dialog. Do not show modal UI or run blocking WebView2 calls inside the callback. Queue UI creation for the main AutoIt loop.
+
+- `_WebView2_Authentication_Request_List($iWebView = -1)` returns a 2D array: `[0][0]` is the count; rows 1..count have request ID, owning view, requesting URI and challenge. `-1` lists all owners. No credentials or native pointers are exposed. Invalid filters return 0 with `INVALID_PARAMETER` or `INVALID_INSTANCE` in `@error`.
+- `_WebView2_Authentication_Request_Respond($iRequest, $sUser = "", $sPassword = "", $bCancel = False)` completes a pending request. Credentials must be strings of at most 4096 characters each without embedded NUL; both strings empty is rejected. `True` in `$bCancel` ignores credential parameters. Success means native completion, not server acceptance. Failure returns False with `INVALID_PARAMETER`, `NO_MATCH`, or `HRESULT`; `@extended` contains a native HRESULT when applicable. Invalid input leaves the request pending; an attempted native response consumes it even if native completion fails.
+- `_WebView2_Authentication_Request_Expire($iTimeoutMs = 30000)` cancels overdue requests and returns their consumed count. Call it from the host loop; no background timer is installed. A nonpositive/noninteger timeout sets `INVALID_PARAMETER`; native completion failure sets `HRESULT` and the first HRESULT in `@extended`.
+
+The process-wide registry holds at most 32 native deferrals. IDs increase monotonically and become invalid after response, expiration, a new top-level navigation, view destruction or cleanup. If the registry or a deferral is unavailable, the registered handler cancels the request. Expiration is an explicit host policy; do not leave deferred requests unpolled. The registry stores metadata and retained event/deferral objects, not credential strings. WebView2 may cache credentials; the API does not promise secure memory erasure or automatic credential persistence.
+
+Validate the actual requesting URI/challenge before providing credentials; a proxy challenge can identify the proxy URI rather than the page URI. Use HTTPS for real remote Basic authentication. This feature is separate from HTML login forms and Windows-account SSO. The native event also documents other authentication schemes, but the example tests Basic only; proxy/Digest/NTLM are not certified by these tests.
+
+See [example 050](../examples/050_HttpAuthentication.au3), [its guide](HTTP_AUTHENTICATION_EXAMPLE.md) and [Microsoft's authentication event](https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2_10).
+
 ## Native PDF toolbar visibility
 
 `_WebView2_SetHiddenPdfToolbarItems($iWebView, $iItems = 0)` hides the selected native PDF toolbar controls. Combine `$WEBVIEW2_PDF_TOOLBAR_ITEMS_*` flags with `BitOR`. Zero (`NONE`) restores default controls; `ALL` combines the 13 defined flags. The setter accepts integers from 0 through `0x1FFF` and returns `True` on success. `_WebView2_GetHiddenPdfToolbarItems($iWebView)` reads the actual native bitmask; zero is also a valid success value, so check `@error` immediately.
