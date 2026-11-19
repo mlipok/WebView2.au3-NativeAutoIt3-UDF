@@ -54,6 +54,8 @@ Global Enum _
 		$__WEBVIEW2_INSTANCE_AUTH_CALLBACK, _
 		$__WEBVIEW2_INSTANCE_AUTH_CORE, _
 		$__WEBVIEW2_INSTANCE_AUTH_TOKEN, _
+		$__WEBVIEW2_INSTANCE_PROCESS_FAILED_CALLBACK, _
+		$__WEBVIEW2_INSTANCE_PROCESS_FAILED_TOKEN, _
 		$__WEBVIEW2_INSTANCE_FIELDS
 
 Global $__g_aWebView2_Instances[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_INSTANCE_FIELDS]
@@ -85,6 +87,7 @@ Global $__g_aWebView2_Tabs[$WEBVIEW2_MAX_INSTANCES]
 Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;lparam lParam;dword time;long X;long Y;dword lPrivate;endstruct"
 
 #include "WebView2_Authentication.au3"
+#include "WebView2_Process.au3"
 #include "WebView2_Permission.au3"
 #include "WebView2_ScriptDialog.au3"
 #include "WebView2_Frame.au3"
@@ -1554,6 +1557,8 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  |CONTAINS_FULLSCREEN_ELEMENT_CHANGED - Called with ($iWebView, $bContainsFullScreenElement).
 ;                  |WEB_RESOURCE_RESPONSE_RECEIVED - Called with ($iWebView, $sURI, $sMethod, $iStatusCode, $sReasonPhrase).
 ;                  |                                 Observe responses only; do not call blocking WebView2 helpers here.
+;                  |PROCESS_FAILED - Called with ($iWebView, $iKind, $vReason, $vExitCode, $vDescription).
+;                  |Additional fields are Null if unavailable. Read details in the callback and schedule recovery outside it.
 ;                  |BASIC_AUTHENTICATION_REQUESTED - Called with ($iWebView, $iRequest, $sURI, $sChallenge).
 ;                  |Return a two-string [user, password] array, $WEBVIEW2_AUTH_CANCEL, or $WEBVIEW2_AUTH_DEFER.
 ;                  |Registered authentication callbacks fail closed on invalid return values; never block in a callback.
@@ -1591,6 +1596,11 @@ Func _WebView2_SetCallback($iWebView, $iEvent, $fnCallback)
 		EndIf
 
 		Switch $iEvent
+			Case $WEBVIEW2_EVENT_PROCESS_FAILED
+				$__WebView2ExitValue = __WebView2_ProcessFailed_Subscribe($iWebView, $fnCallback)
+				$__WebView2ExitError = @error
+				$__WebView2ExitExtended = @extended
+				ExitLoop
 			Case $WEBVIEW2_EVENT_BASIC_AUTHENTICATION_REQUESTED
 				$__WebView2ExitValue = __WebView2_Authentication_Subscribe($iWebView, $fnCallback)
 				$__WebView2ExitError = @error
@@ -3361,6 +3371,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 	__WebView2_NewWindow_CancelForSource($iSlot)
 	__WebView2_Permission_CancelForView($iSlot)
 	__WebView2_ScriptDialog_CancelForView($iSlot)
+	__WebView2_ProcessFailed_Unsubscribe($iSlot)
 	__WebView2_Authentication_Cleanup($iSlot)
 
 	__WebView2_Trace("DISPOSE 01 START slot=" & $iSlot)
