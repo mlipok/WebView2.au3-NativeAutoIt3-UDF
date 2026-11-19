@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can receive native notifications when WebView2 changes its address or zoom, or gains or loses focus. Example 053 logs all four events.
+
 - Applications can inspect WebView2 context-menu requests, suppress the menu for a request or add a custom command. Example 052 demonstrates copying a link address from the native menu.
 
 - Added native WebView2 process-failure notifications and failure-report directory readback. Example 051 shows how to diagnose a renderer failure and restore the demo page.

@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 053_NativeViewEvents.au3
+
+[Example 053](../examples/053_NativeViewEvents.au3) logs four native events from a local page. Click **Jump to sample** to see the URI change with `new document=False`. Compare **Open second document** and **Back**. Click the **WebView2 focus field** and then the **AutoIt focus field** to see focus enter and leave the controller. Hold Ctrl and scroll over the page to see the effective zoom factor. The example runs offline in its own temporary profile. Targeted x86 and x64 runs verified all four native event types.
+
 ## 052_ContextMenu.au3
 
 [Example 052](../examples/052_ContextMenu.au3) uses an isolated profile and an offline page mapped to `https://udf-virtual-host.example/index.html`. Right-click either sample link and select **Copy link address** at the bottom of the native WebView2 menu. Paste into a text editor to check whether the address ends in `#first` or `#second`. Right-click ordinary text to see the standard menu without the additional command, or select text first to see it in the AutoIt log. Press Escape to dismiss the menu without changing the clipboard. Use **Reload test page** to repeat. Native custom command insertion and selection were verified on x86 and x64.

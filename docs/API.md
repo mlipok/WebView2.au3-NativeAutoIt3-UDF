@@ -1,5 +1,20 @@
 # WebView2.au3 public API — v0.6.0
 
+## Native source, zoom, and focus events
+
+Register each event with `_WebView2_SetCallback($iView, $iEvent, $fnCallback)`. Re-registering the same event replaces its AutoIt callback. The UDF removes its native subscriptions before closing the view.
+
+| Event constant | Callback parameters | Meaning |
+| --- | --- | --- |
+| `$WEBVIEW2_EVENT_SOURCE_CHANGED` | `($iView, $sURI, $bIsNewDocument)` | Top-level source URI changed. The native flag is false for a same-document fragment navigation. |
+| `$WEBVIEW2_EVENT_ZOOM_FACTOR_CHANGED` | `($iView, $fZoomFactor)` | The controller reports a zoom change. A factor of 1.0 is 100%. |
+| `$WEBVIEW2_EVENT_GOT_FOCUS` | `($iView)` | Focus entered the WebView2 controller. |
+| `$WEBVIEW2_EVENT_LOST_FOCUS` | `($iView)` | Focus left the WebView2 controller. |
+
+Source changes and navigation completion are separate. For example, a reload of the same URI may complete without a source change. A direct `_WebView2_SetZoomFactor()` call updates the controller immediately and does not generate the native zoom event. Focus changes between elements inside WebView2 do not leave the controller. Keep callbacks brief and schedule blocking work outside them.
+
+See [example 053](../examples/053_NativeViewEvents.au3), [Microsoft's core events](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2#add_sourcechanged), and [controller events](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller).
+
 ## Native context menus
 
 Register `_WebView2_SetCallback($iView, $WEBVIEW2_EVENT_CONTEXT_MENU_REQUESTED, _OnMenu)` to inspect native context-menu requests for one view. Registration requires `ICoreWebView2_11`. Keep the view's default context menus enabled when using this event.
