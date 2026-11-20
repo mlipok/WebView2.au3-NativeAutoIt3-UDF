@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 056_ReactSpreadsheet.au3
+
+[Example 056](../examples/056_ReactSpreadsheet.au3) opens unencrypted XLS and XLSX workbooks in WebView2, lets you select a worksheet and edit cell values, and saves a separate copy in the input format. Follow the [example setup and licenses](../examples/assets/native/056-spreadsheet/README.md#set-up-the-offline-dependencies) to download React and ReactDOM (MIT) and SheetJS Community Edition (Apache 2.0). The example runs offline once the scripts are in the local vendor/ folder.
+
 ## 055_ProfileBrowsingData.au3
 
 [Example 055](../examples/055_ProfileBrowsingData.au3) uses one temporary WebView2 profile with two local origins. **Seed demo data** writes a cookie and a local-storage marker at each origin. **Clear cookies (recent)** supplies a UTC time range, and **Clear cookies (all time)** leaves it unspecified. **Clear local storage** clears only local storage. The log shows the native completion HRESULT followed by readback from both origins. **Read both origins** checks their current state. The sample works offline. Hidden x86 and x64 runs passed.

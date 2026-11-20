@@ -1,0 +1,46 @@
+:root {
+  font: 15px/1.45 "Segoe UI", sans-serif;
+  color: #142c2a;
+  background: #f1f5f2;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+button, select, input[type=text] {
+  border: 1px solid #a6b7b1;
+  border-radius: 5px;
+  padding: 6px 10px;
+  background: #fff;
+  color: inherit;
+}
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .5; }
+button:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid #087a63;
+  outline-offset: 2px;
+}
+button.primary { background: #146653; border-color: #146653; color: white; }
+.workspace { display: flex; flex-direction: column; height: 100vh; padding: 14px 18px; gap: 10px; }
+.toolbar, .editor, .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.toolbar { border-bottom: 1px solid #c6d2cb; padding-bottom: 10px; }
+.filename { overflow-wrap: anywhere; font-weight: 600; margin-right: 4px; }
+.editor label, .toolbar label:not([hidden]) { display: flex; align-items: center; gap: 5px; }
+.editor .value-field { flex: 1 1 200px; }
+.editor .value-field input { width: 100%; min-width: 80px; }
+.address { min-width: 6ch; color: #315750; font-family: Consolas, monospace; }
+.grid { flex: 1 1 auto; min-height: 0; overflow: auto; background: white; border: 1px solid #b7c8bf; }
+table { border-spacing: 0; table-layout: fixed; }
+th, td { border-right: 1px solid #d9e2de; border-bottom: 1px solid #d9e2de; padding: 0; }
+th { background: #e7eeea; font-weight: 600; padding: 4px 10px; text-align: center; }
+thead th { position: sticky; top: 0; z-index: 2; }
+tbody th { position: sticky; left: 0; z-index: 1; }
+thead th:first-child { left: 0; z-index: 3; min-width: 52px; }
+td button {
+  width: 140px; height: 30px; display: block; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; text-align: left; background: transparent; border: 0; border-radius: 0; padding: 3px 8px;
+}
+td button:focus-visible { outline-offset: -2px; }
+td button.selected { background: #dbf1e5; box-shadow: inset 0 0 0 2px #187461; }
+.status { min-height: 1.45em; margin: 0; }
+.empty { margin: auto; text-align: center; }
+.empty h1 { font-size: 1.6rem; margin: 0 0 6px; }
