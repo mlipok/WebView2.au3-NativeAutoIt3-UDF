@@ -106,6 +106,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 #include "WebView2_Download.au3"
 #include "WebView2_Response.au3"
 #include "WebView2_Extensions.au3"
+#include "WebView2_ProfileData.au3"
 #include "WebView2_Accelerator.au3"
 #include "WebView2_Background.au3"
 #include "WebView2_NewWindow.au3"
@@ -3401,6 +3402,7 @@ Func __WebView2_Instance_Dispose($iSlot)
 	__WebView2_NewWindow_CancelForSource($iSlot)
 	__WebView2_Permission_CancelForView($iSlot)
 	__WebView2_ScriptDialog_CancelForView($iSlot)
+	$__g_aWebView2_ProfileDataCallbacks[$iSlot] = Null
 	__WebView2_ViewEvents_Cleanup($iSlot)
 	__WebView2_ContextMenu_Cleanup($iSlot)
 	__WebView2_ProcessFailed_Unsubscribe($iSlot)

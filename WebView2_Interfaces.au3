@@ -543,3 +543,10 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2HttpRequestHeaders = _
 		"GetHeader hresult();GetHeaders hresult();Contains hresult();SetHeader hresult();RemoveHeader hresult();GetIterator hresult(ptr*);"
 Global Const $WEBVIEW2_DTAG_ICoreWebView2HttpHeadersCollectionIterator = _
 		"GetCurrentHeader hresult(ptr*;ptr*);get_HasCurrentHeader hresult(int*);MoveNext hresult(int*);"
+
+Global Const $WEBVIEW2_IID_ICoreWebView2Profile2 = "{FA740D4B-5EAE-4344-A8AD-74BE31925397}"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2Profile2 = _
+		"get_ProfileName hresult();get_IsInPrivateModeEnabled hresult();get_ProfilePath hresult();" & _
+		"get_DefaultDownloadFolderPath hresult();put_DefaultDownloadFolderPath hresult();" & _
+		"get_PreferredColorScheme hresult();put_PreferredColorScheme hresult();" & _
+		"ClearBrowsingData hresult(int;ptr);ClearBrowsingDataInTimeRange hresult(int;double;double;ptr);ClearBrowsingDataAll hresult();"

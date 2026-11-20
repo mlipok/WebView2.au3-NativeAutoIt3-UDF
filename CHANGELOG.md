@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can clear selected browsing data across a WebView2 profile, optionally for a UTC time range. Example 055 shows the operation result and remaining data at two origins.
+
 - Applications can read navigation IDs, kinds and request headers when a page or frame starts navigating. Example 054 shows the data in the operation log.
 
 - Fixed a crash when leaving a page containing a tracked iframe.

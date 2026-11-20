@@ -1,5 +1,15 @@
 # WebView2.au3 public API — v0.6.0
 
+## Profile-wide browsing data
+
+Call `_WebView2_ClearProfileBrowsingData($iView, $iKinds, $fnCallback[, $vStart = Default[, $vEnd = Default]])` to clear selected kinds in the profile used by a view. Combine `$WEBVIEW2_BROWSING_DATA_*` flags with `BitOR()`. For example, combine `COOKIES` and `LOCAL_STORAGE` to clear both. This affects all origins and other views sharing that profile. The existing `_WebView2_ClearBrowserData()` keeps its previous behavior.
+
+Omit both bounds to clear the selected kinds regardless of age. For a time range, pass both bounds as numeric UTC Unix seconds, including fractions if needed. The start is inclusive and the end is exclusive.
+
+A True return means WebView2 accepted the request. The asynchronous callback `($iView, $iHRESULT)` reports completion, with zero indicating success. A False return indicates a synchronous validation or start failure. Inspect `@error` and, for native HRESULT failures, `@extended`. One operation can be pending per initiating view. WebView2 may continue clearing after that view is closed, at which point its callback is discarded.
+
+Requires [ICoreWebView2Profile2](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2profile2). See [example 055](../examples/055_ProfileBrowsingData.au3) for an isolated two-origin demonstration.
+
 ## Navigation start metadata
 
 Inside an existing top-level or frame navigation-start callback, call `_WebView2_GetNavigationStartingMetadata($iView)` with the view ID supplied to that callback. The arguments and cancellation returns of `$WEBVIEW2_EVENT_NAVIGATION_STARTING` and `$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING` are unchanged.
