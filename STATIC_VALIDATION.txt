@@ -1,3 +1,9 @@
+# 2026-11-20: offline spreadsheet editor and example 056
+
+- Au3Check 3.3.18.0 reported 0 errors and 0 warnings. JavaScript syntax and project structure checks passed.
+- Hidden WebView2 tests with AutoIt x86 and x64 opened both workbook formats, switched sheets, paged rows and columns, edited and cleared cells, downloaded copies and reopened them. An x64 run verified that the existing destination was preserved.
+- BIFF8 readback verified that XLS export retains stored formula results and omits the formulas. The example warns before writing an affected copy.
+
 # 2026-11-20: NET-07 profile-wide browsing data and example 055
 
 - Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 055. Project structure validation passed.
