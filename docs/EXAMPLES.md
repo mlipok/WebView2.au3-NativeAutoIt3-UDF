@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 054_NavigationMetadata.au3
+
+[Example 054](../examples/054_NavigationMetadata.au3) logs the native ID, kind and request headers for top-level and frame navigation starts. Compare the top-level ID with `NavigationCompleted`. Click **Open second document**, **Reload**, and **Back** to see how the kind changes. **Block test navigation** demonstrates cancellation through the same callback. The local page and iframe work offline through virtual-host mapping. The log displays values for selected standard headers and masks all other values. Hidden tests passed on x86 and x64.
+
 ## 053_NativeViewEvents.au3
 
 [Example 053](../examples/053_NativeViewEvents.au3) logs four native events from a local page. Click **Jump to sample** to see the URI change with `new document=False`. Compare **Open second document** and **Back**. Click the **WebView2 focus field** and then the **AutoIt focus field** to see focus enter and leave the controller. Hold Ctrl and scroll over the page to see the effective zoom factor. The example runs offline in its own temporary profile. Targeted x86 and x64 runs verified all four native event types.

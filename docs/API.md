@@ -1,5 +1,21 @@
 # WebView2.au3 public API — v0.6.0
 
+## Navigation start metadata
+
+Inside an existing top-level or frame navigation-start callback, call `_WebView2_GetNavigationStartingMetadata($iView)` with the view ID supplied to that callback. The arguments and cancellation returns of `$WEBVIEW2_EVENT_NAVIGATION_STARTING` and `$WEBVIEW2_EVENT_FRAME_NAVIGATION_STARTING` are unchanged.
+
+The result is an AutoIt array with these fields:
+
+| Index constant | Value |
+| --- | --- |
+| `$WEBVIEW2_NAVIGATION_METADATA_ID` | Native navigation ID. Compare top-level IDs with the existing `NavigationCompleted` ID. |
+| `$WEBVIEW2_NAVIGATION_METADATA_KIND` | Native integer: `$WEBVIEW2_NAVIGATION_KIND_RELOAD`, `$WEBVIEW2_NAVIGATION_KIND_BACK_OR_FORWARD`, or `$WEBVIEW2_NAVIGATION_KIND_NEW_DOCUMENT`. Older Runtime versions may return `Null`. |
+| `$WEBVIEW2_NAVIGATION_METADATA_HEADERS` | Two-dimensional array of `[name, value]` rows in native iteration order. An empty array means that the Runtime supplied no rows. |
+
+An unavailable field is `Null`. The function returns `Null` with `$WEBVIEW2_ERR_INVALID_INSTANCE` for an invalid view or `$WEBVIEW2_ERR_NO_MATCH` when the specified view has no active navigation-start callback. The returned array can be retained after the callback. It is a read-only snapshot of the Runtime's event data and may differ from the complete request sent over the network.
+
+See [example 054](../examples/054_NavigationMetadata.au3), [navigation-start arguments](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2navigationstartingeventargs), and [the navigation kind interface](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2navigationstartingeventargs3).
+
 ## Native source, zoom, and focus events
 
 Register each event with `_WebView2_SetCallback($iView, $iEvent, $fnCallback)`. Re-registering the same event replaces its AutoIt callback. The UDF removes its native subscriptions before closing the view.

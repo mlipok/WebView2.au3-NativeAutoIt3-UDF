@@ -533,3 +533,13 @@ Global Const $WEBVIEW2_DTAG_ICoreWebView2ContextMenuItemCollection = _
 
 Global Const $WEBVIEW2_IID_ICoreWebView2SourceChangedEventArgs = "{31E0E545-1DBA-4266-8914-F63848A1F7D7}"
 Global Const $WEBVIEW2_DTAG_ICoreWebView2SourceChangedEventArgs = "get_IsNewDocument hresult(int*);"
+
+Global Const $WEBVIEW2_IID_ICoreWebView2NavigationStartingEventArgs3 = "{DDFFE494-4942-4BD2-AB73-35B8FF40E19F}"
+Global Const $WEBVIEW2_IID_ICoreWebView2HttpRequestHeaders = "{E86CAC0E-5523-465C-B536-8FB9FC8C8C60}"
+Global Const $WEBVIEW2_IID_ICoreWebView2HttpHeadersCollectionIterator = "{0702FC30-F43B-47BB-AB52-A42CB552AD9F}"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2NavigationStartingEventArgs3 = $WEBVIEW2_DTAG_ICoreWebView2NavigationStartingEventArgs & _
+		"get_AdditionalAllowedFrameAncestors hresult();put_AdditionalAllowedFrameAncestors hresult();get_NavigationKind hresult(int*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2HttpRequestHeaders = _
+		"GetHeader hresult();GetHeaders hresult();Contains hresult();SetHeader hresult();RemoveHeader hresult();GetIterator hresult(ptr*);"
+Global Const $WEBVIEW2_DTAG_ICoreWebView2HttpHeadersCollectionIterator = _
+		"GetCurrentHeader hresult(ptr*;ptr*);get_HasCurrentHeader hresult(int*);MoveNext hresult(int*);"
