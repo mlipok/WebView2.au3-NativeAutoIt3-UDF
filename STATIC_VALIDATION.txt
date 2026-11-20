@@ -1,3 +1,10 @@
+# 2026-11-20: NET-07 profile-wide browsing data and example 055
+
+- Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 055. Project structure validation passed.
+- Hidden x86 and x64 runs verified both time-range outcomes, selective all-time clearing, and combined cookie and local-storage clearing across two local origins.
+- Invalid masks, missing and equal time bounds, and overlapping requests from the same view were rejected.
+- Older Runtime versions, other data kinds and closing a view during a pending clear were outside the verification scope.
+
 # 2026-11-20: NET-06 native navigation start metadata and example 054
 
 - Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 054. Project structure validation passed.

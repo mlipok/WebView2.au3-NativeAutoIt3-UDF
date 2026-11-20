@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 055_ProfileBrowsingData.au3
+
+[Example 055](../examples/055_ProfileBrowsingData.au3) uses one temporary WebView2 profile with two local origins. **Seed demo data** writes a cookie and a local-storage marker at each origin. **Clear cookies (recent)** supplies a UTC time range, and **Clear cookies (all time)** leaves it unspecified. **Clear local storage** clears only local storage. The log shows the native completion HRESULT followed by readback from both origins. **Read both origins** checks their current state. The sample works offline. Hidden x86 and x64 runs passed.
+
 ## 054_NavigationMetadata.au3
 
 [Example 054](../examples/054_NavigationMetadata.au3) logs the native ID, kind and request headers for top-level and frame navigation starts. Compare the top-level ID with `NavigationCompleted`. Click **Open second document**, **Reload**, and **Back** to see how the kind changes. **Block test navigation** demonstrates cancellation through the same callback. The local page and iframe work offline through virtual-host mapping. The log displays values for selected standard headers and masks all other values. Hidden tests passed on x86 and x64.

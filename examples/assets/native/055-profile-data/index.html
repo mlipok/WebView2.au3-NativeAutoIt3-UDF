@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebView2 profile browsing data</title>
+<style>
+    body { margin: 2rem; color: #183046; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 46rem; }
+    output { display: block; background: #e7f1fa; padding: 1rem; }
+</style>
+</head>
+<body>
+<main>
+    <h1>Profile browsing data</h1>
+    <p id="origin"></p>
+    <output id="state"></output>
+</main>
+<script>
+    document.getElementById("origin").textContent = location.origin;
+    function readDemoState() {
+        const storage = localStorage.getItem("seed055") === "1";
+        const cookie = document.cookie.split("; ").includes("seed055=1");
+        document.getElementById("state").textContent =
+            "Local storage: " + (storage ? "present" : "absent") +
+            " | Cookie: " + (cookie ? "present" : "absent");
+        return Number(storage) + 2 * Number(cookie);
+    }
+    readDemoState();
+</script>
+</body>
+</html>

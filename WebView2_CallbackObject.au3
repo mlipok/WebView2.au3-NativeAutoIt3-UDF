@@ -72,7 +72,8 @@ Global Enum _
 
 Global Const $__WEBVIEW2_ASYNC_REQUEST_CAPACITY = 32
 Global Const $__WEBVIEW2_CB_ASYNC_BASE = $__WEBVIEW2_CB_COUNT
-Global Const $__WEBVIEW2_CB_TOTAL = $__WEBVIEW2_CB_COUNT + $__WEBVIEW2_ASYNC_REQUEST_CAPACITY
+Global Const $__WEBVIEW2_CB_PROFILE_DATA_BASE = $__WEBVIEW2_CB_ASYNC_BASE + $__WEBVIEW2_ASYNC_REQUEST_CAPACITY
+Global Const $__WEBVIEW2_CB_TOTAL = $__WEBVIEW2_CB_PROFILE_DATA_BASE + $WEBVIEW2_MAX_INSTANCES
 Global $__g_aWebView2_Callbacks[$__WEBVIEW2_CB_TOTAL][$__WEBVIEW2_CB_FIELDS]
 
 ; #INTERNAL_USE_ONLY# ===========================================================================================================
