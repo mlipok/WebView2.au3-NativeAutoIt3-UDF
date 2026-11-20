@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebView2 navigation metadata</title>
+<style>
+    body { margin: 2rem; color: #183046; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 48rem; }
+    iframe { width: 100%; height: 9rem; border: 1px solid #6185a8; }
+</style>
+</head>
+<body>
+<main>
+    <h1>Navigation start metadata</h1>
+    <p id="document">First document</p>
+    <p>The AutoIt panel logs the navigation ID, kind and request headers for this page and the embedded frame.</p>
+    <iframe src="frame.html" title="Local frame navigation"></iframe>
+</main>
+<script>
+    if (location.search === '?document=2') document.getElementById('document').textContent = 'Second document';
+</script>
+</body>
+</html>

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Applications can read navigation IDs, kinds and request headers when a page or frame starts navigating. Example 054 shows the data in the operation log.
+
+- Fixed a crash when leaving a page containing a tracked iframe.
+
 - Applications can receive native notifications when WebView2 changes its address or zoom, or gains or loses focus. Example 053 logs all four events.
 
 - Applications can inspect WebView2 context-menu requests, suppress the menu for a request or add a custom command. Example 052 demonstrates copying a link address from the native menu.

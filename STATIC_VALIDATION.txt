@@ -1,3 +1,10 @@
+# 2026-11-20: NET-06 native navigation start metadata and example 054
+
+- Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 054. Project structure validation passed.
+- Hidden x86 and x64 runs verified request headers, frame metadata, matching top-level start and completion IDs, NewDocument/Reload/BackOrForward, legacy cancellation and rejection of reads outside an active start callback.
+- A separate baseline reproduced a breakpoint while leaving a page with a tracked iframe. The final x86 and x64 runs passed repeated iframe teardown after removing the Frame7 unsubscription call from the already destroyed frame's event.
+- Older Runtime behavior and external redirects were outside the verification scope.
+
 # 2026-11-20: NET-04 native source, zoom and focus events
 
 - Au3Check 3.3.18.0 reported 0 errors and 0 warnings for the public UDF and example 053. Project structure validation passed.

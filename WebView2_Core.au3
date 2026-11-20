@@ -98,6 +98,7 @@ Global Const $__WEBVIEW2_TAG_MSG = "struct;hwnd hwnd;uint message;wparam wParam;
 #include "WebView2_Process.au3"
 #include "WebView2_ContextMenu.au3"
 #include "WebView2_ViewEvents.au3"
+#include "WebView2_NavigationMetadata.au3"
 #include "WebView2_Permission.au3"
 #include "WebView2_ScriptDialog.au3"
 #include "WebView2_Frame.au3"
@@ -1588,6 +1589,7 @@ EndFunc   ;==>_WebView2_OpenDevToolsWindow
 ;                  Permission callbacks must return promptly and must not call blocking WebView2 helpers.
 ;                  An invalid return value leaves the Runtime's default permission handling unchanged.
 ;                  The optional array's False saveInProfile requires PermissionRequestedEventArgs3.
+;                  NavigationStarting callbacks may call _WebView2_GetNavigationStartingMetadata() for the active event.
 ; Related .......: _WebView2_Create, _WebView2_Tab_Create
 ; Link ..........:
 ; Example .......: Yes
@@ -2729,7 +2731,7 @@ Func __WebView2_NavigationStarting_Invoke($pSelf, $pSender, $pArgs)
 		Local $fnCallback = $__g_aWebView2_Instances[$iSlot][$__WEBVIEW2_INSTANCE_CB_NAV_START]
 		If IsFunc($fnCallback) Then
 			__WebView2_Trace("NAV_START 07 USER CALLBACK ENTER")
-			Local $vCancel = Call($fnCallback, $iSlot, $sURI, $bUserInitiated, $bRedirected)
+			Local $vCancel = __WebView2_NavigationMetadata_Dispatch($fnCallback, $iSlot, -1, $oArgs, $pArgs, $sURI, $bUserInitiated, $bRedirected)
 			Local $iCallbackError = @error
 			__WebView2_Trace("NAV_START 08 USER CALLBACK LEAVE error=" & $iCallbackError & " cancel=" & $vCancel)
 			If Not $iCallbackError And $vCancel Then $oArgs.put_Cancel(True)

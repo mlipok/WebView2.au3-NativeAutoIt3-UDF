@@ -570,8 +570,7 @@ Func __WebView2_FrameDestroyed_Invoke($pSelf, $pSender, $pArgs)
 			If IsObj($oFrame3) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN] Then $oFrame3.remove_PermissionRequested($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_PERMISSION_TOKEN])
 			Local $oFrame6 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT6]
 			If IsObj($oFrame6) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN] Then $oFrame6.remove_ScreenCaptureStarting($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CAPTURE_TOKEN])
-			Local $oFrame7 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT7]
-			If IsObj($oFrame7) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN] Then $oFrame7.remove_FrameCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_CHILD_TOKEN])
+			; Frame7 child creation ends with the parent. Releasing its wrapper avoids calling remove_FrameCreated on an already destroyed frame.
 			Local $oFrame8 = $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_OBJECT8]
 			If IsObj($oFrame8) And $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN] Then $oFrame8.remove_DedicatedWorkerCreated($__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_WORKER_TOKEN])
 			For $i = 0 To $__WEBVIEW2_FRAME_FIELDS - 1
@@ -742,7 +741,8 @@ Func __WebView2_FrameNavStart_Invoke($pSelf, $pSender, $pArgs)
 		Local $sURI = __WebView2_CoTaskMemString_ReadAndFree($pURI)
 		$oArgs.get_IsUserInitiated($bUserInitiated)
 		$oArgs.get_IsRedirected($bRedirected)
-		Local $vCancel = Call($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], $sURI, $bUserInitiated, $bRedirected)
+		Local $vCancel = __WebView2_NavigationMetadata_Dispatch($fnCallback, $iView, $__g_aWebView2_Frames[$iSlot][$__WEBVIEW2_FRAME_ID], _
+				$oArgs, $pArgs, $sURI, $bUserInitiated, $bRedirected)
 		If Not @error And $vCancel Then $oArgs.put_Cancel(True)
 	Until True
 	Return $WEBVIEW2_S_OK
