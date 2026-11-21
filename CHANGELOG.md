@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Applications can register CSS for new documents and unregister the style by ID. Example 057 shows the effect after reloading the current page or navigating to another page.
+
 - Example 056 opens XLS and XLSX workbooks offline, edits cells in the selected worksheet and saves a separate copy in the original format.
 
 - Applications can clear selected browsing data across a WebView2 profile, optionally for a UTC time range. Example 055 shows the operation result and remaining data at two origins.

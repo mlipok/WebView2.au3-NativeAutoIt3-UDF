@@ -1,5 +1,9 @@
 # Examples and upstream copy/adaptation
 
+## 057_PersistentCss.au3
+
+[Example 057](../examples/057_PersistentCss.au3) works offline. It opens a blue card in document A. Click **Register CSS**, then **Reload** to turn the current page green. Use **Navigate to B** or **Navigate to A** to see the style on another page. Click **Remove CSS** to unregister the returned ID. The loaded card stays green until **Reload** or a new navigation restores the blue card. The log shows the ID, style count and computed background. Pass `--smoke` to exercise the navigation and registration lifecycle without opening a visible window. The full manual layout and button sequence remain WIP.
+
 ## 056_ReactSpreadsheet.au3
 
 [Example 056](../examples/056_ReactSpreadsheet.au3) opens unencrypted XLS and XLSX workbooks in WebView2, lets you select a worksheet and edit cell values, and saves a separate copy in the input format. Follow the [example setup and licenses](../examples/assets/native/056-spreadsheet/README.md#set-up-the-offline-dependencies) to download React and ReactDOM (MIT) and SheetJS Community Edition (Apache 2.0). The example runs offline once the scripts are in the local vendor/ folder.
