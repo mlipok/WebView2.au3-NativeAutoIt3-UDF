@@ -14,6 +14,10 @@
 ; Remarks .......: Provides CDP, cookies, screenshot/PDF, frames, ad blocking, extensions and initialization-script helpers.
 ; ===============================================================================================================================
 
+Global $__g_oWebView2_CssRegistrationCore = Null, $__g_pWebView2_CssRegistrationCore = 0
+Global $__g_bWebView2_CssRegistrationDone = False, $__g_bWebView2_CssRegistrationAbandoned = False
+Global $__g_iWebView2_CssRegistrationResult = 0, $__g_sWebView2_CssRegistrationId = ""
+
 Global $__g_aWebView2_AdBlockEnabled[$WEBVIEW2_MAX_INSTANCES]
 Global Const $__WEBVIEW2_ADBLOCK_MAX_RULES = 64
 Global $__g_aWebView2_AdBlockRules[$WEBVIEW2_MAX_INSTANCES][$__WEBVIEW2_ADBLOCK_MAX_RULES]
@@ -237,6 +241,187 @@ Func _WebView2_RemoveInitializationScript($iWebView, $sScriptId)
 	If $__WebView2ExitError And $__g_iWebView2_LastError <> $__WebView2ExitError Then __WebView2_Error($sFuncName, $__WebView2ExitError, $sMessage, $__WebView2ExitExtended)
 	Return SetError($__WebView2ExitError, $__WebView2ExitExtended, $__WebView2ExitValue)
 EndFunc   ;==>_WebView2_RemoveInitializationScript
+
+; #FUNCTION# ==============================================================================================================
+; Name...........: _WebView2_AddPersistentCss
+; Description....: Registers CSS for future documents in a WebView.
+; Syntax.........: _WebView2_AddPersistentCss($iWebView, $sCss[, $iTimeoutMs = 30000])
+; Parameters.....: $iWebView - WebView instance ID.
+;                  $sCss - Non-empty CSS text.
+;                  $iTimeoutMs - Registration wait in milliseconds. Rollback can add up to one second.
+; Return values..: On Success - Native registration ID as a string.
+;                  On Failure - Empty string and sets @error to:
+;                    $WEBVIEW2_ERR_INVALID_INSTANCE - Invalid or closed WebView.
+;                    $WEBVIEW2_ERR_INVALID_PARAMETER - Invalid CSS text or timeout.
+;                    $WEBVIEW2_ERR_BUSY - A CSS registration is pending.
+;                    $WEBVIEW2_ERR_CALLBACK - Callback creation failed; @extended gives the stage.
+;                    $WEBVIEW2_ERR_HRESULT - Registration failed; @extended contains the native result.
+;                    $WEBVIEW2_ERR_TIMEOUT - Registration wait elapsed.
+;                    $WEBVIEW2_ERR_USER_ABORT - The sleep callback cancelled the wait; @extended contains its error.
+; Author.........: mLipok
+; Modified.......:
+; Remarks........: Only new top-level HTML documents are styled, subject to page policy.
+;                  Repeated registrations are independent. Call outside native WebView2 callbacks.
+; Related........: _WebView2_RemovePersistentCss, _WebView2_InjectCss
+; Link...........: https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2#addscripttoexecuteondocumentcreated
+; Example........: Yes
+; ===============================================================================================================================
+Func _WebView2_AddPersistentCss($iWebView, $sCss, $iTimeoutMs = 30000)
+	Local $vFailure
+	If Not __WebView2_Instance_IsValid($iWebView) Then
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_INVALID_INSTANCE, 0, "Invalid WebView2 instance.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+	If Not IsString($sCss) Or StringStripWS($sCss, $STR_STRIPALL) = "" Or StringInStr($sCss, Chr(0)) Or Not IsInt($iTimeoutMs) Or $iTimeoutMs < 1 Then
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Expected non-empty CSS without NUL characters and a positive timeout.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+	If IsObj($__g_oWebView2_CssRegistrationCore) Then
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_BUSY, 0, "Another CSS registration is pending.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+
+	Local $pCallback = __WebView2_Callback_GetPointer($__WEBVIEW2_CB_CSS_REGISTRATION)
+	If Not $pCallback Then
+		$pCallback = __WebView2_Callback_Create($__WEBVIEW2_CB_CSS_REGISTRATION, __WebView2_CssRegistration_Completed, "ptr;long;wstr")
+		If @error Or Not $pCallback Then
+			$vFailure = __WebView2_Fail($WEBVIEW2_ERR_CALLBACK, @extended, "Could not create the CSS registration callback.", "")
+			Return SetError(@error, @extended, $vFailure)
+		EndIf
+	EndIf
+
+	Local $sScript = "(()=>{if(window!==window.top)return;" & _
+			"const apply=()=>{if(!document.head||document.head.namespaceURI!=='http://www.w3.org/1999/xhtml')return;" & _
+			"const style=document.createElementNS('http://www.w3.org/1999/xhtml','style');" & _
+			"style.textContent=" & __WebView2_JavaScript_StringLiteral($sCss) & ";document.head.appendChild(style);};" & _
+			"if(document.head)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});})()"
+	Local $pCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE_POINTER]
+	$__g_oWebView2_CssRegistrationCore = $__g_aWebView2_Instances[$iWebView][$__WEBVIEW2_INSTANCE_CORE]
+	$__g_pWebView2_CssRegistrationCore = $pCore
+	$__g_bWebView2_CssRegistrationDone = False
+	Local $iHRESULT = $__g_oWebView2_CssRegistrationCore.AddScriptToExecuteOnDocumentCreated($sScript, $pCallback)
+	If @error Or $iHRESULT <> $WEBVIEW2_S_OK Then
+		__WebView2_CssRegistration_Reset()
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $iHRESULT, "Persistent CSS registration could not start.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+
+	Local $bDone = __WebView2_WaitForFlag($__g_bWebView2_CssRegistrationDone, $iTimeoutMs)
+	Local $iWaitError = @error, $iWaitExtended = @extended
+	If $__g_pWebView2_CssRegistrationCore <> $pCore Then
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_INVALID_INSTANCE, 0, "WebView2 closed during CSS registration.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+	If Not $bDone Then
+		; Keep the callback slot reserved until a late completion can remove the native registration.
+		$__g_bWebView2_CssRegistrationAbandoned = True
+		If $__g_bWebView2_CssRegistrationDone Then __WebView2_CssRegistration_Completed($pCallback, $__g_iWebView2_CssRegistrationResult, $__g_sWebView2_CssRegistrationId)
+		; Allow the native callback to finish rolling back before the caller starts a navigation.
+		Local Const $iRollbackWaitMs = 1000
+		Local $hRollback = TimerInit()
+		While $__g_pWebView2_CssRegistrationCore = $pCore And TimerDiff($hRollback) < $iRollbackWaitMs
+			__WebView2_PumpMessages()
+			Sleep(1)
+		WEnd
+		If $iWaitError Then
+			$vFailure = __WebView2_Fail($iWaitError, $iWaitExtended, "Persistent CSS registration wait was cancelled.", "")
+			Return SetError(@error, @extended, $vFailure)
+		EndIf
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_TIMEOUT, 0, "Persistent CSS registration timed out.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+
+	$iHRESULT = $__g_iWebView2_CssRegistrationResult
+	Local $sId = $__g_sWebView2_CssRegistrationId
+	__WebView2_CssRegistration_Reset()
+	If __WebView2_Instance_FindByCorePointer($pCore) <> $iWebView Then
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_INVALID_INSTANCE, 0, "WebView2 closed during CSS registration.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+	If $iHRESULT <> $WEBVIEW2_S_OK Or $sId = "" Then
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_HRESULT, $iHRESULT, "Persistent CSS registration failed.", "")
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+	Return SetError(0, 0, $sId)
+EndFunc   ;==>_WebView2_AddPersistentCss
+
+; #FUNCTION# ==============================================================================================================
+; Name...........: _WebView2_RemovePersistentCss
+; Description....: Unregisters CSS for future documents by its registration ID.
+; Syntax.........: _WebView2_RemovePersistentCss($iWebView, $sId)
+; Parameters.....: $iWebView - The same WebView instance used for registration.
+;                  $sId - Native registration ID from _WebView2_AddPersistentCss().
+; Return values..: On Success - True if WebView2 accepted the removal request.
+;                  On Failure - False and sets @error to $WEBVIEW2_ERR_INVALID_PARAMETER for an invalid ID value.
+;                  Propagates @error and @extended from _WebView2_RemoveInitializationScript().
+; Author.........: mLipok
+; Modified.......:
+; Remarks........: An already loaded page keeps its style until reloaded or left. IDs are scoped to their WebView.
+; Related........: _WebView2_AddPersistentCss, _WebView2_RemoveInitializationScript
+; Link...........:
+; Example........: Yes
+; ===============================================================================================================================
+Func _WebView2_RemovePersistentCss($iWebView, $sId)
+	Local $vFailure
+	If Not IsString($sId) Or $sId = "" Or StringInStr($sId, Chr(0)) Then
+		$vFailure = __WebView2_Fail($WEBVIEW2_ERR_INVALID_PARAMETER, 0, "Expected the persistent CSS ID returned for this WebView.", False)
+		Return SetError(@error, @extended, $vFailure)
+	EndIf
+	Local $bRemoved = _WebView2_RemoveInitializationScript($iWebView, $sId)
+	Return SetError(@error, @extended, $bRemoved)
+EndFunc   ;==>_WebView2_RemovePersistentCss
+
+; #INTERNAL_USE_ONLY# ==============================================================================================================
+; Name...........: __WebView2_CssRegistration_Completed
+; Description....: Receives the isolated native CSS registration completion.
+; Syntax.........: __WebView2_CssRegistration_Completed($pSelf, $iHRESULT, $sId)
+; Parameters.....: $pSelf - Native callback pointer.
+;                  $iHRESULT - Native completion status.
+;                  $sId - Native initialization-script ID.
+; Return values..: $WEBVIEW2_S_OK.
+; Author.........: mLipok
+; Modified.......:
+; Remarks........: Rolls back registrations that complete after an abandoned wait.
+; Related........: __WebView2_CssRegistration_Reset
+; Link...........:
+; Example........: No
+; ===============================================================================================================================
+Func __WebView2_CssRegistration_Completed($pSelf, $iHRESULT, $sId)
+	#forceref $pSelf
+	If Not IsObj($__g_oWebView2_CssRegistrationCore) Then Return $WEBVIEW2_S_OK
+	If $__g_bWebView2_CssRegistrationAbandoned Then
+		If $iHRESULT = $WEBVIEW2_S_OK And $sId <> "" And __WebView2_Instance_FindByCorePointer($__g_pWebView2_CssRegistrationCore) >= 0 Then _
+				$__g_oWebView2_CssRegistrationCore.RemoveScriptToExecuteOnDocumentCreated($sId)
+		__WebView2_CssRegistration_Reset()
+	Else
+		$__g_iWebView2_CssRegistrationResult = $iHRESULT
+		$__g_sWebView2_CssRegistrationId = $sId
+		$__g_bWebView2_CssRegistrationDone = True
+	EndIf
+	Return $WEBVIEW2_S_OK
+EndFunc   ;==>__WebView2_CssRegistration_Completed
+
+; #INTERNAL_USE_ONLY# ==============================================================================================================
+; Name...........: __WebView2_CssRegistration_Reset
+; Description....: Releases the pending CSS registration state.
+; Syntax.........: __WebView2_CssRegistration_Reset()
+; Parameters.....: None.
+; Return values..: None.
+; Author.........: mLipok
+; Modified.......:
+; Remarks........:
+; Related........: __WebView2_CssRegistration_Completed
+; Link...........:
+; Example........: No
+; ===============================================================================================================================
+Func __WebView2_CssRegistration_Reset()
+	$__g_oWebView2_CssRegistrationCore = Null
+	$__g_pWebView2_CssRegistrationCore = 0
+	$__g_bWebView2_CssRegistrationDone = True
+	$__g_bWebView2_CssRegistrationAbandoned = False
+	$__g_iWebView2_CssRegistrationResult = 0
+	$__g_sWebView2_CssRegistrationId = ""
+EndFunc   ;==>__WebView2_CssRegistration_Reset
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WebView2_CapturePreviewAsBase64

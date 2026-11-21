@@ -308,6 +308,7 @@ Func _WebView2_Cleanup()
 	$__g_iWebView2_PendingCreateSlot = -1
 	$__g_bWebView2_ScriptBusy = False
 	__WebView2_Async_Cleanup()
+	__WebView2_CssRegistration_Reset()
 
 	__WebView2_Trace("CLEANUP 04 Callback objects DELETE START")
 	__WebView2_Callback_DeleteAll()

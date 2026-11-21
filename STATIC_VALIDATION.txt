@@ -1,3 +1,16 @@
+# 2026-11-21: Reload action in example 057
+
+- Added a Reload button that uses the native WebView2 reload helper and reports the resulting style through the existing operation log.
+- Tidy formatted the explicit example path and exited with eight nested relative-include warnings. Au3Check 3.3.18.0 resolved the includes and reported 0 errors and 0 warnings. UTF-8 without BOM, CRLF and project structure validation passed.
+- Hidden x86 and x64 WebView2 runs verified two reloads on unchanged URLs. Registered CSS appeared after the first reload and disappeared after unregistering the final ID and reloading. The user separately confirmed F5 in the visible example. The added button was exercised through the same action helper in smoke tests.
+
+# 2026-11-20: NET-08 persistent CSS and example 057
+
+- Added opt-in persistent CSS registration and removal by a native WebView2 ID. The scope is future top-level HTML documents of the same view. The existing current-document CSS and public initialization-script helpers retain their previous behavior.
+- Tidy checked the four explicit source paths and all processes exited. The example scan reported the known eight nested relative-include warnings. Au3Check 3.3.18.0 resolved the includes and reported 0 errors and 0 warnings for the public include and example 057. Changed AutoIt files are UTF-8 without BOM and CRLF. Project structure validation passed.
+- Two hidden smoke runs each on AutoIt x86 and x64 verified application across fresh navigations, stable current documents on add and remove, independent IDs for duplicate registrations, single-ID removal, absence after the last removal, invalid inputs, cancellation and rollback, one-shot CSS, and no style carry-over on WebView recreation.
+- Preliminary child-frame probing on the installed Runtime did not apply persistent CSS to a dynamic iframe. The delivered API limits application to main documents. Visible layout, the manual button sequence, restrictive page policies, and older Runtime versions remain outside the verified scope.
+
 # 2026-11-20: offline spreadsheet editor and example 056
 
 - Au3Check 3.3.18.0 reported 0 errors and 0 warnings. JavaScript syntax and project structure checks passed.

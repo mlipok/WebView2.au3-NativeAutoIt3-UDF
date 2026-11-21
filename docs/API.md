@@ -426,6 +426,13 @@ These functions are implemented with `ICoreWebView2::ExecuteScript()` inside the
 - `_WebView2_AddInitializationScript()`
 - `_WebView2_RemoveInitializationScript()`
 
+### Persistent CSS
+
+- `_WebView2_AddPersistentCss($iWebView, $sCss[, $iTimeoutMs = 30000])` registers nonempty CSS for future top-level HTML documents in the given WebView. It returns an opaque native registration ID or an empty string with @error on failure. Wait for the result before navigating. Call it from the host loop because registration waits for native completion. A cancelled or timed-out registration is rolled back on native completion. If completion is still pending after the additional rollback wait of up to one second, close the view to discard its pending registration before navigating.
+- `_WebView2_RemovePersistentCss($iWebView, $sId)` asks WebView2 to unregister the returned ID. Use the same WebView instance and treat IDs as opaque. The function returns True when WebView2 accepts the request. Separate calls register separate styles, even when the CSS text matches.
+
+Registration and removal take effect on a fresh document. Removal leaves style elements already inserted in loaded documents. Navigate or reload to see the difference. The Runtime's page policies, including Content Security Policy, can limit application of the style. The existing `_WebView2_InjectCss()` helper continues to apply CSS to the current document. See [example 057](../examples/057_PersistentCss.au3) and the [native script registration reference](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2#addscripttoexecuteondocumentcreated).
+
 ### Screenshot / preview
 - `_WebView2_CapturePreviewAsBase64()`
 - `_WebView2_CapturePreviewBinary()`
